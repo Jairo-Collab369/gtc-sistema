@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTC — Sistema Integrado</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size:15px;min-height:100vh}
+.header{background:#141414;border-bottom:1px solid #C9A84C44;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.logo{width:36px;height:36px;border-radius:50%;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0A0A0A;flex-shrink:0}
+.brand{font-size:14px;font-weight:700;color:#E8C96A;letter-spacing:1px}
+.sub{font-size:11px;color:#666}
+.wrap{max-width:100%;padding:16px}
+.steps{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid #2A2A2A}
+.step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:600;color:#555;background:#141414;border-right:1px solid #2A2A2A;cursor:default;transition:all .2s;letter-spacing:.5px}
+.step:last-child{border-right:none}
+.step.active{background:#C9A84C18;color:#E8C96A;border-bottom:2px solid #C9A84C}
+.step.done{color:#4CAF50}
+.step-num{display:block;font-size:16px;margin-bottom:2px}
+.panel{display:none}.panel.active{display:block}
+.sec{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:1px;margin-bottom:10px;margin-top:20px;padding-bottom:6px;border-bottom:1px solid #2A2A2A}
+.lbl{font-size:13px;color:#999;margin-bottom:5px}
+input,select,textarea{display:block;width:100%;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#F0F0F0;padding:11px 13px;font-size:15px;margin-bottom:14px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:36px}
+textarea{min-height:70px;resize:vertical}
+input.ro{background:#141414;border-color:#222;color:#666}
+.btn{width:100%;padding:14px;background:#C9A84C;color:#000;border:none;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:12px;font-family:inherit;touch-action:manipulation}
+.btn:active{background:#b8943d}
+.btn-sec{background:#1C1C1C;color:#C9A84C;border:1px solid #C9A84C44}
+.btn-sm{padding:10px;font-size:13px;margin-bottom:8px}
+.err{color:#E07B39;font-size:13px;margin-bottom:16px;padding:10px;background:#E07B3915;border-radius:8px}
+.info-card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px;margin-bottom:14px}
+.info-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #1E1E1E;gap:8px}
+.info-row:last-child{border-bottom:none}
+.info-row .l{color:#888;flex:1}.info-row .r{color:#F0F0F0;text-align:right;font-size:12px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:#4CAF5022;color:#4CAF50;border:1px solid #4CAF5044}
+.badge-warn{background:#E07B3922;color:#E07B39;border:1px solid #E07B3944}
+.cliente-card{background:#141414;border:1px solid #333;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s}
+.cliente-card:hover{border-color:#C9A84C44}
+.cliente-card.selected{border-color:#C9A84C;background:#C9A84C08}
+.cliente-nombre{font-size:14px;font-weight:600;color:#F0F0F0;margin-bottom:4px}
+.cliente-nit{font-size:12px;color:#666}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:14px;background:#161616;border-radius:8px;border:1px solid #2A2A2A;cursor:pointer;touch-action:manipulation}
+.toggle-row span{font-size:13px;color:#999;flex:1;line-height:1.4;margin-right:12px}
+.toggle{width:44px;height:26px;min-width:44px;background:#333;border-radius:13px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#C9A84C}
+.toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
+.toggle.on::after{left:21px}
+.mode-sel{display:flex;gap:8px;margin-bottom:14px}
+.mode-btn{flex:1;padding:10px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#888;font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation;text-align:center}
+.mode-btn.active{border-color:#C9A84C;background:#C9A84C18;color:#E8C96A;font-weight:600}
+.prod-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px}
+.prod-table th{background:#1a1a1a;color:#C9A84C;font-size:11px;padding:8px 6px;text-align:left;font-weight:600}
+.prod-table td{padding:6px 4px;border-bottom:1px solid #1E1E1E;vertical-align:middle}
+.prod-table td input{margin-bottom:0;padding:8px;font-size:13px}
+.del-btn{background:#E07B3922;border:1px solid #E07B3944;color:#E07B39;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;font-family:inherit;touch-action:manipulation}
+.add-btn{background:#C9A84C18;border:1px solid #C9A84C44;color:#C9A84C;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:14px;touch-action:manipulation;display:block;width:100%}
+.totales-card{background:#141414;border:1px solid #C9A84C44;border-radius:10px;padding:14px;margin-bottom:14px}
+.tot-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid #1E1E1E}
+.tot-row .l{color:#888}.tot-row .r{color:#F0F0F0}
+.tot-row.total .l{color:#C9A84C;font-weight:600}.tot-row.total .r{color:#E8C96A;font-weight:700;font-size:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media print{.no-print{display:none!important}.header{display:none}.wrap{padding:0}}
+.doc{font-family:Arial,sans-serif;font-size:11px;color:#222;background:#fff;padding:20px;border-radius:10px;margin-top:16px}
+.doc-header{background:#000;color:#c9a84c;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:6px;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.doc-gtco{font-size:26px;font-weight:bold;letter-spacing:3px;color:#c9a84c}
+.doc-sub-h{font-size:9px;opacity:.8;margin-top:2px}
+.doc-orden{font-size:20px;font-weight:bold;color:#c9a84c}
+.doc-badge{display:inline-block;background:#c9a84c;color:#000;padding:2px 8px;border-radius:3px;font-weight:bold;font-size:8px;margin-top:4px}
+.doc-meta{text-align:right;font-size:10px;line-height:1.8}
+.doc h2{background:#1a3a5c;color:white;padding:5px 10px;font-size:10px;margin:12px 0 6px;border-radius:3px;letter-spacing:1px}
+.doc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.doc-card{border:1px solid #ddd;border-radius:4px;padding:8px}
+.doc-card-title{font-weight:bold;color:#1a3a5c;font-size:9px;margin-bottom:5px;text-transform:uppercase;border-bottom:1px solid #eee;padding-bottom:2px}
+.doc-row{display:flex;justify-content:space-between;margin-bottom:2px;gap:6px;font-size:10px}
+.doc-lbl{color:#888;white-space:nowrap}
+.doc-table{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:10px}
+.doc-table th{background:#1a3a5c;color:white;padding:4px 6px;text-align:left}
+.doc-table td{padding:3px 6px;border-bottom:1px solid #f0f0f0}
+.doc-tr-sub td{background:#f8f9fa;font-weight:bold;border-top:1px solid #ddd}
+.doc-tr-facial td{background:#000;color:#c9a84c;font-weight:bold;font-size:11px}
+.doc-liq-neg{color:#dc3545}
+.doc-liq-bold td{font-weight:bold;background:#eaf4fd}
+.doc-liq-total td{font-weight:bold;background:#1a3a5c;color:white}
+.doc-liq-ingreso td{font-weight:bold;background:#d4edda;color:#28a745;font-size:12px;padding:5px}
+.doc-firmas{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:40px}
+.doc-firma-line{border-top:1px solid #333;padding-top:6px;margin-top:35px;font-size:10px}
+.doc-footer{margin-top:16px;text-align:center;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:6px}
+.doc-ref{background:#f8f9fa;border:1px solid #ddd;border-left:3px solid #1a3a5c;border-radius:4px;padding:8px;font-size:10px;color:#555;margin-bottom:8px;line-height:1.5}
+.cm-doc{font-family:Arial,sans-serif;font-size:11px;color:#222;background:#fff;padding:30px;border-radius:10px;margin-top:16px;line-height:1.6}
+.cm-title{text-align:center;font-size:14px;font-weight:bold;margin-bottom:4px;color:#1a3a5c}
+.cm-sub{text-align:center;font-size:11px;color:#666;margin-bottom:20px}
+.cm-clausula{margin-bottom:12px}
+.cm-clausula-title{font-weight:bold;color:#1a3a5c;margin-bottom:4px}
+.cm-firmas{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px}
+.cm-firma-line{border-top:2px solid #333;padding-top:8px;margin-top:50px;font-size:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="header no-print">
+  <div class="logo">G</div>
+  <div>
+    <div class="brand">GLOBAL TRADE COMMERCE</div>
+    <div class="sub">Sistema Integrado v1.0</div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="steps no-print">
+    <div class="step active" id="step1"><span class="step-num">1</span>CLIENTE</div>
+    <div class="step" id="step2"><span class="step-num">2</span>CONTRATO</div>
+    <div class="step" id="step3"><span class="step-num">3</span>ORDEN</div>
+    <div class="step" id="step4"><span class="step-num">4</span>DOCUMENTO</div>
+  </div>
+
+  <!-- PANEL 1 -->
+  <div id="panel1" class="panel active">
+    <div class="sec">SELECCIONAR CLIENTE</div>
+    <input id="buscar" placeholder="Escriba para filtrar..." oninput="filtrarClientes()">
+    <div id="lista-clientes"></div>
+    <button class="add-btn" onclick="nuevoCliente()">+ Agregar cliente nuevo</button>
+    <div id="nuevo-cliente-form" style="display:none">
+      <div class="sec">NUEVO CLIENTE</div>
+      <div class="lbl">Razón Social</div><input id="nc-nombre" placeholder="Razón Social completa">
+      <div class="lbl">NIT</div><input id="nc-nit" placeholder="XXX.XXX.XXX-X">
+      <div class="lbl">Representante Legal</div><input id="nc-rep" placeholder="Nombre completo">
+      <div class="lbl">Cargo</div><input id="nc-cargo" placeholder="ej. Gerente y Representante Legal">
+      <div class="lbl">Teléfono</div><input id="nc-tel" placeholder="ej. (601) 1234567">
+      <div class="lbl">Dirección</div><input id="nc-dir" placeholder="Dirección completa">
+      <div class="lbl">Ciudad</div><input id="nc-ciudad" placeholder="Ciudad">
+      <div class="lbl">País</div><input id="nc-pais" value="Colombia">
+      <button class="btn" onclick="guardarNuevoCliente()">Guardar cliente</button>
+      <button class="btn btn-sec" onclick="cancelarNuevoCliente()">Cancelar</button>
+    </div>
+    <div id="p1-err" class="err" style="display:none"></div>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div id="panel2" class="panel">
+    <div id="cm-existe" style="display:none">
+      <div class="info-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:600;color:#4CAF50">✓ Contrato Marco vigente</span>
+        </div>
+        <div class="info-row"><span class="l">No. Contrato</span><span class="r" id="cm-numero"></span></div>
+        <div class="info-row"><span class="l">Fecha firma</span><span class="r" id="cm-fecha"></span></div>
+        <div class="info-row"><span class="l">Vigente hasta</span><span class="r" id="cm-vigencia"></span></div>
+      </div>
+      <button class="btn" onclick="irPaso(3)">Continuar a Orden de Operación →</button>
+      <button class="btn btn-sec btn-sm" onclick="verContratoMarco()">Ver contrato marco</button>
+      <button class="btn btn-sec btn-sm" onclick="irPaso(1)">← Volver</button>
+    </div>
+    <div id="cm-nuevo">
+      <div class="info-card" style="border-color:#E07B3944">
+        <span style="color:#E07B39;font-size:13px">⚠ Este cliente no tiene Contrato Marco. Debe generarse antes de la primera Orden de Operación.</span>
+      </div>
+      <div class="sec">DATOS DEL CONTRATO MARCO</div>
+      <div class="lbl">No. de Contrato Marco</div><input id="cm-num-input" placeholder="ej. CM-GTC-001-2026">
+      <div class="lbl">Fecha de firma</div><input type="date" id="cm-fecha-input">
+      <div class="lbl">Ciudad de firma</div><input id="cm-ciudad-firma" value="Medellín">
+      <div class="sec">GARANTÍAS</div>
+      <div class="toggle-row" onclick="toggleGar('pagare')"><span>Pagaré con carta de instrucciones</span><div class="toggle on" id="gar-pagare"></div></div>
+      <div class="toggle-row" onclick="toggleGar('poliza')"><span>Póliza de seguro de crédito</span><div class="toggle" id="gar-poliza"></div></div>
+      <div class="toggle-row" onclick="toggleGar('bmc')"><span>Cupo en Bolsa Mercantil de Colombia</span><div class="toggle" id="gar-bmc"></div></div>
+      <div id="p2-err" class="err" style="display:none"></div>
+      <button class="btn" onclick="generarContratoMarco()">Generar Contrato Marco</button>
+      <button class="btn btn-sec" onclick="irPaso(1)">← Volver</button>
+    </div>
+  </div>
+
+  <!-- PANEL 3 -->
+  <div id="panel3" class="panel">
+    <div class="info-card" id="p3-cliente-info"></div>
+    <div class="sec">DATOS DE LA ORDEN</div>
+    <div class="lbl">No. de Orden de Operación</div><input id="oo-num" placeholder="ej. OO-GTC-001-2026">
+    <div class="grid2">
+      <div><div class="lbl">Fecha</div><input type="date" id="oo-fecha"></div>
+      <div><div class="lbl">Plazo (días)</div><input id="oo-plazo" inputmode="numeric" placeholder="ej. 180"></div>
+    </div>
+    <div class="lbl">Tipo de operación</div>
+    <select id="oo-tipo"><option value="con_recurso">Con recurso</option><option value="sin_recurso">Sin recurso</option></select>
+    <div class="lbl">Proveedor de Liquidez</div>
+    <select id="oo-fond">
+      <option value="">Seleccionar...</option>
+      <option>BMC Miguel Quijano</option><option>BMC Mercado y Bolsa</option>
+      <option>Coltefinanciera</option><option>Integra</option>
+      <option>Cesion Bank</option><option>Servifin</option>
+      <option>Irisbank</option><option>Liquitech</option>
+    </select>
+    <div class="grid2">
+      <div><div class="lbl">No. Factura compra (GTC)</div><input id="oo-fact-compra" placeholder="Por confirmar"></div>
+      <div><div class="lbl">No. Factura venta (cliente)</div><input id="oo-fact-venta" placeholder="Por confirmar"></div>
+    </div>
+
+    <div class="sec">INVENTARIO</div>
+    <div class="lbl">Agregar producto histórico</div>
+    <select id="oo-prod-sel" onchange="onProdSel()"><option value="">Seleccionar producto...</option></select>
+    <div style="overflow-x:auto">
+      <table class="prod-table" id="prod-table">
+        <thead><tr><th>#</th><th>Descripción</th><th>Cantidad</th><th>Vr. Unitario</th><th>IVA%</th><th>Total</th><th></th></tr></thead>
+        <tbody id="prod-body"></tbody>
+      </table>
+    </div>
+    <button class="add-btn" onclick="addProdManual()">+ Agregar producto nuevo</button>
+    <div id="totales-wrap" style="display:none" class="totales-card">
+      <div class="tot-row"><span class="l">Total Bruto</span><span class="r" id="t-bruto"></span></div>
+      <div class="tot-row"><span class="l">IVA</span><span class="r" id="t-iva"></span></div>
+      <div class="tot-row total"><span class="l">VALOR FACIAL FACTURA GTC</span><span class="r" id="t-facial"></span></div>
+    </div>
+
+    <div class="sec">PRELIQUIDACIÓN</div>
+    <div class="lbl">IVA aplicable (%)</div>
+    <select id="oo-iva">
+      <option value="5">5%</option><option value="19">19%</option><option value="0">0%</option>
+    </select>
+    <div class="lbl">Factura cliente (% del facial)</div>
+    <select id="oo-factcl">
+      <option value="96">96.0%</option><option value="96.5">96.5%</option>
+      <option value="97">97.0%</option><option value="97.5">97.5%</option>
+    </select>
+    <div class="lbl" style="margin-bottom:8px">Modalidad de tasa</div>
+    <div class="mode-sel">
+      <button class="mode-btn active" id="oo-mm" onclick="ooSetMode('m')">Mensual × meses</button>
+      <button class="mode-btn" id="oo-ma" onclick="ooSetMode('a')">Anual × días</button>
+    </div>
+    <div id="oo-blk-m">
+      <div class="lbl">Tasa fondeador (% mensual)</div>
+      <input id="oo-tasa" inputmode="decimal" placeholder="ej. 2.0">
+    </div>
+    <div id="oo-blk-a" style="display:none">
+      <div class="lbl">Tasa fondeador (% anual)</div>
+      <input id="oo-tasa-a" inputmode="decimal" placeholder="ej. 16">
+    </div>
+    <div class="lbl">Diferencial GTC (%)</div>
+    <input id="oo-dif" inputmode="decimal" placeholder="ej. 3.0">
+    <div class="lbl">Retefuente</div>
+    <select id="oo-rete">
+      <option value="1.25">1.25%</option><option value="1.5">1.5%</option>
+      <option value="2.5">2.5%</option><option value="0">0%</option>
+    </select>
+    <div class="toggle-row" onclick="toggleOOBolsa()"><span>Registro en bolsa — exento de retefuente</span><div class="toggle" id="oo-tog-bolsa"></div></div>
+    <div class="toggle-row" onclick="toggleOOGmf()"><span>GMF lo asume Global Trade Commerce</span><div class="toggle" id="oo-tog-gmf"></div></div>
+
+    <div class="sec">CONDICIONES</div>
+    <div class="lbl">Condición tributaria</div><input id="oo-tributario" placeholder="ej. Agropecuario — BMC — EXENTO retefuente">
+    <div class="lbl">Garantías</div><input id="oo-garantia" placeholder="ej. Pagaré con carta de instrucciones">
+    <div class="lbl">Observaciones</div><input id="oo-obs" placeholder="ej. NO APLICA RETEFUENTE">
+
+    <div id="p3-err" class="err" style="display:none"></div>
+    <button class="btn" onclick="generarOrden()">Generar Orden de Operación</button>
+    <button class="btn btn-sec" onclick="irPaso(2)">← Volver</button>
+  </div>
+
+  <!-- PANEL 4 -->
+  <div id="panel4" class="panel">
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-sm" style="flex:1" onclick="window.print()">🖨️ Imprimir / PDF</button>
+      <button class="btn btn-sec btn-sm" style="flex:1" onclick="irPaso(3)">← Editar</button>
+      <button class="btn btn-sec btn-sm" style="flex:1" onclick="nuevaOrden()">+ Nueva Orden</button>
+    </div>
+    <div id="doc-output"></div>
+  </div>
+</div>
+
+<script>
+var CLIENTES = {
+  empanorte:{nombre:"CI EMPAQUETADORA DEL NORTE SAS BIC",nit:"900.407.151-7",rep:"ARVEY DUQUE VILLAMIZAR",cargo:"Gerente y Representante Legal",tel:"(607) 5792557",dir:"CL 8N 3 A 90 BRR ZONA INDUSTRIAL I",ciudad:"Cúcuta",pais:"Colombia",
+    contrato:{num:"CM-GTC-001-2026",fecha:"2026-01-15",vigencia:"2028-01-15"},
+    productos:[
+      {desc:"ACEITE CRUDO DE PALMA - CPO -",umd:"KILOGRAMOS",precio:0,iva:5,variable:true},
+      {desc:"ACEITE CRUDO DE PALMA GRANEL",umd:"KILOGRAMOS",precio:0,iva:5,variable:true}
+    ]},
+  meyan:{nombre:"MEYAN S.A.",nit:"800.143.586-1",rep:"BALTAZAR EDUARDO MESA RESTREPO",cargo:"Representante Legal",tel:"(601) 6714357",dir:"CL 153 6 22",ciudad:"Bogotá",pais:"Colombia",
+    contrato:{num:"CM-GTC-002-2026",fecha:"2026-01-20",vigencia:"2028-01-20"},
+    productos:[
+      {desc:'SUBBASE TRITURADO BG 50 FR 2"',umd:"M3",precio:42017,iva:19,variable:false},
+      {desc:'ARENA TRITURADA DE 3/8"',umd:"M3",precio:58824,iva:19,variable:false},
+      {desc:'BASE TRITURADA DE 1 1/2"',umd:"M3",precio:50420,iva:19,variable:false},
+      {desc:"CRUDO DE RIO PARA LA TRITURADORA TELSMITH H2550",umd:"M3",precio:16807,iva:19,variable:false},
+      {desc:'PIEDRA PARA FILTRO TAMAÑO MÁXIMO 3"',umd:"M3",precio:29412,iva:19,variable:false},
+      {desc:'PIEDRA TRITURADA 4"',umd:"M3",precio:37815,iva:19,variable:false},
+      {desc:'TRITURADO DE 1 1/2"',umd:"M3",precio:54622,iva:19,variable:false},
+      {desc:'TRITURADO DE 3/4"',umd:"M3",precio:58823,iva:19,variable:false},
+      {desc:"ACERO ESTRUCTURAS",umd:"KG",precio:12185,iva:19,variable:false}
+    ]},
+  carbones:{nombre:"C.I. CARBONES DEL PORVENIR OTA SAS",nit:"900.852.420-0",rep:"OSCAR TORRADO",cargo:"Representante Legal",tel:"(602) 3188282260",dir:"REPRESA MARGEN IZQUIERDA JURISDICCIÓN ASTILLEROS",ciudad:"Cúcuta",pais:"Colombia",
+    contrato:{num:"CM-GTC-003-2026",fecha:"2026-01-05",vigencia:"2028-01-05"},
+    productos:[
+      {desc:"BOQUILLA CON COLOR JUNTA ESTRECHA",umd:"UND",precio:27324,iva:0,variable:false},
+      {desc:"KIT BAÑO TAO REDONDO SINGLE BLANCO",umd:"UND",precio:234121,iva:0,variable:false},
+      {desc:"KIT BAÑO TAO REDONDO SINGLE MARFIL",umd:"UND",precio:241758,iva:0,variable:false},
+      {desc:"SANITARIO ACUAPLUS ULTRA CON PED CORONA",umd:"UND",precio:210361,iva:0,variable:false},
+      {desc:"CEMENTO CEMEX USO GENERAL",umd:"BULTO",precio:32100,iva:0,variable:false},
+      {desc:"VARILLA G-60 1/2 PULG",umd:"UND",precio:23740,iva:0,variable:false},
+      {desc:"VARILLA G-60 5/8 PULG",umd:"UND",precio:37080,iva:0,variable:false},
+      {desc:"MALLA ELECTROSOLDADA 6X2",umd:"UND",precio:81900,iva:0,variable:false},
+      {desc:"PINTURA INTERIOR LAVABLE TIPO 2 CORONA",umd:"GALON",precio:229900,iva:0,variable:false},
+      {desc:"MORTERO TOPEX SECO PEGA PAÑETES 75KG",umd:"BULTO",precio:48410,iva:0,variable:false}
+    ]},
+  shalom:{nombre:"GRUPO EMPRESARIAL SHALOM GES SAS BIC",nit:"900.664.206-4",rep:"ORLANDO ÁVILA MARTÍNEZ",cargo:"Representante Legal",tel:"(601) 3102587653",dir:"CL 11 17 40",ciudad:"Bogotá",pais:"Colombia",
+    contrato:{num:"CM-GTC-004-2025",fecha:"2025-11-01",vigencia:"2027-11-01"},
+    productos:[
+      {desc:"ATÚN EN ACEITE VEGETAL XOE * 175 GRS",umd:"UND",precio:3900,iva:19,variable:false},
+      {desc:"SALCHICHA RONDA VIENA DE POLLO *150GR",umd:"UND",precio:2700,iva:19,variable:false},
+      {desc:"TAMAL TOLIMENSE RONDA *360GR",umd:"UND",precio:7800,iva:19,variable:false},
+      {desc:"LECHONA TOLIMENSE RONDA *250GR",umd:"UND",precio:9000,iva:19,variable:false},
+      {desc:"JAMONADA RONDA *370GR",umd:"UND",precio:6850,iva:19,variable:false},
+      {desc:"FRIJOL CON CARNE RONDA *220GR",umd:"UND",precio:4750,iva:19,variable:false},
+      {desc:"SARDINAS SABOR DEL PACÍFICO *425GR",umd:"UND",precio:5050,iva:19,variable:false}
+    ]},
+  grandesvias:{nombre:"INVERSIONES GRANDES VÍAS E INGENIERÍA SAS",nit:"830.031.937-1",rep:"JOSÉ SIMEON LUGO",cargo:"Representante Legal",tel:"(601) 4674438",dir:"CL 109 14 B 60 OF 204",ciudad:"Bogotá",pais:"Colombia",
+    contrato:null,
+    productos:[{desc:"VENTA DE CEMENTO GRIS 50KG",umd:"BULTO",precio:30900,iva:19,variable:false}]},
+  tak:{nombre:"INGENIERIA & CONSTRUCCIONES TAK S.A.S.",nit:"901.594.712-2",rep:"JOSÉ SIMEON LUGO",cargo:"Representante Legal",tel:"(602) 3243417273",dir:"CR 57 99 A 65 OF 1007",ciudad:"Barranquilla",pais:"Colombia",
+    contrato:null,
+    productos:[
+      {desc:"CONCRETOS CLASE D, f'c psi (bases) FUNDIDO EN SITIO",umd:"M3",precio:892706,iva:19,variable:false},
+      {desc:'TUBO DE 24" CRUCE DE QUEBRADA',umd:"ML",precio:4950000,iva:19,variable:false},
+      {desc:"CEMENTO ULTRACEM USO GENERAL GRIS 50KG",umd:"BULTO",precio:37683,iva:19,variable:false},
+      {desc:"CABLE MT AL 185mm 15Kv P.HILOS 25mm XLPE PVC",umd:"ML",precio:46193,iva:19,variable:false}
+    ]},
+  metco:{nombre:"METCO SUISSE AG",nit:"CHE271584656",rep:"—",cargo:"Representante Legal",tel:"(51) 14184800",dir:"BAHNHOFSTRASSE 7 6003",ciudad:"Luzern",pais:"Suiza",
+    contrato:null,
+    productos:[{desc:"THE GROUND COPPER STONE WITH A CONCENTRATION OF 5.5%",umd:"TON",precio:0,iva:0,variable:true}]}
+};
+
+var clienteActual=null,productos=[],pidx=0;
+var ooGmfOn=false,ooBolsaOn=false,ooMode="m";
+var garantias={pagare:true,poliza:false,bmc:false};
+
+function cop(n){return "$\u00a0"+Math.round(n).toLocaleString("es-CO");}
+function pn(v){return parseFloat(String(v).trim())||0;}
+function fechaStr(d){
+  var M=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  var dt=new Date(d+"T12:00:00");
+  return dt.getDate()+" de "+M[dt.getMonth()]+" de "+dt.getFullYear();
+}
+function hoy(){return new Date().toISOString().split("T")[0];}
+function genNumOrden(){
+  var d=new Date();
+  var dd=String(d.getDate()).padStart(2,"0");
+  var mm=String(d.getMonth()+1).padStart(2,"0");
+  var yyyy=d.getFullYear();
+  // Consecutivo del día: buscar cuántas órdenes hay hoy
+  var key="oo_consec_"+yyyy+mm+dd;
+  var consec=(parseInt(localStorage.getItem(key)||"0")+1);
+  localStorage.setItem(key,consec);
+  return "OO-GTC-"+String(consec).padStart(2,"0")+dd+mm+"-"+yyyy;
+}
+
+function irPaso(n){
+  for(var i=1;i<=4;i++){
+    document.getElementById("panel"+i).classList.toggle("active",i===n);
+    var s=document.getElementById("step"+i);
+    s.classList.remove("active","done");
+    if(i===n) s.classList.add("active");
+    else if(i<n) s.classList.add("done");
+  }
+  if(n===3&&clienteActual) prepararPaso3();
+  window.scrollTo(0,0);
+}
+
+function renderClientes(filtro){
+  var html="";
+  Object.entries(CLIENTES).forEach(function(e){
+    var id=e[0],c=e[1];
+    if(filtro&&!c.nombre.toLowerCase().includes(filtro.toLowerCase())&&!c.nit.includes(filtro)) return;
+    var ok=c.contrato?true:false;
+    html+="<div class='cliente-card"+(clienteActual===id?" selected":"")+"' onclick='selCliente(\""+id+"\")'>";
+    html+="<div style='display:flex;justify-content:space-between;align-items:center'>";
+    html+="<div><div class='cliente-nombre'>"+c.nombre+"</div><div class='cliente-nit'>NIT: "+c.nit+" &nbsp;·&nbsp; "+c.ciudad+"</div></div>";
+    html+="<span class='badge "+(ok?"badge-ok":"badge-warn")+"'>"+(ok?"Contrato ✓":"Sin contrato")+"</span>";
+    html+="</div></div>";
+  });
+  document.getElementById("lista-clientes").innerHTML=html||"<div style='color:#666;font-size:13px;padding:10px'>No encontrado.</div>";
+}
+
+function filtrarClientes(){renderClientes(document.getElementById("buscar").value);}
+
+function selCliente(id){
+  clienteActual=id;
+  renderClientes(document.getElementById("buscar").value);
+  var c=CLIENTES[id];
+  if(c.contrato){
+    document.getElementById("cm-existe").style.display="block";
+    document.getElementById("cm-nuevo").style.display="none";
+    document.getElementById("cm-numero").textContent=c.contrato.num;
+    document.getElementById("cm-fecha").textContent=fechaStr(c.contrato.fecha);
+    document.getElementById("cm-vigencia").textContent=fechaStr(c.contrato.vigencia);
+  } else {
+    document.getElementById("cm-existe").style.display="none";
+    document.getElementById("cm-nuevo").style.display="block";
+    document.getElementById("cm-fecha-input").value=hoy();
+  }
+  irPaso(2);
+}
+
+function nuevoCliente(){document.getElementById("nuevo-cliente-form").style.display="block";}
+function cancelarNuevoCliente(){document.getElementById("nuevo-cliente-form").style.display="none";}
+function guardarNuevoCliente(){
+  var nombre=document.getElementById("nc-nombre").value.trim();
+  var nit=document.getElementById("nc-nit").value.trim();
+  if(!nombre||!nit){document.getElementById("p1-err").textContent="Nombre y NIT son obligatorios.";document.getElementById("p1-err").style.display="block";return;}
+  var id="cli_"+Date.now();
+  CLIENTES[id]={nombre:nombre,nit:nit,rep:document.getElementById("nc-rep").value.trim(),cargo:document.getElementById("nc-cargo").value.trim(),tel:document.getElementById("nc-tel").value.trim(),dir:document.getElementById("nc-dir").value.trim(),ciudad:document.getElementById("nc-ciudad").value.trim(),pais:document.getElementById("nc-pais").value.trim(),contrato:null,productos:[]};
+  document.getElementById("p1-err").style.display="none";
+  cancelarNuevoCliente();
+  selCliente(id);
+}
+
+function toggleGar(g){garantias[g]=!garantias[g];document.getElementById("gar-"+g).classList.toggle("on",garantias[g]);}
+
+function generarContratoMarco(){
+  var num=document.getElementById("cm-num-input").value.trim();
+  var fecha=document.getElementById("cm-fecha-input").value;
+  var ciudad=document.getElementById("cm-ciudad-firma").value.trim();
+  if(!num||!fecha){document.getElementById("p2-err").textContent="Complete número y fecha.";document.getElementById("p2-err").style.display="block";return;}
+  document.getElementById("p2-err").style.display="none";
+  var fv=new Date(fecha+"T12:00:00");
+  fv.setFullYear(fv.getFullYear()+2);
+  CLIENTES[clienteActual].contrato={num:num,fecha:fecha,vigencia:fv.toISOString().split("T")[0],ciudad:ciudad};
+  irPaso(4);
+  document.getElementById("doc-output").innerHTML=buildCM();
+}
+
+function verContratoMarco(){irPaso(4);document.getElementById("doc-output").innerHTML=buildCM();}
+
+function buildCM(){
+  var c=CLIENTES[clienteActual],cm=c.contrato;
+  var gT=[];
+  if(garantias.pagare) gT.push("Pagaré con carta de instrucciones");
+  if(garantias.poliza) gT.push("Póliza de seguro de crédito");
+  if(garantias.bmc) gT.push("Cupo en Bolsa Mercantil de Colombia");
+  var h="<div class='cm-doc'>";
+  h+="<div class='no-print' style='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap'>";
+  h+="<button class='btn btn-sec btn-sm' style='flex:1' onclick='irPaso(2)'>← Volver</button>";
+  h+="<button class='btn btn-sm' style='flex:1' onclick='window.print()'>🖨️ Imprimir / PDF</button>";
+  h+="<button class='btn btn-sec btn-sm' style='flex:1' onclick='irPaso(3)'>Ir a Orden →</button></div>";
+  h+="<div class='cm-title'>CONTRATO MARCO DE COMPRAVENTA CON PACTO DE RECOMPRA</div>";
+  h+="<div class='cm-sub'>GLOBAL TRADE COMMERCE S.A.S. | "+cm.num+"</div>";
+  h+="<div style='font-size:11px;line-height:1.7;text-align:justify'>";
+  h+="<p style='margin-bottom:12px'>Entre los suscritos: <strong>"+c.rep+"</strong>, actuando como Representante Legal de <strong>"+c.nombre+"</strong>, NIT "+c.nit+", domiciliada en "+c.ciudad+" (el <strong>\"VENDEDOR\"</strong>); y <strong>CAMILA ARENAS ALCARAZ</strong>, C.C. 1.006.293.320, Representante Legal de <strong>GLOBAL TRADE COMMERCE S.A.S.</strong>, NIT 901.648.628-5, domiciliada en Medellín (el <strong>\"COMPRADOR\"</strong>), acordamos suscribir el presente Contrato Marco de Compraventa con Pacto de Recompra.</p>";
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>PRIMERA: OBJETO.-</div><p>El presente Contrato Marco establece los términos y condiciones generales que regularán todas las operaciones de compraventa con pacto de recompra entre las Partes. Cada operación se formalizará mediante una Orden de Operación que hace parte integral del presente Contrato.</p></div>";
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SEGUNDA: GARANTÍAS.-</div><p>Los mecanismos de cobertura del riesgo son: <strong>"+(gT.length>0?gT.join(", "):"Según cada Orden de Operación")+"</strong>.</p></div>";
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>TERCERA: COSTOS Y GMF.-</div><p>El VENDEDOR asumirá todos los costos derivados de cada operación, incluyendo costos financieros del Proveedor de Liquidez, diferencial del COMPRADOR, IVA, retención en la fuente y GMF (4x1000), salvo pacto expreso en contrario en la Orden de Operación.</p></div>";
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>CUARTA: VIGENCIA.-</div><p>El presente Contrato tendrá vigencia de dos (2) años, del <strong>"+fechaStr(cm.fecha)+"</strong> al <strong>"+fechaStr(cm.vigencia)+"</strong>, prorrogable automáticamente por períodos iguales.</p></div>";
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>QUINTA: DECLARACIONES SARLAFT.-</div><p>Las Partes declaran que los recursos no provienen de actividades ilícitas y han realizado los procedimientos de debida diligencia conforme a sus políticas SARLAFT/SAGRILAFT.</p></div>";
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SEXTA: SOLUCIÓN DE CONTROVERSIAS.-</div><p>Las controversias se someterán a arreglo directo (5 días hábiles) y de no lograrse, a arbitraje ante el Centro de Arbitraje de la Cámara de Comercio de Bogotá.</p></div>";
+  h+="</div>";
+  h+="<div class='cm-firmas'><div><div class='cm-firma-line'><strong>"+c.rep+"</strong><br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
+  h+="<div><div class='cm-firma-line'><strong>CAMILA ARENAS ALCARAZ</strong><br>Gerente y Representante Legal<br>GLOBAL TRADE COMMERCE S.A.S.<br>NIT: 901.648.628-5</div></div></div>";
+  h+="<div class='doc-footer'>"+cm.num+" — Suscrito en "+(cm.ciudad||"Medellín")+" el "+fechaStr(cm.fecha)+" — Confidencial</div>";
+  h+="</div>";
+  return h;
+}
+
+function prepararPaso3(){
+  var c=CLIENTES[clienteActual],cm=c.contrato;
+  document.getElementById("p3-cliente-info").innerHTML=
+    "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'><span style='font-size:13px;font-weight:600;color:#E8C96A'>"+c.nombre+"</span><span class='badge badge-ok'>"+cm.num+"</span></div>"+
+    "<div class='info-row'><span class='l'>NIT</span><span class='r'>"+c.nit+"</span></div>"+
+    "<div class='info-row'><span class='l'>Rep. Legal</span><span class='r'>"+c.rep+"</span></div>"+
+    "<div class='info-row'><span class='l'>Contrato Marco</span><span class='r'>"+cm.num+" — "+fechaStr(cm.fecha)+"</span></div>";
+  var ps=document.getElementById("oo-prod-sel");
+  ps.innerHTML="<option value=''>Seleccionar producto...</option>";
+  c.productos.forEach(function(p,i){
+    var o=document.createElement("option");
+    o.value=i; o.textContent=p.desc+(p.variable?" ⚡":"");
+    ps.appendChild(o);
+  });
+  document.getElementById("oo-fecha").value=hoy();
+  document.getElementById("oo-num").value=genNumOrden();
+  productos=[];
+  renderProds();
+}
+
+function ooSetMode(m){
+  ooMode=m;
+  document.getElementById("oo-mm").classList.toggle("active",m==="m");
+  document.getElementById("oo-ma").classList.toggle("active",m==="a");
+  document.getElementById("oo-blk-m").style.display=m==="m"?"block":"none";
+  document.getElementById("oo-blk-a").style.display=m==="a"?"block":"none";
+}
+
+function onProdSel(){
+  var v=document.getElementById("oo-prod-sel").value;
+  if(v==="") return;
+  var p=CLIENTES[clienteActual].productos[parseInt(v)];
+  productos.push({id:pidx++,desc:p.desc,umd:p.umd,qty:"",precio:p.variable?0:p.precio,iva:p.iva,variable:p.variable});
+  renderProds();
+  document.getElementById("oo-prod-sel").value="";
+}
+
+function addProdManual(){
+  productos.push({id:pidx++,desc:"",umd:"",qty:"",precio:0,iva:19,variable:true});
+  renderProds();
+}
+
+function delProd(id){productos=productos.filter(function(p){return p.id!==id;});renderProds();}
+
+function renderProds(){
+  var b=document.getElementById("prod-body");
+  b.innerHTML="";
+  productos.forEach(function(p,i){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td style='color:#888;font-size:12px'>"+(i+1)+"</td>"+
+      "<td><input value='"+(p.desc||"").replace(/'/g,"&#39;")+"' placeholder='Descripción' onchange='productos["+i+"].desc=this.value;recalc()'></td>"+
+      "<td><input inputmode='numeric' value='"+(p.qty||"")+"' placeholder='Cant.' onchange='productos["+i+"].qty=this.value;recalc()' style='max-width:90px'></td>"+
+      "<td><input inputmode='decimal' value='"+(p.precio||"")+"' placeholder='"+(p.variable?"Cotizar":"Precio")+"' onchange='productos["+i+"].precio=parseFloat(this.value)||0;recalc()'></td>"+
+      "<td><input inputmode='decimal' value='"+(p.iva||0)+"' onchange='productos["+i+"].iva=parseFloat(this.value)||0;recalc()' style='max-width:70px'></td>"+
+      "<td id='tot-"+p.id+"' style='color:#E8C96A;font-size:12px;white-space:nowrap'>—</td>"+
+      "<td><button class='del-btn' onclick='delProd("+p.id+")'>✕</button></td>";
+    b.appendChild(tr);
+  });
+  recalc();
+}
+
+function recalc(){
+  var bruto=0,ivaT=0;
+  productos.forEach(function(p){
+    var q=pn(p.qty),pr=pn(p.precio),iv=pn(p.iva);
+    var vb=q*pr,vi=vb*(iv/100);
+    bruto+=vb;ivaT+=vi;
+    var el=document.getElementById("tot-"+p.id);
+    if(el) el.textContent=(q&&pr)?cop(vb+vi):"—";
+  });
+  var facial=bruto+ivaT;
+  var w=document.getElementById("totales-wrap");
+  if(productos.length>0&&facial>0){
+    w.style.display="block";
+    document.getElementById("t-bruto").textContent=cop(bruto);
+    document.getElementById("t-iva").textContent=cop(ivaT);
+    document.getElementById("t-facial").textContent=cop(facial);
+  } else {w.style.display="none";}
+}
+
+function toggleOOBolsa(){ooBolsaOn=!ooBolsaOn;document.getElementById("oo-tog-bolsa").classList.toggle("on",ooBolsaOn);document.getElementById("oo-rete").disabled=ooBolsaOn;}
+function toggleOOGmf(){ooGmfOn=!ooGmfOn;document.getElementById("oo-tog-gmf").classList.toggle("on",ooGmfOn);}
+
+function generarOrden(){
+  var c=CLIENTES[clienteActual],cm=c.contrato;
+  var num=document.getElementById("oo-num").value.trim();
+  var fecha=document.getElementById("oo-fecha").value;
+  var plazo=pn(document.getElementById("oo-plazo").value);
+  var tipo=document.getElementById("oo-tipo").value;
+  var fond=document.getElementById("oo-fond").value;
+  var factComp=document.getElementById("oo-fact-compra").value.trim()||"Por confirmar";
+  var factVenta=document.getElementById("oo-fact-venta").value.trim()||"Por confirmar";
+  var ivaP=pn(document.getElementById("oo-iva").value);
+  var fcP=pn(document.getElementById("oo-factcl").value)/100;
+  var dif=pn(document.getElementById("oo-dif").value);
+  var reteP=pn(document.getElementById("oo-rete").value);
+  var tributario=document.getElementById("oo-tributario").value;
+  var garantia=document.getElementById("oo-garantia").value;
+  var obs=document.getElementById("oo-obs").value;
+  var e=document.getElementById("p3-err");
+
+  // Calcular intereses según modalidad
+  var tasa, tasaLabel, intereses;
+  if(ooMode==="m"){
+    tasa=pn(document.getElementById("oo-tasa").value);
+    if(!tasa){e.textContent="Completa la tasa mensual del fondeador.";e.style.display="block";return;}
+    intereses=0; // se calculará sobre facial después
+    tasaLabel=tasa+"% mensual";
+  } else {
+    tasa=pn(document.getElementById("oo-tasa-a").value);
+    if(!tasa){e.textContent="Completa la tasa anual del fondeador.";e.style.display="block";return;}
+    tasaLabel=tasa+"% anual × "+plazo+" días";
+  }
+
+  if(!num||!fecha||!plazo||!fond||!dif||productos.length===0){
+    e.textContent="Completa todos los campos obligatorios.";e.style.display="block";return;
+  }
+  e.style.display="none";
+
+  var bruto=0,ivaT=0;
+  var prodsData=productos.map(function(p,i){
+    var q=pn(p.qty),pr=pn(p.precio),iv=pn(p.iva);
+    var vb=q*pr,vi=vb*(iv/100);
+    bruto+=vb;ivaT+=vi;
+    return {idx:i+1,desc:p.desc,qty:q.toLocaleString("es-CO"),precio:pr,iva:iv,vbruto:vb,viva:vi,vtotal:vb+vi};
+  });
+  var facial=bruto+ivaT;
+
+  // Calcular intereses sobre facial
+  if(ooMode==="m"){
+    intereses=facial*(tasa/100);
+  } else {
+    intereses=facial*(tasa/100)*(plazo/365);
+  }
+
+  var iva=ivaP/100;
+  var girarF=facial-intereses;
+  var factGTC=facial,factGTCsi=facial/(1+iva),ivaGTC=factGTC-factGTCsi;
+  var factCl=facial*fcP,factClSi=factCl/(1+iva),ivaCl=factCl-factClSi;
+  var difVal=factGTC-factCl,ivaDesc=ivaGTC-ivaCl;
+  var rete=ooBolsaOn?0:factClSi*(reteP/100);
+  var antesGMF=girarF-difVal-ivaDesc-rete;
+  var gmf=ooGmfOn?0:antesGMF*0.004;
+  var girarCl=antesGMF-gmf;
+  var ingreso=difVal;
+
+  var fv=new Date(fecha+"T12:00:00");
+  fv.setDate(fv.getDate()+plazo);
+  var fechaVenc=fv.toISOString().split("T")[0];
+
+  var prodRows=prodsData.map(function(p){
+    return "<tr><td>"+p.idx+"</td><td>"+p.desc+"</td><td style='text-align:right'>"+p.qty+"</td><td style='text-align:right'>$"+Math.round(p.precio).toLocaleString("es-CO")+"</td><td style='text-align:right'>$"+Math.round(p.vbruto).toLocaleString("es-CO")+"</td><td style='text-align:right'>$"+Math.round(p.viva).toLocaleString("es-CO")+"</td><td style='text-align:right'>$"+Math.round(p.vtotal).toLocaleString("es-CO")+"</td></tr>";
+  }).join("");
+
+  var h="<div class='doc'>";
+  h+="<div class='doc-header'><div><div class='doc-gtco'>GTCO</div><div class='doc-sub-h'>GLOBAL TRADE COMMERCE S.A.S. | NIT: 901.648.628-5</div></div>";
+  h+="<div style='text-align:center'><div style='font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:2px'>Orden de Operación</div><div class='doc-orden'>"+num+"</div><div class='doc-badge'>"+(tipo==="con_recurso"?"FACTORING CON RECURSO":"FACTORING SIN RECURSO")+"</div></div>";
+  h+="<div class='doc-meta'>Fecha: <strong>"+fechaStr(fecha)+"</strong><br>Plazo: <strong>"+plazo+" días</strong><br>Diferencial GTC: <strong>"+dif+"%</strong><br>Fact. Compra: <strong>"+factComp+"</strong><br>Fact. Venta: <strong>"+factVenta+"</strong></div></div>";
+
+  h+="<div class='doc-ref'>📋 La presente Orden de Operación hace parte integral del <strong>Contrato Marco No. "+cm.num+"</strong> suscrito el "+fechaStr(cm.fecha)+". En caso de contradicción, prevalece el Contrato Marco.</div>";
+
+  h+="<h2>I. PARTES</h2><div class='doc-grid2'>";
+  h+="<div class='doc-card'><div class='doc-card-title'>Vendedor</div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Razón Social:</span><strong>"+c.nombre+"</strong></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>NIT:</span><span>"+c.nit+"</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>"+c.rep+"</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Dirección:</span><span>"+c.dir+", "+c.ciudad+"</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Teléfono:</span><span>"+c.tel+"</span></div></div>";
+  h+="<div class='doc-card'><div class='doc-card-title'>Comprador</div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Razón Social:</span><strong>GLOBAL TRADE COMMERCE S.A.S.</strong></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>NIT:</span><span>901.648.628-5</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>CAMILA ARENAS ALCARAZ</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>C.C.:</span><span>1.006.293.320</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Dirección:</span><span>Cr 42 No. 3 Sur 81, Torre 1, Piso 15, Medellín</span></div>";
+  h+="<div class='doc-row' style='margin-top:6px'><span class='doc-lbl'>Proveedor de Liquidez:</span><strong>"+fond+"</strong></div></div></div>";
+
+  h+="<h2>II. INVENTARIO</h2>";
+  h+="<table class='doc-table'><thead><tr><th>#</th><th>Producto</th><th style='text-align:right'>Cantidad</th><th style='text-align:right'>Vr. Unitario</th><th style='text-align:right'>Vr. Bruto</th><th style='text-align:right'>IVA</th><th style='text-align:right'>Vr. Total</th></tr></thead><tbody>";
+  h+=prodRows;
+  h+="<tr class='doc-tr-sub'><td colspan='4' style='text-align:right'>Subtotal</td><td style='text-align:right'>$"+Math.round(bruto).toLocaleString("es-CO")+"</td><td style='text-align:right'>$"+Math.round(ivaT).toLocaleString("es-CO")+"</td><td></td></tr>";
+  h+="<tr class='doc-tr-facial'><td colspan='5' style='text-align:right'>VALOR FACIAL FACTURA GTC</td><td colspan='2' style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
+  h+="</tbody></table>";
+
+  h+="<h2>III. PRELIQUIDACIÓN</h2><div class='doc-grid2'>";
+  h+="<div><div style='font-weight:bold;color:#1a3a5c;font-size:10px;margin-bottom:6px'>A. DESCUENTO CON FONDEADOR</div><table class='doc-table'><tbody>";
+  h+="<tr><td>Valor facial Factura GTC</td><td style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td class='doc-liq-neg'>Intereses ("+tasaLabel+")</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(intereses).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr class='doc-liq-bold'><td>Valor estimado giro fondeador</td><td style='text-align:right'>$"+Math.round(girarF).toLocaleString("es-CO")+"</td></tr>";
+  h+="</tbody></table></div>";
+
+  h+="<div><div style='font-weight:bold;color:#1a3a5c;font-size:10px;margin-bottom:6px'>B. GIRO ESTIMADO GTC → VENDEDOR</div><table class='doc-table'><tbody>";
+  h+="<tr><td>Giro estimado del fondeador</td><td style='text-align:right'>$"+Math.round(girarF).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td class='doc-liq-neg'>Diferencial GTC ("+dif+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(difVal).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td class='doc-liq-neg'>IVA descontable</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(ivaDesc).toLocaleString("es-CO")+"</td></tr>";
+  if(rete>0) h+="<tr><td class='doc-liq-neg'>Retefuente ("+reteP+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(rete).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr class='doc-liq-bold'><td>Valor antes de GMF</td><td style='text-align:right'>$"+Math.round(antesGMF).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td class='doc-liq-neg'>GMF — cargo: "+(ooGmfOn?"GTC":"Cliente")+"</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(ooGmfOn?0:antesGMF*0.004).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+c.nombre+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr class='doc-liq-ingreso'><td><strong>INGRESO GTC ("+dif+"%)</strong></td><td style='text-align:right'><strong>$"+Math.round(ingreso).toLocaleString("es-CO")+"</strong></td></tr>";
+  h+="</tbody></table></div></div>";
+
+  h+="<h2>IV. CONDICIONES</h2><div class='doc-grid2'>";
+  h+="<div class='doc-card'><div class='doc-card-title'>Tributario</div><div>"+(tributario||"—")+"</div></div>";
+  h+="<div class='doc-card'><div class='doc-card-title'>Garantías y GMF</div><div>"+(garantia||"—")+"</div><div style='margin-top:4px'>GMF: a cargo de <strong>"+(ooGmfOn?"GTC":"Cliente")+"</strong></div></div></div>";
+
+  h+="<h2>V. CESIÓN DE DERECHOS ECONÓMICOS</h2>";
+  h+="<div class='doc-card'>La Factura <strong>"+factVenta+"</strong> es cedida a <strong>"+fond+"</strong>. Al vencimiento (<strong>"+plazo+" días — "+fechaStr(fechaVenc)+"</strong>), el Vendedor pagará directamente al Proveedor de Liquidez <strong>$"+Math.round(facial).toLocaleString("es-CO")+" COP</strong>. Tipo: <strong>"+(tipo==="con_recurso"?"CON RECURSO":"SIN RECURSO")+"</strong>.</div>";
+
+  if(obs) h+="<h2>VI. OBSERVACIONES</h2><div class='doc-card'>"+obs+"</div>";
+
+  h+="<div class='doc-firmas'><div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL VENDEDOR</div><div class='doc-firma-line'><strong>"+c.rep+"</strong><br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
+  h+="<div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL COMPRADOR</div><div class='doc-firma-line'><strong>CAMILA ARENAS ALCARAZ</strong><br>Gerente y Representante Legal<br>GLOBAL TRADE COMMERCE S.A.S.<br>NIT: 901.648.628-5</div></div></div>";
+  h+="<div class='doc-footer'>Orden "+num+" — "+fechaStr(fecha)+" — Contrato Marco "+cm.num+" — Confidencial</div></div>";
+
+  document.getElementById("doc-output").innerHTML=h;
+  irPaso(4);
+}
+
+function nuevaOrden(){
+  clienteActual=null;productos=[];ooGmfOn=false;ooBolsaOn=false;ooMode="m";
+  document.getElementById("buscar").value="";
+  document.getElementById("oo-mm").classList.add("active");
+  document.getElementById("oo-ma").classList.remove("active");
+  document.getElementById("oo-blk-m").style.display="block";
+  document.getElementById("oo-blk-a").style.display="none";
+  renderClientes();
+  irPaso(1);
+}
+
+renderClientes();
+document.getElementById("oo-fecha").value=hoy();
+document.getElementById("cm-fecha-input").value=hoy();
+</script>
+</body>
+</html>
