@@ -85,6 +85,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
 .doc-liq-bold td{font-weight:bold;background:#eaf4fd}
 .doc-liq-total td{font-weight:bold;background:#1a3a5c;color:white}
 .doc-liq-ingreso td{font-weight:bold;background:#d4edda;color:#28a745;font-size:12px;padding:5px}
+.doc-liq-gmf td{font-weight:bold;background:#fff3cd;color:#856404;font-size:10px;padding:4px 6px}
 .doc-firmas{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:40px}
 .doc-firma-line{border-top:1px solid #333;padding-top:6px;margin-top:35px;font-size:10px}
 .doc-footer{margin-top:16px;text-align:center;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:6px}
@@ -103,7 +104,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
   <div class="logo">G</div>
   <div>
     <div class="brand">GLOBAL TRADE COMMERCE</div>
-    <div class="sub">Sistema Integrado v1.0</div>
+    <div class="sub">Sistema Integrado v1.1</div>
   </div>
 </div>
 <div class="wrap">
@@ -125,6 +126,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <div class="lbl">Razón Social</div><input id="nc-nombre" placeholder="Razón Social completa">
       <div class="lbl">NIT</div><input id="nc-nit" placeholder="XXX.XXX.XXX-X">
       <div class="lbl">Representante Legal</div><input id="nc-rep" placeholder="Nombre completo">
+      <div class="lbl">C.C. del Representante Legal</div><input id="nc-cc" placeholder="ej. 1.002.345.678">
       <div class="lbl">Cargo</div><input id="nc-cargo" placeholder="ej. Gerente y Representante Legal">
       <div class="lbl">Teléfono</div><input id="nc-tel" placeholder="ej. (601) 1234567">
       <div class="lbl">Dirección</div><input id="nc-dir" placeholder="Dirección completa">
@@ -181,7 +183,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
     <div class="lbl">Tipo de operación</div>
     <select id="oo-tipo"><option value="con_recurso">Con recurso</option><option value="sin_recurso">Sin recurso</option></select>
     <div class="lbl">Proveedor de Liquidez</div>
-    <select id="oo-fond">
+    <select id="oo-fond" onchange="onFondSelect()">
       <option value="">Seleccionar...</option>
       <option>BMC Miguel Quijano</option><option>BMC Mercado y Bolsa</option>
       <option>Coltefinanciera</option><option>Integra</option>
@@ -189,8 +191,8 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <option>Irisbank</option><option>Liquitech</option>
     </select>
     <div class="grid2">
-      <div><div class="lbl">No. Factura compra (GTC)</div><input id="oo-fact-compra" placeholder="Por confirmar"></div>
-      <div><div class="lbl">No. Factura venta (cliente)</div><input id="oo-fact-venta" placeholder="Por confirmar"></div>
+      <div><div class="lbl">No. Factura GTC</div><input id="oo-fact-compra" placeholder="Por confirmar"></div>
+      <div><div class="lbl">No. Factura Cliente</div><input id="oo-fact-venta" placeholder="Por confirmar"></div>
     </div>
 
     <div class="sec">INVENTARIO</div>
@@ -210,17 +212,8 @@ input.ro{background:#141414;border-color:#222;color:#666}
     </div>
 
     <div class="sec">PRELIQUIDACIÓN</div>
-    <div class="lbl">IVA aplicable (%)</div>
-    <select id="oo-iva">
-      <option value="5">5%</option><option value="19">19%</option><option value="0">0%</option>
-    </select>
-    <div class="lbl">Factura cliente (% del facial)</div>
-    <select id="oo-factcl">
-      <option value="96">96.0%</option><option value="96.5">96.5%</option>
-      <option value="97">97.0%</option><option value="97.5">97.5%</option>
-    </select>
     <div class="lbl" style="margin-bottom:8px">Modalidad de tasa</div>
-    <div class="mode-sel">
+    <div class="mode-sel" id="oo-mode-sel">
       <button class="mode-btn active" id="oo-mm" onclick="ooSetMode('m')">Mensual × meses</button>
       <button class="mode-btn" id="oo-ma" onclick="ooSetMode('a')">Anual × días</button>
     </div>
@@ -229,18 +222,22 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <input id="oo-tasa" inputmode="decimal" placeholder="ej. 2.0">
     </div>
     <div id="oo-blk-a" style="display:none">
-      <div class="lbl">Tasa fondeador (% anual)</div>
+      <div class="lbl">Tasa fondeador (% anual / EA para BMC)</div>
       <input id="oo-tasa-a" inputmode="decimal" placeholder="ej. 16">
     </div>
+    <div id="oo-blk-scb" style="display:none">
+      <div class="lbl">SCB — Servicio de Corredor de Bolsa (%)</div>
+      <input id="oo-scb" inputmode="decimal" placeholder="ej. 0.40">
+    </div>
     <div class="lbl">Diferencial GTC (%)</div>
-    <input id="oo-dif" inputmode="decimal" placeholder="ej. 3.0">
+    <input id="oo-dif" inputmode="decimal" placeholder="ej. 3.5">
     <div class="lbl">Retefuente</div>
     <select id="oo-rete">
       <option value="1.25">1.25%</option><option value="1.5">1.5%</option>
       <option value="2.5">2.5%</option><option value="0">0%</option>
     </select>
     <div class="toggle-row" onclick="toggleOOBolsa()"><span>Registro en bolsa — exento de retefuente</span><div class="toggle" id="oo-tog-bolsa"></div></div>
-    <div class="toggle-row" onclick="toggleOOGmf()"><span>GMF lo asume Global Trade Commerce</span><div class="toggle" id="oo-tog-gmf"></div></div>
+    <div class="toggle-row" onclick="toggleOOGmf()"><span>GMF (4×1000) a cargo de Global Trade Commerce</span><div class="toggle" id="oo-tog-gmf"></div></div>
 
     <div class="sec">CONDICIONES</div>
     <div class="lbl">Condición tributaria</div><input id="oo-tributario" placeholder="ej. Agropecuario — BMC — EXENTO retefuente">
@@ -265,13 +262,13 @@ input.ro{background:#141414;border-color:#222;color:#666}
 
 <script>
 var CLIENTES = {
-  empanorte:{nombre:"CI EMPAQUETADORA DEL NORTE SAS BIC",nit:"900.407.151-7",rep:"ARVEY DUQUE VILLAMIZAR",cargo:"Gerente y Representante Legal",tel:"(607) 5792557",dir:"CL 8N 3 A 90 BRR ZONA INDUSTRIAL I",ciudad:"Cúcuta",pais:"Colombia",
+  empanorte:{nombre:"CI EMPAQUETADORA DEL NORTE SAS BIC",nit:"900.407.151-7",rep:"ARVEY DUQUE VILLAMIZAR",cc:"",cargo:"Gerente y Representante Legal",tel:"(607) 5792557",dir:"CL 8N 3 A 90 BRR ZONA INDUSTRIAL I",ciudad:"Cúcuta",pais:"Colombia",
     contrato:{num:"CM-GTC-001-2026",fecha:"2026-01-15",vigencia:"2028-01-15"},
     productos:[
       {desc:"ACEITE CRUDO DE PALMA - CPO -",umd:"KILOGRAMOS",precio:0,iva:5,variable:true},
       {desc:"ACEITE CRUDO DE PALMA GRANEL",umd:"KILOGRAMOS",precio:0,iva:5,variable:true}
     ]},
-  meyan:{nombre:"MEYAN S.A.",nit:"800.143.586-1",rep:"BALTAZAR EDUARDO MESA RESTREPO",cargo:"Representante Legal",tel:"(601) 6714357",dir:"CL 153 6 22",ciudad:"Bogotá",pais:"Colombia",
+  meyan:{nombre:"MEYAN S.A.",nit:"800.143.586-1",rep:"BALTAZAR EDUARDO MESA RESTREPO",cc:"",cargo:"Representante Legal",tel:"(601) 6714357",dir:"CL 153 6 22",ciudad:"Bogotá",pais:"Colombia",
     contrato:{num:"CM-GTC-002-2026",fecha:"2026-01-20",vigencia:"2028-01-20"},
     productos:[
       {desc:'SUBBASE TRITURADO BG 50 FR 2"',umd:"M3",precio:42017,iva:19,variable:false},
@@ -284,7 +281,7 @@ var CLIENTES = {
       {desc:'TRITURADO DE 3/4"',umd:"M3",precio:58823,iva:19,variable:false},
       {desc:"ACERO ESTRUCTURAS",umd:"KG",precio:12185,iva:19,variable:false}
     ]},
-  carbones:{nombre:"C.I. CARBONES DEL PORVENIR OTA SAS",nit:"900.852.420-0",rep:"OSCAR TORRADO",cargo:"Representante Legal",tel:"(602) 3188282260",dir:"REPRESA MARGEN IZQUIERDA JURISDICCIÓN ASTILLEROS",ciudad:"Cúcuta",pais:"Colombia",
+  carbones:{nombre:"C.I. CARBONES DEL PORVENIR OTA SAS",nit:"900.852.420-0",rep:"OSCAR TORRADO",cc:"",cargo:"Representante Legal",tel:"(602) 3188282260",dir:"REPRESA MARGEN IZQUIERDA JURISDICCIÓN ASTILLEROS",ciudad:"Cúcuta",pais:"Colombia",
     contrato:{num:"CM-GTC-003-2026",fecha:"2026-01-05",vigencia:"2028-01-05"},
     productos:[
       {desc:"BOQUILLA CON COLOR JUNTA ESTRECHA",umd:"UND",precio:27324,iva:0,variable:false},
@@ -298,7 +295,7 @@ var CLIENTES = {
       {desc:"PINTURA INTERIOR LAVABLE TIPO 2 CORONA",umd:"GALON",precio:229900,iva:0,variable:false},
       {desc:"MORTERO TOPEX SECO PEGA PAÑETES 75KG",umd:"BULTO",precio:48410,iva:0,variable:false}
     ]},
-  shalom:{nombre:"GRUPO EMPRESARIAL SHALOM GES SAS BIC",nit:"900.664.206-4",rep:"ORLANDO ÁVILA MARTÍNEZ",cargo:"Representante Legal",tel:"(601) 3102587653",dir:"CL 11 17 40",ciudad:"Bogotá",pais:"Colombia",
+  shalom:{nombre:"GRUPO EMPRESARIAL SHALOM GES SAS BIC",nit:"900.664.206-4",rep:"ORLANDO ÁVILA MARTÍNEZ",cc:"",cargo:"Representante Legal",tel:"(601) 3102587653",dir:"CL 11 17 40",ciudad:"Bogotá",pais:"Colombia",
     contrato:{num:"CM-GTC-004-2025",fecha:"2025-11-01",vigencia:"2027-11-01"},
     productos:[
       {desc:"ATÚN EN ACEITE VEGETAL XOE * 175 GRS",umd:"UND",precio:3900,iva:19,variable:false},
@@ -309,10 +306,10 @@ var CLIENTES = {
       {desc:"FRIJOL CON CARNE RONDA *220GR",umd:"UND",precio:4750,iva:19,variable:false},
       {desc:"SARDINAS SABOR DEL PACÍFICO *425GR",umd:"UND",precio:5050,iva:19,variable:false}
     ]},
-  grandesvias:{nombre:"INVERSIONES GRANDES VÍAS E INGENIERÍA SAS",nit:"830.031.937-1",rep:"JOSÉ SIMEON LUGO",cargo:"Representante Legal",tel:"(601) 4674438",dir:"CL 109 14 B 60 OF 204",ciudad:"Bogotá",pais:"Colombia",
+  grandesvias:{nombre:"INVERSIONES GRANDES VÍAS E INGENIERÍA SAS",nit:"830.031.937-1",rep:"JOSÉ SIMEON LUGO",cc:"",cargo:"Representante Legal",tel:"(601) 4674438",dir:"CL 109 14 B 60 OF 204",ciudad:"Bogotá",pais:"Colombia",
     contrato:null,
     productos:[{desc:"VENTA DE CEMENTO GRIS 50KG",umd:"BULTO",precio:30900,iva:19,variable:false}]},
-  tak:{nombre:"INGENIERIA & CONSTRUCCIONES TAK S.A.S.",nit:"901.594.712-2",rep:"JOSÉ SIMEON LUGO",cargo:"Representante Legal",tel:"(602) 3243417273",dir:"CR 57 99 A 65 OF 1007",ciudad:"Barranquilla",pais:"Colombia",
+  tak:{nombre:"INGENIERIA & CONSTRUCCIONES TAK S.A.S.",nit:"901.594.712-2",rep:"JOSÉ SIMEON LUGO",cc:"",cargo:"Representante Legal",tel:"(602) 3243417273",dir:"CR 57 99 A 65 OF 1007",ciudad:"Barranquilla",pais:"Colombia",
     contrato:null,
     productos:[
       {desc:"CONCRETOS CLASE D, f'c psi (bases) FUNDIDO EN SITIO",umd:"M3",precio:892706,iva:19,variable:false},
@@ -320,16 +317,24 @@ var CLIENTES = {
       {desc:"CEMENTO ULTRACEM USO GENERAL GRIS 50KG",umd:"BULTO",precio:37683,iva:19,variable:false},
       {desc:"CABLE MT AL 185mm 15Kv P.HILOS 25mm XLPE PVC",umd:"ML",precio:46193,iva:19,variable:false}
     ]},
-  metco:{nombre:"METCO SUISSE AG",nit:"CHE271584656",rep:"—",cargo:"Representante Legal",tel:"(51) 14184800",dir:"BAHNHOFSTRASSE 7 6003",ciudad:"Luzern",pais:"Suiza",
+  metco:{nombre:"METCO SUISSE AG",nit:"CHE271584656",rep:"—",cc:"",cargo:"Representante Legal",tel:"(51) 14184800",dir:"BAHNHOFSTRASSE 7 6003",ciudad:"Luzern",pais:"Suiza",
     contrato:null,
     productos:[{desc:"THE GROUND COPPER STONE WITH A CONCENTRATION OF 5.5%",umd:"TON",precio:0,iva:0,variable:true}]}
+};
+
+var FOND_CONFIG = {
+  'Irisbank':        {reserva: 5.0},
+  'Cesion Bank':     {reserva: 13.5},
+  'Servifin':        {reserva: 10.0},
+  'Liquitech':       {reserva: 10.0},
+  'Coltefinanciera': {costoFijo: 14700}
 };
 
 var clienteActual=null,productos=[],pidx=0;
 var ooGmfOn=false,ooBolsaOn=false,ooMode="m";
 var garantias={pagare:true,poliza:false,bmc:false};
 
-function cop(n){return "$\u00a0"+Math.round(n).toLocaleString("es-CO");}
+function cop(n){return "$ "+Math.round(n).toLocaleString("es-CO");}
 function pn(v){return parseFloat(String(v).trim())||0;}
 function fechaStr(d){
   var M=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -337,16 +342,24 @@ function fechaStr(d){
   return dt.getDate()+" de "+M[dt.getMonth()]+" de "+dt.getFullYear();
 }
 function hoy(){return new Date().toISOString().split("T")[0];}
+
 function genNumOrden(){
   var d=new Date();
   var dd=String(d.getDate()).padStart(2,"0");
   var mm=String(d.getMonth()+1).padStart(2,"0");
   var yyyy=d.getFullYear();
-  // Consecutivo del día: buscar cuántas órdenes hay hoy
   var key="oo_consec_"+yyyy+mm+dd;
   var consec=(parseInt(localStorage.getItem(key)||"0")+1);
   localStorage.setItem(key,consec);
   return "OO-GTC-"+String(consec).padStart(2,"0")+dd+mm+"-"+yyyy;
+}
+
+function genNumCM(){
+  var yyyy=new Date().getFullYear();
+  var key="cm_consec_"+yyyy;
+  var consec=(parseInt(localStorage.getItem(key)||"0")+1);
+  localStorage.setItem(key,consec);
+  return "CM-GTC-"+String(consec).padStart(3,"0")+"-"+yyyy;
 }
 
 function irPaso(n){
@@ -357,6 +370,7 @@ function irPaso(n){
     if(i===n) s.classList.add("active");
     else if(i<n) s.classList.add("done");
   }
+  if(n===2) renderContratoStatus();
   if(n===3&&clienteActual) prepararPaso3();
   window.scrollTo(0,0);
 }
@@ -378,10 +392,9 @@ function renderClientes(filtro){
 
 function filtrarClientes(){renderClientes(document.getElementById("buscar").value);}
 
-function selCliente(id){
-  clienteActual=id;
-  renderClientes(document.getElementById("buscar").value);
-  var c=CLIENTES[id];
+function renderContratoStatus(){
+  if(!clienteActual) return;
+  var c=CLIENTES[clienteActual];
   if(c.contrato){
     document.getElementById("cm-existe").style.display="block";
     document.getElementById("cm-nuevo").style.display="none";
@@ -392,7 +405,14 @@ function selCliente(id){
     document.getElementById("cm-existe").style.display="none";
     document.getElementById("cm-nuevo").style.display="block";
     document.getElementById("cm-fecha-input").value=hoy();
+    if(!document.getElementById("cm-num-input").value)
+      document.getElementById("cm-num-input").value=genNumCM();
   }
+}
+
+function selCliente(id){
+  clienteActual=id;
+  renderClientes(document.getElementById("buscar").value);
   irPaso(2);
 }
 
@@ -403,7 +423,7 @@ function guardarNuevoCliente(){
   var nit=document.getElementById("nc-nit").value.trim();
   if(!nombre||!nit){document.getElementById("p1-err").textContent="Nombre y NIT son obligatorios.";document.getElementById("p1-err").style.display="block";return;}
   var id="cli_"+Date.now();
-  CLIENTES[id]={nombre:nombre,nit:nit,rep:document.getElementById("nc-rep").value.trim(),cargo:document.getElementById("nc-cargo").value.trim(),tel:document.getElementById("nc-tel").value.trim(),dir:document.getElementById("nc-dir").value.trim(),ciudad:document.getElementById("nc-ciudad").value.trim(),pais:document.getElementById("nc-pais").value.trim(),contrato:null,productos:[]};
+  CLIENTES[id]={nombre:nombre,nit:nit,rep:document.getElementById("nc-rep").value.trim(),cc:document.getElementById("nc-cc").value.trim(),cargo:document.getElementById("nc-cargo").value.trim(),tel:document.getElementById("nc-tel").value.trim(),dir:document.getElementById("nc-dir").value.trim(),ciudad:document.getElementById("nc-ciudad").value.trim(),pais:document.getElementById("nc-pais").value.trim(),contrato:null,productos:[]};
   document.getElementById("p1-err").style.display="none";
   cancelarNuevoCliente();
   selCliente(id);
@@ -432,6 +452,7 @@ function buildCM(){
   if(garantias.pagare) gT.push("Pagaré con carta de instrucciones");
   if(garantias.poliza) gT.push("Póliza de seguro de crédito");
   if(garantias.bmc) gT.push("Cupo en Bolsa Mercantil de Colombia");
+  var firmVend="<strong>"+c.rep+"</strong>"+(c.cc?" (C.C. "+c.cc+")":"");
   var h="<div class='cm-doc'>";
   h+="<div class='no-print' style='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap'>";
   h+="<button class='btn btn-sec btn-sm' style='flex:1' onclick='irPaso(2)'>← Volver</button>";
@@ -440,16 +461,28 @@ function buildCM(){
   h+="<div class='cm-title'>CONTRATO MARCO DE COMPRAVENTA CON PACTO DE RECOMPRA</div>";
   h+="<div class='cm-sub'>GLOBAL TRADE COMMERCE S.A.S. | "+cm.num+"</div>";
   h+="<div style='font-size:11px;line-height:1.7;text-align:justify'>";
-  h+="<p style='margin-bottom:12px'>Entre los suscritos: <strong>"+c.rep+"</strong>, actuando como Representante Legal de <strong>"+c.nombre+"</strong>, NIT "+c.nit+", domiciliada en "+c.ciudad+" (el <strong>\"VENDEDOR\"</strong>); y <strong>CAMILA ARENAS ALCARAZ</strong>, C.C. 1.006.293.320, Representante Legal de <strong>GLOBAL TRADE COMMERCE S.A.S.</strong>, NIT 901.648.628-5, domiciliada en Medellín (el <strong>\"COMPRADOR\"</strong>), acordamos suscribir el presente Contrato Marco de Compraventa con Pacto de Recompra.</p>";
-  h+="<div class='cm-clausula'><div class='cm-clausula-title'>PRIMERA: OBJETO.-</div><p>El presente Contrato Marco establece los términos y condiciones generales que regularán todas las operaciones de compraventa con pacto de recompra entre las Partes. Cada operación se formalizará mediante una Orden de Operación que hace parte integral del presente Contrato.</p></div>";
-  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SEGUNDA: GARANTÍAS.-</div><p>Los mecanismos de cobertura del riesgo son: <strong>"+(gT.length>0?gT.join(", "):"Según cada Orden de Operación")+"</strong>.</p></div>";
-  h+="<div class='cm-clausula'><div class='cm-clausula-title'>TERCERA: COSTOS Y GMF.-</div><p>El VENDEDOR asumirá todos los costos derivados de cada operación, incluyendo costos financieros del Proveedor de Liquidez, diferencial del COMPRADOR, IVA, retención en la fuente y GMF (4x1000), salvo pacto expreso en contrario en la Orden de Operación.</p></div>";
-  h+="<div class='cm-clausula'><div class='cm-clausula-title'>CUARTA: VIGENCIA.-</div><p>El presente Contrato tendrá vigencia de dos (2) años, del <strong>"+fechaStr(cm.fecha)+"</strong> al <strong>"+fechaStr(cm.vigencia)+"</strong>, prorrogable automáticamente por períodos iguales.</p></div>";
-  h+="<div class='cm-clausula'><div class='cm-clausula-title'>QUINTA: DECLARACIONES SARLAFT.-</div><p>Las Partes declaran que los recursos no provienen de actividades ilícitas y han realizado los procedimientos de debida diligencia conforme a sus políticas SARLAFT/SAGRILAFT.</p></div>";
-  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SEXTA: SOLUCIÓN DE CONTROVERSIAS.-</div><p>Las controversias se someterán a arreglo directo (5 días hábiles) y de no lograrse, a arbitraje ante el Centro de Arbitraje de la Cámara de Comercio de Bogotá.</p></div>";
+  h+="<p style='margin-bottom:12px'>Entre los suscritos: "+firmVend+", actuando como Representante Legal de <strong>"+c.nombre+"</strong>, NIT "+c.nit+", domiciliada en "+c.ciudad+" (el <strong>\"VENDEDOR\"</strong>); y <strong>CAMILA ARENAS ALCARAZ</strong>, C.C. 1.006.293.320, Gerente y Representante Legal de <strong>GLOBAL TRADE COMMERCE S.A.S.</strong>, NIT 901.648.628-5, domiciliada en Medellín, Antioquia (el <strong>\"COMPRADOR\"</strong>), acordamos suscribir el presente Contrato Marco de Compraventa con Pacto de Recompra.</p>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>PRIMERA: OBJETO.—</div><p>El presente Contrato Marco establece los términos y condiciones generales que regularán todas las operaciones de compraventa con pacto de recompra entre las Partes. En virtud de cada operación, el COMPRADOR adquirirá al contado el inventario físico del VENDEDOR —sin desplazamiento físico de la mercancía de las instalaciones del VENDEDOR— y se lo venderá de regreso a crédito a plazo pactado. El <strong>precio de recompra</strong> equivale al valor facial de la factura emitida por el COMPRADOR, el cual incluye el precio de compra de contado incrementado en el diferencial acordado. Cada operación individual se formalizará mediante una Orden de Operación que hace parte integral del presente Contrato.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SEGUNDA: GARANTÍAS.—</div><p>Los mecanismos de cobertura del riesgo son: <strong>"+(gT.length>0?gT.join(", "):"Según cada Orden de Operación")+"</strong>.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>TERCERA: COSTOS Y GMF.—</div><p>El VENDEDOR asumirá todos los costos derivados de cada operación, incluyendo costos financieros del Proveedor de Liquidez, diferencial del COMPRADOR, IVA, retención en la fuente y reservas o costos fijos según el fondeador, salvo pacto expreso en contrario en la Orden de Operación. El Gravamen a los Movimientos Financieros (GMF — 4×1000) será asumido por <strong>GLOBAL TRADE COMMERCE S.A.S.</strong> cuando así se acuerde expresamente en la respectiva Orden de Operación.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>CUARTA: VIGENCIA.—</div><p>El presente Contrato tendrá vigencia de dos (2) años, del <strong>"+fechaStr(cm.fecha)+"</strong> al <strong>"+fechaStr(cm.vigencia)+"</strong>, prorrogable automáticamente por períodos iguales salvo comunicación escrita en contrario con treinta (30) días de antelación.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>QUINTA: DECLARACIONES SARLAFT/SAGRILAFT.—</div><p>Las Partes declaran que los recursos utilizados en las operaciones amparadas por este Contrato no provienen de actividades ilícitas y que han implementado los procedimientos de debida diligencia conforme a sus políticas SARLAFT/SAGRILAFT vigentes.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SEXTA: LEY APLICABLE.—</div><p>El presente Contrato y todas las Órdenes de Operación que se deriven de él se rigen en su totalidad por las leyes de la República de Colombia.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>SÉPTIMA: INCUMPLIMIENTO.—</div><p>En caso de que el VENDEDOR no honre la factura cedida al Proveedor de Liquidez en la fecha de vencimiento pactada, el COMPRADOR y/o el Proveedor de Liquidez podrán, de manera inmediata: (i) hacer efectivas las garantías constituidas; (ii) cobrar intereses de mora a la tasa máxima legal vigente certificada por la Superintendencia Financiera de Colombia; y (iii) iniciar las acciones ejecutivas, penales o arbitrales que correspondan. El COMPRADOR responderá conforme a la modalidad pactada (con o sin recurso) en la Orden de Operación respectiva.</p></div>";
+
+  h+="<div class='cm-clausula'><div class='cm-clausula-title'>OCTAVA: SOLUCIÓN DE CONTROVERSIAS.—</div><p>Las controversias que surjan con ocasión del presente Contrato se someterán a arreglo directo entre las Partes (cinco (5) días hábiles) y, de no lograrse, a arbitraje ante el <strong>Centro de Arbitraje y Conciliación de la Cámara de Comercio de Medellín para Antioquia</strong>, conforme a su Reglamento vigente. El laudo arbitral tendrá carácter definitivo y obligatorio para las Partes.</p></div>";
+
   h+="</div>";
-  h+="<div class='cm-firmas'><div><div class='cm-firma-line'><strong>"+c.rep+"</strong><br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
-  h+="<div><div class='cm-firma-line'><strong>CAMILA ARENAS ALCARAZ</strong><br>Gerente y Representante Legal<br>GLOBAL TRADE COMMERCE S.A.S.<br>NIT: 901.648.628-5</div></div></div>";
+  h+="<div class='cm-firmas'>";
+  h+="<div><div class='cm-firma-line'><strong>"+c.rep+"</strong>"+(c.cc?"<br>C.C. "+c.cc:"")+"<br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
+  h+="<div><div class='cm-firma-line'><strong>CAMILA ARENAS ALCARAZ</strong><br>C.C. 1.006.293.320<br>Gerente y Representante Legal<br>GLOBAL TRADE COMMERCE S.A.S.<br>NIT: 901.648.628-5</div></div></div>";
   h+="<div class='doc-footer'>"+cm.num+" — Suscrito en "+(cm.ciudad||"Medellín")+" el "+fechaStr(cm.fecha)+" — Confidencial</div>";
   h+="</div>";
   return h;
@@ -473,9 +506,42 @@ function prepararPaso3(){
   document.getElementById("oo-num").value=genNumOrden();
   productos=[];
   renderProds();
+  // Auto-activar GMF para EMPANORTE
+  ooGmfOn=(clienteActual==="empanorte");
+  document.getElementById("oo-tog-gmf").classList.toggle("on",ooGmfOn);
+  // Reset fondeador y campos derivados
+  document.getElementById("oo-fond").value="";
+  document.getElementById("oo-blk-scb").style.display="none";
+  document.getElementById("oo-mode-sel").style.display="flex";
+  ooBolsaOn=false;
+  document.getElementById("oo-tog-bolsa").classList.remove("on");
+  document.getElementById("oo-rete").disabled=false;
+}
+
+function onFondSelect(){
+  var fond=document.getElementById("oo-fond").value;
+  var esBMC=(fond.indexOf("BMC")===0);
+  document.getElementById("oo-blk-scb").style.display=esBMC?"block":"none";
+  document.getElementById("oo-mode-sel").style.display=esBMC?"none":"flex";
+  if(esBMC){
+    document.getElementById("oo-blk-m").style.display="none";
+    document.getElementById("oo-blk-a").style.display="block";
+    document.getElementById("oo-scb").value=(fond==="BMC Miguel Quijano")?"0.40":"2.43";
+    ooBolsaOn=true;
+    document.getElementById("oo-tog-bolsa").classList.add("on");
+    document.getElementById("oo-rete").disabled=true;
+  } else {
+    document.getElementById("oo-blk-m").style.display=(ooMode==="m")?"block":"none";
+    document.getElementById("oo-blk-a").style.display=(ooMode==="a")?"block":"none";
+    ooBolsaOn=false;
+    document.getElementById("oo-tog-bolsa").classList.remove("on");
+    document.getElementById("oo-rete").disabled=false;
+  }
 }
 
 function ooSetMode(m){
+  var fond=document.getElementById("oo-fond").value;
+  if(fond.indexOf("BMC")===0) return;
   ooMode=m;
   document.getElementById("oo-mm").classList.toggle("active",m==="m");
   document.getElementById("oo-ma").classList.toggle("active",m==="a");
@@ -535,7 +601,13 @@ function recalc(){
   } else {w.style.display="none";}
 }
 
-function toggleOOBolsa(){ooBolsaOn=!ooBolsaOn;document.getElementById("oo-tog-bolsa").classList.toggle("on",ooBolsaOn);document.getElementById("oo-rete").disabled=ooBolsaOn;}
+function toggleOOBolsa(){
+  var fond=document.getElementById("oo-fond").value;
+  if(fond.indexOf("BMC")===0) return;
+  ooBolsaOn=!ooBolsaOn;
+  document.getElementById("oo-tog-bolsa").classList.toggle("on",ooBolsaOn);
+  document.getElementById("oo-rete").disabled=ooBolsaOn;
+}
 function toggleOOGmf(){ooGmfOn=!ooGmfOn;document.getElementById("oo-tog-gmf").classList.toggle("on",ooGmfOn);}
 
 function generarOrden(){
@@ -547,22 +619,24 @@ function generarOrden(){
   var fond=document.getElementById("oo-fond").value;
   var factComp=document.getElementById("oo-fact-compra").value.trim()||"Por confirmar";
   var factVenta=document.getElementById("oo-fact-venta").value.trim()||"Por confirmar";
-  var ivaP=pn(document.getElementById("oo-iva").value);
-  var fcP=pn(document.getElementById("oo-factcl").value)/100;
   var dif=pn(document.getElementById("oo-dif").value);
   var reteP=pn(document.getElementById("oo-rete").value);
   var tributario=document.getElementById("oo-tributario").value;
   var garantia=document.getElementById("oo-garantia").value;
   var obs=document.getElementById("oo-obs").value;
   var e=document.getElementById("p3-err");
+  var esBMC=(fond.indexOf("BMC")===0);
+  var fondConf=FOND_CONFIG[fond]||{};
 
-  // Calcular intereses según modalidad
-  var tasa, tasaLabel, intereses;
-  if(ooMode==="m"){
+  var tasa,tasaLabel;
+  if(esBMC){
+    tasa=pn(document.getElementById("oo-tasa-a").value);
+    if(!tasa){e.textContent="Completa la tasa EA del fondeador.";e.style.display="block";return;}
+    tasaLabel=tasa+"% EA";
+  } else if(ooMode==="m"){
     tasa=pn(document.getElementById("oo-tasa").value);
     if(!tasa){e.textContent="Completa la tasa mensual del fondeador.";e.style.display="block";return;}
-    intereses=0; // se calculará sobre facial después
-    tasaLabel=tasa+"% mensual";
+    tasaLabel=tasa+"% mensual × "+(plazo/30).toFixed(1)+" meses";
   } else {
     tasa=pn(document.getElementById("oo-tasa-a").value);
     if(!tasa){e.textContent="Completa la tasa anual del fondeador.";e.style.display="block";return;}
@@ -583,23 +657,45 @@ function generarOrden(){
   });
   var facial=bruto+ivaT;
 
-  // Calcular intereses sobre facial
-  if(ooMode==="m"){
-    intereses=facial*(tasa/100);
+  // Intereses y giro del fondeador
+  var intereses,scb=0,reserva=0,costoFijo=0,girarF;
+  if(esBMC){
+    var VP=facial/Math.pow(1+tasa/100,plazo/365);
+    intereses=facial-VP;
+    var scbP=pn(document.getElementById("oo-scb").value);
+    scb=facial*scbP/100;
+    girarF=VP-scb;
   } else {
-    intereses=facial*(tasa/100)*(plazo/365);
+    if(ooMode==="m"){
+      intereses=facial*(tasa/100)*(plazo/30);
+    } else {
+      intereses=facial*(tasa/100)*(plazo/365);
+    }
+    reserva=fondConf.reserva?facial*fondConf.reserva/100:0;
+    costoFijo=fondConf.costoFijo||0;
+    girarF=facial-intereses-reserva-costoFijo;
   }
 
-  var iva=ivaP/100;
-  var girarF=facial-intereses;
-  var factGTC=facial,factGTCsi=facial/(1+iva),ivaGTC=factGTC-factGTCsi;
-  var factCl=facial*fcP,factClSi=factCl/(1+iva),ivaCl=factCl-factClSi;
-  var difVal=factGTC-factCl,ivaDesc=ivaGTC-ivaCl;
-  var rete=ooBolsaOn?0:factClSi*(reteP/100);
+  // Diferencial GTC: dif% del facial completo (con IVA)
+  var difVal=facial*(dif/100);
+  // IVA descontable: porción del IVA del inventario proporcional al diferencial (GTC retiene → DIAN)
+  var ivaDesc=ivaT*(dif/100);
+  var factClBase=bruto*(1-dif/100);  // Base para retefuente (sin IVA)
+  var rete=ooBolsaOn?0:factClBase*(reteP/100);
+
   var antesGMF=girarF-difVal-ivaDesc-rete;
-  var gmf=ooGmfOn?0:antesGMF*0.004;
-  var girarCl=antesGMF-gmf;
-  var ingreso=difVal;
+  var gmf=antesGMF*0.004;
+
+  var girarCl,ingreso;
+  if(ooGmfOn){
+    // GTC asume GMF: cliente recibe antesGMF completo; GTC descuenta gmf de su ingreso
+    girarCl=antesGMF;
+    ingreso=difVal-gmf;
+  } else {
+    // Normal: GMF se descuenta del giro al cliente
+    girarCl=antesGMF-gmf;
+    ingreso=difVal;
+  }
 
   var fv=new Date(fecha+"T12:00:00");
   fv.setDate(fv.getDate()+plazo);
@@ -620,14 +716,13 @@ function generarOrden(){
   h+="<div class='doc-card'><div class='doc-card-title'>Vendedor</div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Razón Social:</span><strong>"+c.nombre+"</strong></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>NIT:</span><span>"+c.nit+"</span></div>";
-  h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>"+c.rep+"</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>"+c.rep+(c.cc?" — C.C. "+c.cc:"")+"</span></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Dirección:</span><span>"+c.dir+", "+c.ciudad+"</span></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Teléfono:</span><span>"+c.tel+"</span></div></div>";
   h+="<div class='doc-card'><div class='doc-card-title'>Comprador</div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Razón Social:</span><strong>GLOBAL TRADE COMMERCE S.A.S.</strong></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>NIT:</span><span>901.648.628-5</span></div>";
-  h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>CAMILA ARENAS ALCARAZ</span></div>";
-  h+="<div class='doc-row'><span class='doc-lbl'>C.C.:</span><span>1.006.293.320</span></div>";
+  h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>CAMILA ARENAS ALCARAZ — C.C. 1.006.293.320</span></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Dirección:</span><span>Cr 42 No. 3 Sur 81, Torre 1, Piso 15, Medellín</span></div>";
   h+="<div class='doc-row' style='margin-top:6px'><span class='doc-lbl'>Proveedor de Liquidez:</span><strong>"+fond+"</strong></div></div></div>";
 
@@ -635,25 +730,48 @@ function generarOrden(){
   h+="<table class='doc-table'><thead><tr><th>#</th><th>Producto</th><th style='text-align:right'>Cantidad</th><th style='text-align:right'>Vr. Unitario</th><th style='text-align:right'>Vr. Bruto</th><th style='text-align:right'>IVA</th><th style='text-align:right'>Vr. Total</th></tr></thead><tbody>";
   h+=prodRows;
   h+="<tr class='doc-tr-sub'><td colspan='4' style='text-align:right'>Subtotal</td><td style='text-align:right'>$"+Math.round(bruto).toLocaleString("es-CO")+"</td><td style='text-align:right'>$"+Math.round(ivaT).toLocaleString("es-CO")+"</td><td></td></tr>";
-  h+="<tr class='doc-tr-facial'><td colspan='5' style='text-align:right'>VALOR FACIAL FACTURA GTC</td><td colspan='2' style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr class='doc-tr-facial'><td colspan='5' style='text-align:right'>VALOR FACIAL FACTURA GTC (PRECIO DE RECOMPRA)</td><td colspan='2' style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
   h+="</tbody></table>";
 
   h+="<h2>III. PRELIQUIDACIÓN</h2><div class='doc-grid2'>";
+
+  // Sección A: Descuento con fondeador
   h+="<div><div style='font-weight:bold;color:#1a3a5c;font-size:10px;margin-bottom:6px'>A. DESCUENTO CON FONDEADOR</div><table class='doc-table'><tbody>";
-  h+="<tr><td>Valor facial Factura GTC</td><td style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
-  h+="<tr><td class='doc-liq-neg'>Intereses ("+tasaLabel+")</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(intereses).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td>Valor facial VF</td><td style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
+  if(esBMC){
+    h+="<tr><td class='doc-liq-neg'>Descuento VF/VP ("+tasaLabel+")</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(intereses).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr><td class='doc-liq-neg'>SCB — Corredor de Bolsa</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(scb).toLocaleString("es-CO")+"</td></tr>";
+  } else {
+    h+="<tr><td class='doc-liq-neg'>Intereses ("+tasaLabel+")</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(intereses).toLocaleString("es-CO")+"</td></tr>";
+    if(reserva>0) h+="<tr><td class='doc-liq-neg'>Retención fondeador ("+(fondConf.reserva||0)+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(reserva).toLocaleString("es-CO")+"</td></tr>";
+    if(costoFijo>0) h+="<tr><td class='doc-liq-neg'>Costo fijo Coltefinanciera</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(costoFijo).toLocaleString("es-CO")+"</td></tr>";
+  }
   h+="<tr class='doc-liq-bold'><td>Valor estimado giro fondeador</td><td style='text-align:right'>$"+Math.round(girarF).toLocaleString("es-CO")+"</td></tr>";
+  if(reserva>0) h+="<tr><td style='font-size:9px;color:#888;font-style:italic' colspan='2'>* Retención devuelta al vencimiento</td></tr>";
   h+="</tbody></table></div>";
 
+  // Sección B: Giro GTC → Vendedor
   h+="<div><div style='font-weight:bold;color:#1a3a5c;font-size:10px;margin-bottom:6px'>B. GIRO ESTIMADO GTC → VENDEDOR</div><table class='doc-table'><tbody>";
   h+="<tr><td>Giro estimado del fondeador</td><td style='text-align:right'>$"+Math.round(girarF).toLocaleString("es-CO")+"</td></tr>";
-  h+="<tr><td class='doc-liq-neg'>Diferencial GTC ("+dif+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(difVal).toLocaleString("es-CO")+"</td></tr>";
-  h+="<tr><td class='doc-liq-neg'>IVA descontable</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(ivaDesc).toLocaleString("es-CO")+"</td></tr>";
-  if(rete>0) h+="<tr><td class='doc-liq-neg'>Retefuente ("+reteP+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(rete).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td class='doc-liq-neg'>Diferencial GTC ("+dif+"% s/facial)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(difVal).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td class='doc-liq-neg'>IVA descontable (ret. DIAN)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(ivaDesc).toLocaleString("es-CO")+"</td></tr>";
+  if(ooBolsaOn){
+    h+="<tr><td class='doc-liq-neg'>Retefuente — EXENTO BMC</td><td style='text-align:right'>$0</td></tr>";
+  } else {
+    h+="<tr><td class='doc-liq-neg'>Retefuente ("+reteP+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(rete).toLocaleString("es-CO")+"</td></tr>";
+  }
   h+="<tr class='doc-liq-bold'><td>Valor antes de GMF</td><td style='text-align:right'>$"+Math.round(antesGMF).toLocaleString("es-CO")+"</td></tr>";
-  h+="<tr><td class='doc-liq-neg'>GMF — cargo: "+(ooGmfOn?"GTC":"Cliente")+"</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(ooGmfOn?0:antesGMF*0.004).toLocaleString("es-CO")+"</td></tr>";
-  h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+c.nombre+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
-  h+="<tr class='doc-liq-ingreso'><td><strong>INGRESO GTC ("+dif+"%)</strong></td><td style='text-align:right'><strong>$"+Math.round(ingreso).toLocaleString("es-CO")+"</strong></td></tr>";
+  if(ooGmfOn){
+    h+="<tr><td>GMF (4×1000) — cargo: <strong>GTC</strong></td><td style='text-align:right'>$0 al cliente</td></tr>";
+    h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+c.nombre+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-gmf'><td>Diferencial GTC ("+dif+"% s/facial)</td><td style='text-align:right'>$"+Math.round(difVal).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-gmf'><td>(−) GMF asumido por GTC</td><td style='text-align:right'>-$"+Math.round(gmf).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-ingreso'><td><strong>INGRESO GTC NETO ("+dif+"%)</strong></td><td style='text-align:right'><strong>$"+Math.round(ingreso).toLocaleString("es-CO")+"</strong></td></tr>";
+  } else {
+    h+="<tr><td class='doc-liq-neg'>GMF (4×1000) — cargo: Cliente</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(gmf).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+c.nombre+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-ingreso'><td><strong>INGRESO GTC ("+dif+"%)</strong></td><td style='text-align:right'><strong>$"+Math.round(ingreso).toLocaleString("es-CO")+"</strong></td></tr>";
+  }
   h+="</tbody></table></div></div>";
 
   h+="<h2>IV. CONDICIONES</h2><div class='doc-grid2'>";
@@ -661,12 +779,15 @@ function generarOrden(){
   h+="<div class='doc-card'><div class='doc-card-title'>Garantías y GMF</div><div>"+(garantia||"—")+"</div><div style='margin-top:4px'>GMF: a cargo de <strong>"+(ooGmfOn?"GTC":"Cliente")+"</strong></div></div></div>";
 
   h+="<h2>V. CESIÓN DE DERECHOS ECONÓMICOS</h2>";
-  h+="<div class='doc-card'>La Factura <strong>"+factVenta+"</strong> es cedida a <strong>"+fond+"</strong>. Al vencimiento (<strong>"+plazo+" días — "+fechaStr(fechaVenc)+"</strong>), el Vendedor pagará directamente al Proveedor de Liquidez <strong>$"+Math.round(facial).toLocaleString("es-CO")+" COP</strong>. Tipo: <strong>"+(tipo==="con_recurso"?"CON RECURSO":"SIN RECURSO")+"</strong>.</div>";
+  h+="<div class='doc-card'>La Factura <strong>"+factVenta+"</strong> (valor facial: <strong>$"+Math.round(facial).toLocaleString("es-CO")+" COP</strong>) es cedida a <strong>"+fond+"</strong>. Al vencimiento (<strong>"+plazo+" días — "+fechaStr(fechaVenc)+"</strong>), el Vendedor pagará directamente al Proveedor de Liquidez el valor facial completo.";
+  if(reserva>0) h+=" La retención ("+(fondConf.reserva||0)+"% = $"+Math.round(reserva).toLocaleString("es-CO")+") será devuelta al Vendedor por el fondeador al vencimiento.";
+  h+=" Modalidad: <strong>"+(tipo==="con_recurso"?"CON RECURSO":"SIN RECURSO")+"</strong>.</div>";
 
   if(obs) h+="<h2>VI. OBSERVACIONES</h2><div class='doc-card'>"+obs+"</div>";
 
-  h+="<div class='doc-firmas'><div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL VENDEDOR</div><div class='doc-firma-line'><strong>"+c.rep+"</strong><br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
-  h+="<div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL COMPRADOR</div><div class='doc-firma-line'><strong>CAMILA ARENAS ALCARAZ</strong><br>Gerente y Representante Legal<br>GLOBAL TRADE COMMERCE S.A.S.<br>NIT: 901.648.628-5</div></div></div>";
+  h+="<div class='doc-firmas'>";
+  h+="<div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL VENDEDOR</div><div class='doc-firma-line'><strong>"+c.rep+"</strong>"+(c.cc?"<br>C.C. "+c.cc:"")+"<br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
+  h+="<div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL COMPRADOR</div><div class='doc-firma-line'><strong>CAMILA ARENAS ALCARAZ</strong><br>C.C. 1.006.293.320<br>Gerente y Representante Legal<br>GLOBAL TRADE COMMERCE S.A.S.<br>NIT: 901.648.628-5</div></div></div>";
   h+="<div class='doc-footer'>Orden "+num+" — "+fechaStr(fecha)+" — Contrato Marco "+cm.num+" — Confidencial</div></div>";
 
   document.getElementById("doc-output").innerHTML=h;
@@ -680,6 +801,11 @@ function nuevaOrden(){
   document.getElementById("oo-ma").classList.remove("active");
   document.getElementById("oo-blk-m").style.display="block";
   document.getElementById("oo-blk-a").style.display="none";
+  document.getElementById("oo-blk-scb").style.display="none";
+  document.getElementById("oo-mode-sel").style.display="flex";
+  document.getElementById("oo-tog-gmf").classList.remove("on");
+  document.getElementById("oo-tog-bolsa").classList.remove("on");
+  document.getElementById("oo-rete").disabled=false;
   renderClientes();
   irPaso(1);
 }
