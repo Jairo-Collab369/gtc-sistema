@@ -324,7 +324,7 @@ var CLIENTES = {
 
 var FOND_CONFIG = {
   'Irisbank':        {reserva: 5.0},
-  'Cesion Bank':     {reserva: 13.5},
+  'Cesion Bank':     {reserva: 10.0},
   'Servifin':        {reserva: 10.0},
   'Liquitech':       {reserva: 10.0},
   'Coltefinanciera': {costoFijo: 14700}
@@ -636,7 +636,7 @@ function generarOrden(){
   } else if(ooMode==="m"){
     tasa=pn(document.getElementById("oo-tasa").value);
     if(!tasa){e.textContent="Completa la tasa mensual del fondeador.";e.style.display="block";return;}
-    tasaLabel=tasa+"% mensual × "+(plazo/30).toFixed(1)+" meses";
+    tasaLabel=tasa+"% mensual × "+(plazo/30).toFixed(4).replace(/\.?0+$/,"")+" meses";
   } else {
     tasa=pn(document.getElementById("oo-tasa-a").value);
     if(!tasa){e.textContent="Completa la tasa anual del fondeador.";e.style.display="block";return;}
@@ -665,6 +665,13 @@ function generarOrden(){
     var scbP=pn(document.getElementById("oo-scb").value);
     scb=facial*scbP/100;
     girarF=VP-scb;
+  } else if(fond==="Cesion Bank"){
+    // Cesion Bank: reserva sobre facial, intereses sobre neto (facial-reserva), tasa directa sin factor tiempo
+    reserva=facial*fondConf.reserva/100;
+    var baseIntereses=Math.round(facial*(1-fondConf.reserva/100));
+    intereses=baseIntereses*(tasa/100)*(plazo/30);
+    tasaLabel=tasa+"% mensual s/neto × "+(plazo/30).toFixed(4).replace(/\.?0+$/,"")+" meses";
+    girarF=facial-intereses-reserva;
   } else {
     if(ooMode==="m"){
       intereses=facial*(tasa/100)*(plazo/30);
@@ -754,6 +761,7 @@ function generarOrden(){
   h+="<div><div style='font-weight:bold;color:#1a3a5c;font-size:10px;margin-bottom:6px'>B. GIRO ESTIMADO GTC → VENDEDOR</div><table class='doc-table'><tbody>";
   h+="<tr><td>Giro estimado del fondeador</td><td style='text-align:right'>$"+Math.round(girarF).toLocaleString("es-CO")+"</td></tr>";
   h+="<tr><td class='doc-liq-neg'>Diferencial GTC ("+dif+"% s/facial)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(difVal).toLocaleString("es-CO")+"</td></tr>";
+  h+="<tr><td style='color:#555;font-style:italic'>Factura cliente ("+(100-dif).toFixed(1)+"%)</td><td style='text-align:right;color:#555;font-style:italic'>$"+Math.round(facial-difVal).toLocaleString("es-CO")+"</td></tr>";
   h+="<tr><td class='doc-liq-neg'>IVA descontable (ret. DIAN)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(ivaDesc).toLocaleString("es-CO")+"</td></tr>";
   if(ooBolsaOn){
     h+="<tr><td class='doc-liq-neg'>Retefuente — EXENTO BMC</td><td style='text-align:right'>$0</td></tr>";
