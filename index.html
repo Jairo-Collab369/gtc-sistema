@@ -234,7 +234,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
     <div class="lbl">Retefuente</div>
     <select id="oo-rete">
       <option value="1.25">1.25%</option><option value="1.5">1.5%</option>
-      <option value="2.5">2.5%</option><option value="0">0%</option>
+      <option value="2.5">2.5%</option><option value="4">4%</option><option value="0">0%</option>
     </select>
     <div class="toggle-row" onclick="toggleOOBolsa()"><span>Registro en bolsa — exento de retefuente</span><div class="toggle" id="oo-tog-bolsa"></div></div>
     <div class="toggle-row" onclick="toggleOOGmf()"><span>GMF (4×1000) a cargo de Global Trade Commerce</span><div class="toggle" id="oo-tog-gmf"></div></div>
@@ -319,7 +319,13 @@ var CLIENTES = {
     ]},
   metco:{nombre:"METCO SUISSE AG",nit:"CHE271584656",rep:"—",cc:"",cargo:"Representante Legal",tel:"(51) 14184800",dir:"BAHNHOFSTRASSE 7 6003",ciudad:"Luzern",pais:"Suiza",
     contrato:null,
-    productos:[{desc:"THE GROUND COPPER STONE WITH A CONCENTRATION OF 5.5%",umd:"TON",precio:0,iva:0,variable:true}]}
+    productos:[{desc:"THE GROUND COPPER STONE WITH A CONCENTRATION OF 5.5%",umd:"TON",precio:0,iva:0,variable:true}]},
+  andes:{nombre:"ANDES",nit:"",rep:"",cc:"",cargo:"Representante Legal",tel:"",dir:"",ciudad:"",pais:"Colombia",rete:4,operador:"NAGVILETD GROUP S.A.S.",
+    contrato:null,
+    productos:[{desc:"Energía Eléctrica",umd:"kWh",precio:650,iva:0,variable:false}]},
+  parex:{nombre:"PAREX",nit:"",rep:"",cc:"",cargo:"Representante Legal",tel:"",dir:"",ciudad:"",pais:"Colombia",rete:4,operador:"NAGVILETD GROUP S.A.S.",
+    contrato:null,
+    productos:[{desc:"Energía Eléctrica",umd:"kWh",precio:550,iva:0,variable:false}]}
 };
 
 var FOND_CONFIG = {
@@ -509,6 +515,8 @@ function prepararPaso3(){
   // Auto-activar GMF para EMPANORTE
   ooGmfOn=(clienteActual==="empanorte");
   document.getElementById("oo-tog-gmf").classList.toggle("on",ooGmfOn);
+  // Retefuente por defecto según cliente
+  if(c.rete!=null) document.getElementById("oo-rete").value=String(c.rete);
   // Reset fondeador y campos derivados
   document.getElementById("oo-fond").value="";
   document.getElementById("oo-blk-scb").style.display="none";
@@ -658,13 +666,16 @@ function generarOrden(){
   var facial=bruto+ivaT;
 
   // Intereses y giro del fondeador
-  var intereses,scb=0,reserva=0,costoFijo=0,girarF;
+  var intereses,scb=0,bolsaCosto=0,bolsaIva=0,scbIva=0,reserva=0,costoFijo=0,girarF;
   if(esBMC){
     var VP=facial/Math.pow(1+tasa/100,plazo/365);
     intereses=facial-VP;
     var scbP=pn(document.getElementById("oo-scb").value);
-    scb=facial*scbP/100;
-    girarF=VP-scb;
+    bolsaCosto=VP*0.002;
+    bolsaIva=bolsaCosto*0.19;
+    scb=VP*scbP/100;
+    scbIva=scb*0.19;
+    girarF=VP-bolsaCosto-bolsaIva-scb-scbIva;
   } else if(fond==="Cesion Bank"){
     // Cesion Bank: reserva sobre facial, intereses sobre neto (facial-reserva), tasa directa sin factor tiempo
     reserva=facial*fondConf.reserva/100;
@@ -724,6 +735,7 @@ function generarOrden(){
   h+="<div class='doc-row'><span class='doc-lbl'>Razón Social:</span><strong>"+c.nombre+"</strong></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>NIT:</span><span>"+c.nit+"</span></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Rep. Legal:</span><span>"+c.rep+(c.cc?" — C.C. "+c.cc:"")+"</span></div>";
+  if(c.operador) h+="<div class='doc-row'><span class='doc-lbl'>Operador (giro):</span><span>"+c.operador+"</span></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Dirección:</span><span>"+c.dir+", "+c.ciudad+"</span></div>";
   h+="<div class='doc-row'><span class='doc-lbl'>Teléfono:</span><span>"+c.tel+"</span></div></div>";
   h+="<div class='doc-card'><div class='doc-card-title'>Comprador</div>";
@@ -747,7 +759,11 @@ function generarOrden(){
   h+="<tr><td>Valor facial VF</td><td style='text-align:right'>$"+Math.round(facial).toLocaleString("es-CO")+"</td></tr>";
   if(esBMC){
     h+="<tr><td class='doc-liq-neg'>Descuento VF/VP ("+tasaLabel+")</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(intereses).toLocaleString("es-CO")+"</td></tr>";
-    h+="<tr><td class='doc-liq-neg'>SCB — Corredor de Bolsa</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(scb).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr><td>Valor presente (VP)</td><td style='text-align:right'>$"+Math.round(facial-intereses).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr><td class='doc-liq-neg'>Costos bolsa (0.2% s/VP)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(bolsaCosto).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr><td class='doc-liq-neg'>IVA costos bolsa (19%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(bolsaIva).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr><td class='doc-liq-neg'>SCB Corredor Bolsa ("+scbP+"% s/VP)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(scb).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr><td class='doc-liq-neg'>IVA costos SCB (19%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(scbIva).toLocaleString("es-CO")+"</td></tr>";
   } else {
     h+="<tr><td class='doc-liq-neg'>Intereses ("+tasaLabel+")</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(intereses).toLocaleString("es-CO")+"</td></tr>";
     if(reserva>0) h+="<tr><td class='doc-liq-neg'>Retención fondeador ("+(fondConf.reserva||0)+"%)</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(reserva).toLocaleString("es-CO")+"</td></tr>";
@@ -771,13 +787,13 @@ function generarOrden(){
   h+="<tr class='doc-liq-bold'><td>Valor antes de GMF</td><td style='text-align:right'>$"+Math.round(antesGMF).toLocaleString("es-CO")+"</td></tr>";
   if(ooGmfOn){
     h+="<tr><td>GMF (4×1000) — cargo: <strong>GTC</strong></td><td style='text-align:right'>$0 al cliente</td></tr>";
-    h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+c.nombre+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+(c.operador||c.nombre)+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
     h+="<tr class='doc-liq-gmf'><td>Diferencial GTC ("+dif+"% s/facial)</td><td style='text-align:right'>$"+Math.round(difVal).toLocaleString("es-CO")+"</td></tr>";
     h+="<tr class='doc-liq-gmf'><td>(−) GMF asumido por GTC</td><td style='text-align:right'>-$"+Math.round(gmf).toLocaleString("es-CO")+"</td></tr>";
     h+="<tr class='doc-liq-ingreso'><td><strong>INGRESO GTC NETO ("+dif+"%)</strong></td><td style='text-align:right'><strong>$"+Math.round(ingreso).toLocaleString("es-CO")+"</strong></td></tr>";
   } else {
     h+="<tr><td class='doc-liq-neg'>GMF (4×1000) — cargo: Cliente</td><td class='doc-liq-neg' style='text-align:right'>-$"+Math.round(gmf).toLocaleString("es-CO")+"</td></tr>";
-    h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+c.nombre+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
+    h+="<tr class='doc-liq-total'><td>GIRO ESTIMADO → "+(c.operador||c.nombre)+"</td><td style='text-align:right'>$"+Math.round(girarCl).toLocaleString("es-CO")+"</td></tr>";
     h+="<tr class='doc-liq-ingreso'><td><strong>INGRESO GTC ("+dif+"%)</strong></td><td style='text-align:right'><strong>$"+Math.round(ingreso).toLocaleString("es-CO")+"</strong></td></tr>";
   }
   h+="</tbody></table></div></div>";
