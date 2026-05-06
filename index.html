@@ -358,9 +358,9 @@ var FOND_AYUDA={
   "Coltefinanciera":     "<b>Coltefinanciera</b><br>Tasa: <b>anual × días/365</b>. Sin reserva.<br>Costo fijo: <b>$14.700</b> (IVA incluido) por transferencia bancaria.",
   "Integra":             "<b>Integra</b><br>Tasa: <b>anual × días/365</b>. Sin reserva ni costo fijo.",
   "Cesion Bank":         "<b>Cesion Bank</b><br>Tasa: <b>mensual × meses</b> sobre el neto (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento) · Base intereses = facial − reserva.",
-  "Servifin":            "<b>Servifin</b><br>Tasa: <b>mensual × meses</b> sobre el facial.<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento).",
+  "Servifin":            "<b>Servifin</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento).",
   "Irisbank":            "<b>Irisbank</b><br>Tasa: <b>anual × días/365</b> sobre el facial.<br>Reserva: <b>5%</b> del facial (devuelta al vencimiento).",
-  "Liquitech":           "<b>Liquitech</b><br>Tasa: <b>mensual × meses</b> sobre el facial.<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento)."
+  "Liquitech":           "<b>Liquitech</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento)."
 };
 var garantias={pagare:true,poliza:false,bmc:false};
 
@@ -735,8 +735,8 @@ function generarOrden(){
     scb=VP*scbP/100;
     scbIva=scb*0.19;
     girarF=VP-bolsaCosto-bolsaIva-scb-scbIva;
-  } else if(fond==="Cesion Bank"){
-    // Cesion Bank: reserva sobre facial, intereses sobre neto (facial-reserva), tasa directa sin factor tiempo
+  } else if(fond==="Cesion Bank"||fond==="Servifin"||fond==="Liquitech"){
+    // Intereses sobre neto (facial - reserva), tasa mensual × meses
     reserva=facial*fondConf.reserva/100;
     var baseIntereses=Math.round(facial*(1-fondConf.reserva/100));
     intereses=baseIntereses*(tasa/100)*(plazo/30);
