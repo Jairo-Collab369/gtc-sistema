@@ -349,6 +349,32 @@ var FOND_CONFIG = {
   'Coltefinanciera': {costoFijo: 14700}
 };
 
+// Comisiones sobre ingreso diferencial GTC (difVal)
+var COMISIONES_FOND = {
+  "Coltefinanciera":     [{nombre:"Camila Arenas",           pct:5},
+                          {nombre:"Mariana Valencia Holguín", pct:5}],
+  "BMC Miguel Quijano":  [{nombre:"Camila Arenas",           pct:5},
+                          {nombre:"Mariana Valencia Holguín", pct:5}],
+  "Liquitech":           [{nombre:"Camila Arenas",           pct:5},
+                          {nombre:"Mariana Valencia Holguín", pct:5}],
+  "Integra":             [{nombre:"David Trujillo",          pct:10}],
+  "Cesion Bank":         [{nombre:"David Trujillo",          pct:10}],
+  "Irisbank":            [{nombre:"David Trujillo",          pct:10}],
+  "BMC Mercado y Bolsa": [{nombre:"David Trujillo",          pct:10}],
+  "Servifin":            [{nombre:"David Trujillo",          pct:10}]
+};
+
+var COMISIONES_CLI = {
+  "shalom":    [{nombre:"David Trujillo",  pct:20}],
+  "meyan":     [{nombre:"David Trujillo",  pct:20}],
+  "empanorte": [{nombre:"Jairo Sánchez",   pct:20}],
+  "carbones":  [{nombre:"Jairo Sánchez",   pct:20}],
+  "metco":     [{nombre:"Jairo Sánchez",   pct:20}],
+  "andes":     [{nombre:"Jairo Sánchez",   pct:20}],
+  "parex":     [{nombre:"Jairo Sánchez",   pct:20}],
+  "tak":       [{nombre:"Guillermo Ceballos", pct:10}]
+};
+
 var clienteActual=null,productos=[],pidx=0;
 var ooGmfOn=false,ooBolsaOn=false,ooMode="m",ooBmcMode="ea";
 
@@ -790,6 +816,21 @@ function generarOrden(){
     ingreso=difVal;
   }
 
+  // Comisiones sobre difVal (ingreso diferencial bruto)
+  var baseComision=difVal;
+  var comItems=[];
+  (COMISIONES_FOND[fond]||[]).forEach(function(c){
+    comItems.push({persona:c.nombre,tipo:"Fondeador",pct:c.pct,monto:Math.round(baseComision*c.pct/100)});
+  });
+  (COMISIONES_CLI[clienteActual]||[]).forEach(function(c){
+    comItems.push({persona:c.nombre,tipo:"Cliente",pct:c.pct,monto:Math.round(baseComision*c.pct/100)});
+  });
+  if(CLIENTES[clienteActual]&&CLIENTES[clienteActual].referidor){
+    comItems.push({persona:CLIENTES[clienteActual].referidor,tipo:"Referidor",pct:10,monto:Math.round(baseComision*0.10)});
+  }
+  var totalComisiones=comItems.reduce(function(s,c){return s+c.monto;},0);
+  var ingresoNetoCom=ingreso-totalComisiones;
+
   var fv=new Date(fecha+"T12:00:00");
   fv.setDate(fv.getDate()+plazo);
   var fechaVenc=fv.toISOString().split("T")[0];
@@ -873,16 +914,32 @@ function generarOrden(){
   }
   h+="</tbody></table></div></div>";
 
-  h+="<h2>IV. CONDICIONES</h2><div class='doc-grid2'>";
+  h+="<h2>IV. COMISIONES GTC</h2>";
+  if(comItems.length===0){
+    h+="<div class='doc-card' style='font-size:11px;color:#666'>No aplican comisiones para esta combinación fondeador/cliente.</div>";
+  } else {
+    h+="<table class='doc-table'><thead><tr><th>Persona</th><th>Tipo</th><th style='text-align:right'>%</th><th style='text-align:right'>Monto</th></tr></thead><tbody>";
+    comItems.forEach(function(item){
+      h+="<tr><td>"+item.persona+"</td><td>"+item.tipo+"</td><td style='text-align:right'>"+item.pct+"%</td><td style='text-align:right'>$"+item.monto.toLocaleString("es-CO")+"</td></tr>";
+    });
+    h+="<tr class='doc-liq-bold'><td colspan='3'>Total comisiones</td><td style='text-align:right'>$"+totalComisiones.toLocaleString("es-CO")+"</td></tr>";
+    h+="</tbody></table>";
+    h+="<div style='margin-top:8px;padding:8px 10px;background:#f0f7ff;border-radius:4px;font-size:11px;display:flex;gap:24px;flex-wrap:wrap'>";
+    h+="<span>Diferencial bruto GTC: <strong>$"+Math.round(difVal).toLocaleString("es-CO")+"</strong></span>";
+    h+="<span>Total comisiones: <strong style='color:#c0392b'>-$"+totalComisiones.toLocaleString("es-CO")+"</strong></span>";
+    h+="<span>Ingreso neto GTC: <strong style='color:#1a6fa8'>$"+Math.round(ingresoNetoCom).toLocaleString("es-CO")+"</strong></span></div>";
+  }
+
+  h+="<h2>V. CONDICIONES</h2><div class='doc-grid2'>";
   h+="<div class='doc-card'><div class='doc-card-title'>Tributario</div><div>"+(tributario||"—")+"</div></div>";
   h+="<div class='doc-card'><div class='doc-card-title'>Garantías y GMF</div><div>"+(garantia||"—")+"</div><div style='margin-top:4px'>GMF: a cargo de <strong>"+(ooGmfOn?"GTC":"Cliente")+"</strong></div></div></div>";
 
-  h+="<h2>V. CESIÓN DE DERECHOS ECONÓMICOS</h2>";
+  h+="<h2>VI. CESIÓN DE DERECHOS ECONÓMICOS</h2>";
   h+="<div class='doc-card'>La Factura <strong>"+factVenta+"</strong> (valor facial: <strong>$"+Math.round(facial).toLocaleString("es-CO")+" COP</strong>) es cedida a <strong>"+fond+"</strong>. Al vencimiento (<strong>"+plazo+" días — "+fechaStr(fechaVenc)+"</strong>), el Vendedor pagará directamente al Proveedor de Liquidez el valor facial completo.";
   if(reserva>0) h+=" La retención ("+(fondConf.reserva||0)+"% = $"+Math.round(reserva).toLocaleString("es-CO")+") será devuelta al Vendedor por el fondeador al vencimiento.";
   h+=" Modalidad: <strong>"+(tipo==="con_recurso"?"CON RECURSO":"SIN RECURSO")+"</strong>.</div>";
 
-  if(obs) h+="<h2>VI. OBSERVACIONES</h2><div class='doc-card'>"+obs+"</div>";
+  if(obs) h+="<h2>VII. OBSERVACIONES</h2><div class='doc-card'>"+obs+"</div>";
 
   h+="<div class='doc-firmas'>";
   h+="<div><div style='font-size:10px;color:#666;margin-bottom:2px'>EL VENDEDOR</div><div class='doc-firma-line'><strong>"+c.rep+"</strong>"+(c.cc?"<br>C.C. "+c.cc:"")+"<br>"+c.cargo+"<br>"+c.nombre+"<br>NIT: "+c.nit+"</div></div>";
