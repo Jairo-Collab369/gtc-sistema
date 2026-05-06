@@ -229,6 +229,13 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <div class="lbl">SCB — Servicio de Corredor de Bolsa (%)</div>
       <input id="oo-scb" inputmode="decimal" placeholder="ej. 0.40">
     </div>
+    <div id="oo-blk-bmc-mode" style="display:none">
+      <div class="lbl" style="margin-bottom:8px">Modalidad de tasa BMC</div>
+      <div class="mode-sel">
+        <button class="mode-btn active" id="oo-bmc-ea" onclick="ooBmcSetMode('ea')">EA anual</button>
+        <button class="mode-btn" id="oo-bmc-mc" onclick="ooBmcSetMode('mc')">Mensual compuesta</button>
+      </div>
+    </div>
     <div class="lbl">Diferencial GTC (%)</div>
     <input id="oo-dif" inputmode="decimal" placeholder="ej. 3.5">
     <div class="lbl">Retefuente</div>
@@ -337,7 +344,7 @@ var FOND_CONFIG = {
 };
 
 var clienteActual=null,productos=[],pidx=0;
-var ooGmfOn=false,ooBolsaOn=false,ooMode="m";
+var ooGmfOn=false,ooBolsaOn=false,ooMode="m",ooBmcMode="ea";
 var garantias={pagare:true,poliza:false,bmc:false};
 
 function cop(n){return "$ "+Math.round(n).toLocaleString("es-CO");}
@@ -520,21 +527,32 @@ function prepararPaso3(){
   // Reset fondeador y campos derivados
   document.getElementById("oo-fond").value="";
   document.getElementById("oo-blk-scb").style.display="none";
+  document.getElementById("oo-blk-bmc-mode").style.display="none";
   document.getElementById("oo-mode-sel").style.display="flex";
   ooBolsaOn=false;
   document.getElementById("oo-tog-bolsa").classList.remove("on");
   document.getElementById("oo-rete").disabled=false;
 }
 
+function ooBmcSetMode(m){
+  ooBmcMode=m;
+  document.getElementById("oo-bmc-ea").classList.toggle("active",m==="ea");
+  document.getElementById("oo-bmc-mc").classList.toggle("active",m==="mc");
+  var lblTasa=document.querySelector("#oo-blk-a .lbl");
+  if(lblTasa) lblTasa.textContent=m==="mc"?"Tasa fondeador (% mensual compuesta)":"Tasa fondeador (% EA anual)";
+}
+
 function onFondSelect(){
   var fond=document.getElementById("oo-fond").value;
   var esBMC=(fond.indexOf("BMC")===0);
   document.getElementById("oo-blk-scb").style.display=esBMC?"block":"none";
+  document.getElementById("oo-blk-bmc-mode").style.display=esBMC?"block":"none";
   document.getElementById("oo-mode-sel").style.display=esBMC?"none":"flex";
   if(esBMC){
     document.getElementById("oo-blk-m").style.display="none";
     document.getElementById("oo-blk-a").style.display="block";
     document.getElementById("oo-scb").value=(fond==="BMC Miguel Quijano")?"0.40":"2.43";
+    ooBmcSetMode(fond==="BMC Mercado y Bolsa"?"mc":"ea");
     ooBolsaOn=true;
     document.getElementById("oo-tog-bolsa").classList.add("on");
     document.getElementById("oo-rete").disabled=true;
@@ -639,8 +657,8 @@ function generarOrden(){
   var tasa,tasaLabel;
   if(esBMC){
     tasa=pn(document.getElementById("oo-tasa-a").value);
-    if(!tasa){e.textContent="Completa la tasa EA del fondeador.";e.style.display="block";return;}
-    tasaLabel=tasa+"% EA";
+    if(!tasa){e.textContent="Completa la tasa del fondeador BMC.";e.style.display="block";return;}
+    tasaLabel=tasa+(ooBmcMode==="mc"?"% mensual compuesta":"% EA");
   } else if(ooMode==="m"){
     tasa=pn(document.getElementById("oo-tasa").value);
     if(!tasa){e.textContent="Completa la tasa mensual del fondeador.";e.style.display="block";return;}
@@ -668,7 +686,12 @@ function generarOrden(){
   // Intereses y giro del fondeador
   var intereses,scb=0,bolsaCosto=0,bolsaIva=0,scbIva=0,reserva=0,costoFijo=0,girarF;
   if(esBMC){
-    var VP=facial/Math.pow(1+tasa/100,plazo/365);
+    var VP=ooBmcMode==="mc"
+      ?facial/Math.pow(1+tasa/100,plazo/30)
+      :facial/Math.pow(1+tasa/100,plazo/365);
+    tasaLabel=ooBmcMode==="mc"
+      ?tasa+"% mensual compuesta — período "+(plazo/30).toFixed(4).replace(/\.?0+$/,"")+" meses"
+      :tasa+"% EA — período "+plazo+" días";
     intereses=facial-VP;
     var scbP=pn(document.getElementById("oo-scb").value);
     bolsaCosto=VP*0.002;
