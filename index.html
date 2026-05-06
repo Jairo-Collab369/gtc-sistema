@@ -585,8 +585,16 @@ function onFondSelect(){
     document.getElementById("oo-tog-bolsa").classList.add("on");
     document.getElementById("oo-rete").disabled=true;
   } else {
-    document.getElementById("oo-blk-m").style.display=(ooMode==="m")?"block":"none";
-    document.getElementById("oo-blk-a").style.display=(ooMode==="a")?"block":"none";
+    var esNeto=(fond==="Cesion Bank"||fond==="Servifin"||fond==="Liquitech");
+    if(esNeto){
+      // Forzar modo mensual — el cálculo neto siempre usa tasa mensual × meses
+      ooSetMode("m");
+      document.getElementById("oo-mode-sel").style.display="none";
+    } else {
+      document.getElementById("oo-mode-sel").style.display="flex";
+      document.getElementById("oo-blk-m").style.display=(ooMode==="m")?"block":"none";
+      document.getElementById("oo-blk-a").style.display=(ooMode==="a")?"block":"none";
+    }
     ooBolsaOn=false;
     document.getElementById("oo-tog-bolsa").classList.remove("on");
     document.getElementById("oo-rete").disabled=false;
