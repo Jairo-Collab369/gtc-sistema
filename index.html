@@ -359,7 +359,7 @@ var FOND_AYUDA={
   "Integra":             "<b>Integra</b><br>Tasa: <b>anual × días/365</b>. Sin reserva ni costo fijo.",
   "Cesion Bank":         "<b>Cesion Bank</b><br>Tasa: <b>mensual × meses</b> sobre el neto (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento) · Base intereses = facial − reserva.",
   "Servifin":            "<b>Servifin</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento).",
-  "Irisbank":            "<b>Irisbank</b><br>Tasa: <b>anual × días/365</b> sobre el facial.<br>Reserva: <b>5%</b> del facial (devuelta al vencimiento).",
+  "Irisbank":            "<b>Irisbank</b><br>Tasa: <b>mensual</b> sobre el valor de compra (facial − reserva).<br>Reserva: <b>5%</b> del facial · Plazo efectivo: <b>plazo + 30 días</b> de cobertura adicional.<br>Fórmula: (facial−5%) × tasa_m% × (plazo+30)/30.",
   "Liquitech":           "<b>Liquitech</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento)."
 };
 var garantias={pagare:true,poliza:false,bmc:false};
@@ -585,9 +585,9 @@ function onFondSelect(){
     document.getElementById("oo-tog-bolsa").classList.add("on");
     document.getElementById("oo-rete").disabled=true;
   } else {
-    var esNeto=(fond==="Cesion Bank"||fond==="Servifin"||fond==="Liquitech");
+    var esNeto=(fond==="Cesion Bank"||fond==="Servifin"||fond==="Liquitech"||fond==="Irisbank");
     if(esNeto){
-      // Forzar modo mensual — el cálculo neto siempre usa tasa mensual × meses
+      // Forzar modo mensual — cálculo neto/Irisbank siempre usa tasa mensual
       ooSetMode("m");
       document.getElementById("oo-mode-sel").style.display="none";
     } else {
@@ -743,6 +743,14 @@ function generarOrden(){
     scb=VP*scbP/100;
     scbIva=scb*0.19;
     girarF=VP-bolsaCosto-bolsaIva-scb-scbIva;
+  } else if(fond==="Irisbank"){
+    // Irisbank: base = facial - reserva; tasa período = tasa_m × (plazo+30)/30; intereses = base × tasa_período
+    reserva=facial*fondConf.reserva/100;
+    var baseIris=Math.round(facial*(1-fondConf.reserva/100));
+    var tasaPeriodoIris=(tasa/100)*((plazo+30)/30);
+    intereses=Math.round(baseIris*tasaPeriodoIris);
+    tasaLabel=tasa+"% mensual × "+(((plazo+30)/30).toFixed(4).replace(/\.?0+$/,""))+" períodos (plazo+30 días)";
+    girarF=facial-intereses-reserva;
   } else if(fond==="Cesion Bank"||fond==="Servifin"||fond==="Liquitech"){
     // Intereses sobre neto (facial - reserva), tasa mensual × meses
     reserva=facial*fondConf.reserva/100;
