@@ -182,7 +182,10 @@ input.ro{background:#141414;border-color:#222;color:#666}
     </div>
     <div class="lbl">Tipo de operación</div>
     <select id="oo-tipo"><option value="con_recurso">Con recurso</option><option value="sin_recurso">Sin recurso</option></select>
-    <div class="lbl">Proveedor de Liquidez</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <span class="lbl" style="margin:0">Proveedor de Liquidez</span>
+      <button onclick="openTasas()" style="font-size:11px;padding:3px 9px;border:1px solid #1a6fa8;border-radius:4px;background:#f0f7ff;color:#1a6fa8;cursor:pointer;font-family:inherit">⚙ Tasas</button>
+    </div>
     <select id="oo-fond" onchange="onFondSelect()">
       <option value="">Seleccionar...</option>
       <option>BMC Miguel Quijano</option><option>BMC Mercado y Bolsa</option>
@@ -391,6 +394,20 @@ var FOND_AYUDA={
   "Liquitech":           "<b>Liquitech</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento)."
 };
 var garantias={pagare:true,poliza:false,bmc:false};
+
+var TASAS_DEFAULT_BASE={
+  "Coltefinanciera":     {tasa:"1.75085",   modo:"m"},
+  "Integra":             {tasa:"10.13",     modo:"a"},
+  "Irisbank":            {tasa:"1.77",      modo:"m"},
+  "Cesion Bank":         {tasa:"2.281865",  modo:"m"},
+  "Servifin":            {tasa:"2",         modo:"m"},
+  "Liquitech":           {tasa:"1.98",      modo:"m"},
+  "BMC Miguel Quijano":  {tasa:"",          modo:"vp"},
+  "BMC Mercado y Bolsa": {tasa:"",          modo:"vp"}
+};
+var TASAS_DEFAULT=JSON.parse(JSON.stringify(TASAS_DEFAULT_BASE));
+(function(){var s=localStorage.getItem("gtc_tasas");if(s)try{var o=JSON.parse(s);Object.keys(o).forEach(function(k){if(TASAS_DEFAULT[k])TASAS_DEFAULT[k]=o[k];});}catch(e){}})();
+var tdModos={};
 
 function cop(n){return "$ "+Math.round(n).toLocaleString("es-CO");}
 function pn(v){return parseFloat(String(v).trim())||0;}
@@ -608,7 +625,9 @@ function onFondSelect(){
     document.getElementById("oo-blk-m").style.display="none";
     document.getElementById("oo-blk-a").style.display="block";
     document.getElementById("oo-scb").value=(fond==="BMC Miguel Quijano")?"0.40":"2.43";
-    ooBmcSetMode(fond==="BMC Mercado y Bolsa"?"mc":"ea");
+    var bmcDef=TASAS_DEFAULT[fond]||{};
+    ooBmcSetMode(bmcDef.modo||(fond==="BMC Mercado y Bolsa"?"mc":"ea"));
+    if(bmcDef.tasa&&bmcDef.modo!=="vp") document.getElementById("oo-tasa-a").value=bmcDef.tasa;
     ooBolsaOn=true;
     document.getElementById("oo-tog-bolsa").classList.add("on");
     document.getElementById("oo-rete").disabled=true;
@@ -622,6 +641,11 @@ function onFondSelect(){
       document.getElementById("oo-mode-sel").style.display="flex";
       document.getElementById("oo-blk-m").style.display=(ooMode==="m")?"block":"none";
       document.getElementById("oo-blk-a").style.display=(ooMode==="a")?"block":"none";
+    }
+    var fondDef=TASAS_DEFAULT[fond];
+    if(fondDef&&fondDef.tasa){
+      if(fondDef.modo==="a") document.getElementById("oo-tasa-a").value=fondDef.tasa;
+      else document.getElementById("oo-tasa").value=fondDef.tasa;
     }
     ooBolsaOn=false;
     document.getElementById("oo-tog-bolsa").classList.remove("on");
@@ -968,9 +992,87 @@ function nuevaOrden(){
   irPaso(1);
 }
 
+function openTasas(){
+  tdModos={};
+  renderTasasPanel();
+  document.getElementById("modal-tasas").style.display="flex";
+}
+function closeTasas(){document.getElementById("modal-tasas").style.display="none";}
+function tdSetBMCModo(fond,modo){
+  tdModos[fond]=modo;
+  var key=fond.replace(/ /g,"_");
+  ["ea","mc","vp"].forEach(function(m){
+    var b=document.getElementById("tdb-"+key+"-"+m);
+    if(b){b.style.background=m===modo?"#C9A84C":"transparent";b.style.color=m===modo?"#1a1a1a":"#E8C96A";}
+  });
+  var inp=document.getElementById("tdi-"+key);
+  if(inp) inp.disabled=(modo==="vp");
+}
+function renderTasasPanel(){
+  var fonds=["Coltefinanciera","Integra","Irisbank","Cesion Bank","Servifin","Liquitech","BMC Miguel Quijano","BMC Mercado y Bolsa"];
+  var modoLbl={"m":"mensual","a":"anual × días/365"};
+  var h="<table style='width:100%;border-collapse:collapse;font-size:12px'>";
+  h+="<thead><tr><th style='text-align:left;padding:6px 4px;border-bottom:1px solid #333;color:#999'>Fondeador</th><th style='padding:6px 4px;border-bottom:1px solid #333;color:#999'>Tasa</th><th style='padding:6px 4px;border-bottom:1px solid #333;color:#999'>Modo</th></tr></thead><tbody>";
+  fonds.forEach(function(f){
+    var td=TASAS_DEFAULT[f]||{};
+    var key=f.replace(/ /g,"_");
+    var esBMC=f.indexOf("BMC")===0;
+    var curModo=td.modo||"";
+    h+="<tr style='border-bottom:1px solid #2a2a2a'><td style='padding:8px 4px;color:#ccc'>"+f+"</td>";
+    if(esBMC){
+      var isVP=curModo==="vp";
+      h+="<td style='padding:8px 4px'><input id='tdi-"+key+"' value='"+(td.tasa||"")+"' inputmode='decimal' placeholder='ej. 1.5' "+(isVP?"disabled":"")+" style='width:80px;padding:4px 6px;border:1px solid #444;border-radius:4px;background:#111;color:#eee;font-size:12px'></td>";
+      h+="<td style='padding:8px 4px'><div style='display:flex;gap:4px;flex-wrap:wrap'>";
+      [{v:"ea",l:"EA"},{v:"mc",l:"MC"},{v:"vp",l:"VP"}].forEach(function(o){
+        var act=curModo===o.v;
+        h+="<button id='tdb-"+key+"-"+o.v+"' onclick='tdSetBMCModo(\""+f+"\",\""+o.v+"\")' style='padding:3px 8px;font-size:11px;border-radius:3px;border:1px solid #C9A84C;cursor:pointer;background:"+(act?"#C9A84C":"transparent")+";color:"+(act?"#1a1a1a":"#E8C96A")+"'>"+o.l+"</button>";
+      });
+      h+="</div></td>";
+    } else {
+      h+="<td style='padding:8px 4px'><input id='tdi-"+key+"' value='"+(td.tasa||"")+"' inputmode='decimal' placeholder='ej. 1.75' style='width:80px;padding:4px 6px;border:1px solid #444;border-radius:4px;background:#111;color:#eee;font-size:12px'></td>";
+      h+="<td style='padding:8px 4px;color:#888'>"+(modoLbl[td.modo]||td.modo||"")+"</td>";
+    }
+    h+="</tr>";
+  });
+  h+="</tbody></table>";
+  document.getElementById("tasas-body").innerHTML=h;
+}
+function saveTasas(){
+  var fonds=["Coltefinanciera","Integra","Irisbank","Cesion Bank","Servifin","Liquitech","BMC Miguel Quijano","BMC Mercado y Bolsa"];
+  fonds.forEach(function(f){
+    var key=f.replace(/ /g,"_");
+    var inp=document.getElementById("tdi-"+key);
+    var modo=tdModos[f]||(TASAS_DEFAULT[f]&&TASAS_DEFAULT[f].modo)||"";
+    TASAS_DEFAULT[f]={tasa:inp?inp.value.trim():"",modo:modo};
+  });
+  localStorage.setItem("gtc_tasas",JSON.stringify(TASAS_DEFAULT));
+  closeTasas();
+}
+function resetTasas(){
+  if(!confirm("¿Restablecer todas las tasas a los valores iniciales?")) return;
+  TASAS_DEFAULT=JSON.parse(JSON.stringify(TASAS_DEFAULT_BASE));
+  localStorage.setItem("gtc_tasas",JSON.stringify(TASAS_DEFAULT));
+  renderTasasPanel();
+}
+
 renderClientes();
 document.getElementById("oo-fecha").value=hoy();
 document.getElementById("cm-fecha-input").value=hoy();
 </script>
+<div id="modal-tasas" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#1a1a1a;border-radius:10px;padding:24px;width:min(520px,94vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid #333">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:14px;font-weight:700;color:#E8C96A">⚙ Tasas por Defecto</span>
+      <button onclick="closeTasas()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1">×</button>
+    </div>
+    <p style="font-size:11px;color:#666;margin:0 0 14px">Se pre-llenan al seleccionar el fondeador — editables por operación.</p>
+    <div id="tasas-body"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-sm" onclick="saveTasas()" style="flex:1">Guardar</button>
+      <button class="btn btn-sec btn-sm" onclick="resetTasas()" style="flex:1">Restablecer</button>
+      <button class="btn btn-sec btn-sm" onclick="closeTasas()" style="flex:1">Cancelar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
