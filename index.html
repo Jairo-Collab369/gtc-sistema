@@ -190,6 +190,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <option>Cesion Bank</option><option>Servifin</option>
       <option>Irisbank</option><option>Liquitech</option>
     </select>
+    <div id="oo-fond-ayuda" style="display:none;background:#eaf4fb;border-left:3px solid #1a6fa8;border-radius:4px;padding:10px 12px;margin-top:6px;font-size:12px;color:#1a3a5c;line-height:1.6"></div>
     <div class="grid2">
       <div><div class="lbl">No. Factura GTC</div><input id="oo-fact-compra" placeholder="Por confirmar"></div>
       <div><div class="lbl">No. Factura Cliente</div><input id="oo-fact-venta" placeholder="Por confirmar"></div>
@@ -350,6 +351,17 @@ var FOND_CONFIG = {
 
 var clienteActual=null,productos=[],pidx=0;
 var ooGmfOn=false,ooBolsaOn=false,ooMode="m",ooBmcMode="ea";
+
+var FOND_AYUDA={
+  "BMC Miguel Quijano":  "<b>BMC — Bolsa Mercantil de Colombia</b><br>Modo recomendado: <b>EA anual</b>. Ingresa la tasa EA comunicada por el corredor.<br>SCB: <b>0.40%</b> sobre VP · IVA 19% sobre bolsa y SCB · Exento de retefuente.",
+  "BMC Mercado y Bolsa": "<b>BMC — Bolsa Mercantil de Colombia</b><br>Modo recomendado: <b>VP directo</b>. Ingresa el valor presente comunicado por BMC tras la subasta.<br>SCB: <b>2.43%</b> sobre VP (editable) · IVA 19% sobre bolsa y SCB · Exento de retefuente.",
+  "Coltefinanciera":     "<b>Coltefinanciera</b><br>Tasa: <b>anual × días/365</b>. Sin reserva.<br>Costo fijo: <b>$14.700</b> (IVA incluido) por transferencia bancaria.",
+  "Integra":             "<b>Integra</b><br>Tasa: <b>anual × días/365</b>. Sin reserva ni costo fijo.",
+  "Cesion Bank":         "<b>Cesion Bank</b><br>Tasa: <b>mensual × meses</b> sobre el neto (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento) · Base intereses = facial − reserva.",
+  "Servifin":            "<b>Servifin</b><br>Tasa: <b>mensual × meses</b> sobre el facial.<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento).",
+  "Irisbank":            "<b>Irisbank</b><br>Tasa: <b>anual × días/365</b> sobre el facial.<br>Reserva: <b>5%</b> del facial (devuelta al vencimiento).",
+  "Liquitech":           "<b>Liquitech</b><br>Tasa: <b>mensual × meses</b> sobre el facial.<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento)."
+};
 var garantias={pagare:true,poliza:false,bmc:false};
 
 function cop(n){return "$ "+Math.round(n).toLocaleString("es-CO");}
@@ -531,6 +543,7 @@ function prepararPaso3(){
   if(c.rete!=null) document.getElementById("oo-rete").value=String(c.rete);
   // Reset fondeador y campos derivados
   document.getElementById("oo-fond").value="";
+  document.getElementById("oo-fond-ayuda").style.display="none";
   document.getElementById("oo-blk-scb").style.display="none";
   document.getElementById("oo-blk-bmc-mode").style.display="none";
   document.getElementById("oo-blk-vp").style.display="none";
@@ -556,6 +569,9 @@ function ooBmcSetMode(m){
 
 function onFondSelect(){
   var fond=document.getElementById("oo-fond").value;
+  var ayudaEl=document.getElementById("oo-fond-ayuda");
+  if(fond&&FOND_AYUDA[fond]){ayudaEl.innerHTML=FOND_AYUDA[fond];ayudaEl.style.display="block";}
+  else{ayudaEl.style.display="none";}
   var esBMC=(fond.indexOf("BMC")===0);
   document.getElementById("oo-blk-scb").style.display=esBMC?"block":"none";
   document.getElementById("oo-blk-bmc-mode").style.display=esBMC?"block":"none";
