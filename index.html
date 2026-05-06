@@ -234,7 +234,12 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <div class="mode-sel">
         <button class="mode-btn active" id="oo-bmc-ea" onclick="ooBmcSetMode('ea')">EA anual</button>
         <button class="mode-btn" id="oo-bmc-mc" onclick="ooBmcSetMode('mc')">Mensual compuesta</button>
+        <button class="mode-btn" id="oo-bmc-vp" onclick="ooBmcSetMode('vp')">VP directo</button>
       </div>
+    </div>
+    <div id="oo-blk-vp" style="display:none">
+      <div class="lbl">Valor Presente BMC (resultado subasta)</div>
+      <input id="oo-vp" inputmode="numeric" placeholder="ej. 2180463266">
     </div>
     <div class="lbl">Diferencial GTC (%)</div>
     <input id="oo-dif" inputmode="decimal" placeholder="ej. 3.5">
@@ -528,6 +533,7 @@ function prepararPaso3(){
   document.getElementById("oo-fond").value="";
   document.getElementById("oo-blk-scb").style.display="none";
   document.getElementById("oo-blk-bmc-mode").style.display="none";
+  document.getElementById("oo-blk-vp").style.display="none";
   document.getElementById("oo-mode-sel").style.display="flex";
   ooBolsaOn=false;
   document.getElementById("oo-tog-bolsa").classList.remove("on");
@@ -538,8 +544,14 @@ function ooBmcSetMode(m){
   ooBmcMode=m;
   document.getElementById("oo-bmc-ea").classList.toggle("active",m==="ea");
   document.getElementById("oo-bmc-mc").classList.toggle("active",m==="mc");
-  var lblTasa=document.querySelector("#oo-blk-a .lbl");
-  if(lblTasa) lblTasa.textContent=m==="mc"?"Tasa fondeador (% mensual compuesta)":"Tasa fondeador (% EA anual)";
+  document.getElementById("oo-bmc-vp").classList.toggle("active",m==="vp");
+  var usaVP=(m==="vp");
+  document.getElementById("oo-blk-a").style.display=usaVP?"none":"block";
+  document.getElementById("oo-blk-vp").style.display=usaVP?"block":"none";
+  if(!usaVP){
+    var lblTasa=document.querySelector("#oo-blk-a .lbl");
+    if(lblTasa) lblTasa.textContent=m==="mc"?"Tasa fondeador (% mensual compuesta)":"Tasa fondeador (% EA anual)";
+  }
 }
 
 function onFondSelect(){
@@ -655,7 +667,9 @@ function generarOrden(){
   var fondConf=FOND_CONFIG[fond]||{};
 
   var tasa,tasaLabel;
-  if(esBMC){
+  if(esBMC&&ooBmcMode==="vp"){
+    tasa=0;tasaLabel="VP directo subasta";
+  } else if(esBMC){
     tasa=pn(document.getElementById("oo-tasa-a").value);
     if(!tasa){e.textContent="Completa la tasa del fondeador BMC.";e.style.display="block";return;}
     tasaLabel=tasa+(ooBmcMode==="mc"?"% mensual compuesta":"% EA");
@@ -686,12 +700,18 @@ function generarOrden(){
   // Intereses y giro del fondeador
   var intereses,scb=0,bolsaCosto=0,bolsaIva=0,scbIva=0,reserva=0,costoFijo=0,girarF;
   if(esBMC){
-    var VP=ooBmcMode==="mc"
-      ?facial/Math.pow(1+tasa/100,plazo/30)
-      :facial/Math.pow(1+tasa/100,plazo/365);
-    tasaLabel=ooBmcMode==="mc"
-      ?tasa+"% mensual compuesta — período "+(plazo/30).toFixed(4).replace(/\.?0+$/,"")+" meses"
-      :tasa+"% EA — período "+plazo+" días";
+    var VP;
+    if(ooBmcMode==="vp"){
+      VP=pn(document.getElementById("oo-vp").value);
+      if(!VP||VP<=0||VP>=facial){e.textContent="El VP debe ser mayor a 0 y menor al valor facial.";e.style.display="block";return;}
+      tasaLabel="VP subasta $"+Math.round(VP).toLocaleString("es-CO");
+    } else if(ooBmcMode==="mc"){
+      VP=facial/Math.pow(1+tasa/100,plazo/30);
+      tasaLabel=tasa+"% mensual compuesta — período "+(plazo/30).toFixed(4).replace(/\.?0+$/,"")+" meses";
+    } else {
+      VP=facial/Math.pow(1+tasa/100,plazo/365);
+      tasaLabel=tasa+"% EA — período "+plazo+" días";
+    }
     intereses=facial-VP;
     var scbP=pn(document.getElementById("oo-scb").value);
     bolsaCosto=VP*0.002;
