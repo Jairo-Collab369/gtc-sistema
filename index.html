@@ -13,7 +13,7 @@ body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size
 .sub{font-size:11px;color:#666}
 .wrap{max-width:100%;padding:16px}
 .steps{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid #2A2A2A}
-.step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:600;color:#555;background:#141414;border-right:1px solid #2A2A2A;cursor:default;transition:all .2s;letter-spacing:.5px}
+.step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:600;color:#555;background:#141414;border-right:1px solid #2A2A2A;cursor:pointer;transition:all .2s;letter-spacing:.5px}
 .step:last-child{border-right:none}
 .step.active{background:#C9A84C18;color:#E8C96A;border-bottom:2px solid #C9A84C}
 .step.done{color:#4CAF50}
@@ -135,11 +135,11 @@ input.ro{background:#141414;border-color:#222;color:#666}
 </div>
 <div class="wrap">
   <div class="steps no-print">
-    <div class="step active" id="step1"><span class="step-num">1</span>CLIENTE</div>
-    <div class="step" id="step2"><span class="step-num">2</span>CONTRATO</div>
-    <div class="step" id="step3"><span class="step-num">3</span>ORDEN</div>
-    <div class="step" id="step4"><span class="step-num">4</span>DOCUMENTO</div>
-    <div class="step" id="step-crm" onclick="irCRM()" style="cursor:pointer;border-left:2px solid #C9A84C33"><span class="step-num">◈</span>CRM</div>
+    <div class="step active" id="step1" onclick="irPaso(1)"><span class="step-num">1</span>CLIENTE</div>
+    <div class="step" id="step2" onclick="irPaso(2)"><span class="step-num">2</span>CONTRATO</div>
+    <div class="step" id="step3" onclick="irPaso(3)"><span class="step-num">3</span>ORDEN</div>
+    <div class="step" id="step4" onclick="irPaso(4)"><span class="step-num">4</span>DOCUMENTO</div>
+    <div class="step" id="step-crm" onclick="irCRM()" style="border-left:2px solid #C9A84C33"><span class="step-num">◈</span>CRM</div>
   </div>
 
   <!-- PANEL 1 -->
