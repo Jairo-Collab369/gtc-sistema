@@ -327,8 +327,6 @@ input.ro{background:#141414;border-color:#222;color:#666}
         <option>Jairo Sánchez</option>
         <option>Camila Arenas</option>
         <option>Mariana Valencia</option>
-        <option>David Trujillo</option>
-        <option>Guillermo Ceballos</option>
       </select>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
@@ -1222,7 +1220,7 @@ function openCRMForm(id){
   var eOpts=Object.keys(CRM_ETAPAS).map(function(k){
     return "<option value='"+k+"'"+(c.etapa===k?" selected":"")+">"+CRM_ETAPAS[k].label+"</option>";
   }).join("");
-  var respOpts=["Jairo Sánchez","Camila Arenas","Mariana Valencia","David Trujillo","Guillermo Ceballos"].map(function(r){
+  var respOpts=["Jairo Sánchez","Camila Arenas","Mariana Valencia"].map(function(r){
     return "<option"+(c.responsable===r?" selected":"")+" value='"+r+"'>"+r+"</option>";
   }).join("");
   document.getElementById("crm-modal-body").innerHTML=
