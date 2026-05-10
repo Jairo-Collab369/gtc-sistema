@@ -63,6 +63,32 @@ input.ro{background:#141414;border-color:#222;color:#666}
 .tot-row.total .l{color:#C9A84C;font-weight:600}.tot-row.total .r{color:#E8C96A;font-weight:700;font-size:16px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media print{.no-print{display:none!important}.header{display:none}.wrap{padding:0}}
+.crm-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.crm-metric{background:#141414;border:1px solid #2A2A2A;border-radius:8px;padding:10px;text-align:center}
+.crm-metric-n{font-size:22px;font-weight:700;color:#E8C96A}
+.crm-metric-l{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.crm-filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.crm-filters input,.crm-filters select{margin:0;flex:1;min-width:130px}
+.crm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:20px}
+.crm-card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px;cursor:pointer;transition:border-color .15s}
+.crm-card:hover{border-color:#C9A84C55}
+.crm-nombre{font-size:13px;font-weight:600;color:#F0F0F0;margin-bottom:4px;line-height:1.35}
+.crm-nit{font-size:11px;color:#555;margin-bottom:8px}
+.crm-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.crm-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+.crm-footer{display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.crm-resp{color:#666}.crm-seg{color:#C9A84C99}
+.etapa-prospecto{background:#33333322;color:#888;border:1px solid #44444444}
+.etapa-contacto{background:#1a6fa822;color:#5ba3d9;border:1px solid #1a6fa844}
+.etapa-reunion{background:#9b59b622;color:#c39bd3;border:1px solid #9b59b644}
+.etapa-propuesta{background:#E07B3922;color:#E07B39;border:1px solid #E07B3944}
+.etapa-kyc{background:#f39c1222;color:#f5b041;border:1px solid #f39c1244}
+.etapa-operacion{background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144}
+.etapa-activo{background:#4CAF5022;color:#4CAF50;border:1px solid #4CAF5044}
+.etapa-perdido{background:#E74C3C22;color:#E74C3C;border:1px solid #E74C3C44}
+.crm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px}
+.crm-modal.open{display:flex}
+.crm-modal-box{background:#161616;border:1px solid #333;border-radius:12px;padding:20px;width:min(500px,96vw);margin:auto}
 .doc{font-family:Arial,sans-serif;font-size:11px;color:#222;background:#fff;padding:20px;border-radius:10px;margin-top:16px}
 .doc-header{background:#000;color:#c9a84c;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:6px;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .doc-gtco{font-size:26px;font-weight:bold;letter-spacing:3px;color:#c9a84c}
@@ -113,6 +139,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
     <div class="step" id="step2"><span class="step-num">2</span>CONTRATO</div>
     <div class="step" id="step3"><span class="step-num">3</span>ORDEN</div>
     <div class="step" id="step4"><span class="step-num">4</span>DOCUMENTO</div>
+    <div class="step" id="step-crm" onclick="irCRM()" style="cursor:pointer;border-left:2px solid #C9A84C33"><span class="step-num">◈</span>CRM</div>
   </div>
 
   <!-- PANEL 1 -->
@@ -273,6 +300,57 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <button class="btn btn-sec btn-sm" style="flex:1" onclick="nuevaOrden()">+ Nueva Orden</button>
     </div>
     <div id="doc-output"></div>
+  </div>
+
+  <!-- PANEL CRM -->
+  <div id="panel-crm" class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="sec" style="margin:0;border:none">CRM — PIPELINE DE CLIENTES</div>
+      <button class="btn btn-sec btn-sm" onclick="irPaso(1)" style="width:auto;padding:6px 14px;margin:0;font-size:12px">← Operaciones</button>
+    </div>
+    <div class="crm-metrics" id="crm-metrics"></div>
+    <div class="crm-filters">
+      <input id="crm-buscar" placeholder="🔍 Buscar..." oninput="renderCRM()" style="font-size:13px;padding:9px 12px">
+      <select id="crm-filtro-etapa" onchange="renderCRM()" style="font-size:13px">
+        <option value="">Todas las etapas</option>
+        <option value="prospecto">Prospecto identificado</option>
+        <option value="contacto">Contacto inicial</option>
+        <option value="reunion">Reunión agendada</option>
+        <option value="propuesta">Propuesta enviada</option>
+        <option value="kyc">Documentos KYC</option>
+        <option value="operacion">Primera operación</option>
+        <option value="activo">Cliente activo</option>
+        <option value="perdido">No interesado</option>
+      </select>
+      <select id="crm-filtro-resp" onchange="renderCRM()" style="font-size:13px">
+        <option value="">Todos los responsables</option>
+        <option>Jairo Sánchez</option>
+        <option>Camila Arenas</option>
+        <option>Mariana Valencia</option>
+        <option>David Trujillo</option>
+        <option>Guillermo Ceballos</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="add-btn" onclick="openCRMForm(null)" style="margin:0;flex:1;padding:10px 0">+ Nuevo cliente</button>
+      <button class="btn btn-sec btn-sm" onclick="exportCRM()" style="flex:1;margin:0">⬇ Exportar CSV</button>
+    </div>
+    <div id="crm-grid"></div>
+  </div>
+</div>
+
+<div id="crm-modal" class="crm-modal">
+  <div class="crm-modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:14px;font-weight:700;color:#E8C96A" id="crm-modal-title">Cliente</span>
+      <button onclick="closeCRMModal()" style="background:none;border:none;font-size:24px;color:#666;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div id="crm-modal-body"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-sm" onclick="saveCRMRecord()" style="flex:2;margin:0">Guardar</button>
+      <button class="btn btn-sec btn-sm" id="crm-del-btn" onclick="deleteCRMRecord()" style="flex:1;margin:0">Eliminar</button>
+      <button class="btn btn-sec btn-sm" onclick="closeCRMModal()" style="flex:1;margin:0">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -438,6 +516,8 @@ function genNumCM(){
 }
 
 function irPaso(n){
+  document.getElementById("step-crm").classList.remove("active");
+  document.getElementById("panel-crm").classList.remove("active");
   for(var i=1;i<=4;i++){
     document.getElementById("panel"+i).classList.toggle("active",i===n);
     var s=document.getElementById("step"+i);
@@ -1053,6 +1133,152 @@ function resetTasas(){
   TASAS_DEFAULT=JSON.parse(JSON.stringify(TASAS_DEFAULT_BASE));
   localStorage.setItem("gtc_tasas",JSON.stringify(TASAS_DEFAULT));
   renderTasasPanel();
+}
+
+// ─── CRM ──────────────────────────────────────────────────────────────────────
+var CRM_ETAPAS={
+  prospecto:{label:"Prospecto identificado",   cls:"etapa-prospecto",order:1},
+  contacto: {label:"Contacto inicial realizado",cls:"etapa-contacto", order:2},
+  reunion:  {label:"Reunión / llamada agendada",cls:"etapa-reunion",  order:3},
+  propuesta:{label:"Propuesta enviada",          cls:"etapa-propuesta",order:4},
+  kyc:      {label:"Documentos solicitados (KYC)",cls:"etapa-kyc",   order:5},
+  operacion:{label:"Primera operación en proceso",cls:"etapa-operacion",order:6},
+  activo:   {label:"Cliente vinculado activo",   cls:"etapa-activo", order:7},
+  perdido:  {label:"No interesado / perdido",    cls:"etapa-perdido", order:8}
+};
+var CRM_DATA_INICIAL=[
+  {id:"c01",nombre:"CI Empaquetadora del Norte SAS BIC",nit:"900.407.151-7",pais:"Colombia",sector:"Agroindustrial",responsable:"Jairo Sánchez",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c02",nombre:"Grupo Empresarial Shalom GES SAS BIC",nit:"900.664.206-4",pais:"Colombia",sector:"Comercial",responsable:"David Trujillo",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c03",nombre:"Meyan S.A.",nit:"800.143.586-1",pais:"Colombia",sector:"Comercial",responsable:"David Trujillo",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c04",nombre:"Metco Suisse AG",nit:"CHE-271.584.656",pais:"Suiza",sector:"Minería / Cobre",responsable:"Jairo Sánchez",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c05",nombre:"Inversiones Grandes Vías e Ingeniería S.A.S.",nit:"830.031.937-1",pais:"Colombia",sector:"Infraestructura",responsable:"Jairo Sánchez",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c06",nombre:"C.I. Carbones del Porvenir OTA S.A.S.",nit:"900.852.420-0",pais:"Colombia",sector:"Minería / Carbón",responsable:"Jairo Sánchez",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c07",nombre:"Ingeniería & Construcciones TAK S.A.S.",nit:"901.594.712-2",pais:"Colombia",sector:"Construcción",responsable:"Guillermo Ceballos",etapa:"activo",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c08",nombre:"Geopark Colombia SAS",nit:"900.493.698",pais:"Colombia",sector:"Petrolero",responsable:"Jairo Sánchez",etapa:"kyc",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c09",nombre:"Parex Resources Colombia AG Sucursal",nit:"900.268.747",pais:"Colombia",sector:"Petrolero",responsable:"Jairo Sánchez",etapa:"operacion",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c10",nombre:"Andes Operating Company LLC Sucursal Colombia",nit:"901.217.782",pais:"Colombia",sector:"Petrolero",responsable:"Jairo Sánchez",etapa:"operacion",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c11",nombre:"Ingenio Risaralda",nit:"891.401.705",pais:"Colombia",sector:"Agroindustrial",responsable:"Camila Arenas",etapa:"propuesta",seguimiento:"",email:"",telefono:"",notas:""},
+  {id:"c12",nombre:"Ocean Port Global",nit:"EIN 33-1577053",pais:"EE.UU.",sector:"Logística",responsable:"Jairo Sánchez",etapa:"contacto",seguimiento:"",email:"",telefono:"",notas:""}
+];
+var CRM_DATA=(function(){var s=localStorage.getItem("gtc_crm");if(s)try{return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(CRM_DATA_INICIAL));})();
+var crmEditId=null;
+
+function crmSave(){localStorage.setItem("gtc_crm",JSON.stringify(CRM_DATA));}
+function crmEsc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+
+function irCRM(){
+  for(var i=1;i<=4;i++){
+    document.getElementById("panel"+i).classList.remove("active");
+    document.getElementById("step"+i).classList.remove("active","done");
+  }
+  document.getElementById("step-crm").classList.add("active");
+  document.getElementById("panel-crm").classList.add("active");
+  renderCRM();
+  window.scrollTo(0,0);
+}
+
+function renderCRM(){
+  var q=(document.getElementById("crm-buscar").value||"").toLowerCase();
+  var fe=document.getElementById("crm-filtro-etapa").value;
+  var fr=document.getElementById("crm-filtro-resp").value;
+  var filt=CRM_DATA.filter(function(c){
+    if(q&&c.nombre.toLowerCase().indexOf(q)<0&&(c.nit||"").toLowerCase().indexOf(q)<0) return false;
+    if(fe&&c.etapa!==fe) return false;
+    if(fr&&c.responsable!==fr) return false;
+    return true;
+  });
+  var total=CRM_DATA.length,
+      activos=CRM_DATA.filter(function(c){return c.etapa==="activo";}).length,
+      pipeline=CRM_DATA.filter(function(c){return c.etapa!=="activo"&&c.etapa!=="perdido";}).length,
+      internac=CRM_DATA.filter(function(c){return c.pais!=="Colombia";}).length,
+      perdidos=CRM_DATA.filter(function(c){return c.etapa==="perdido";}).length;
+  document.getElementById("crm-metrics").innerHTML=
+    [{n:total,l:"Total"},{n:activos,l:"Activos"},{n:pipeline,l:"Pipeline"},{n:internac,l:"Internacional"},{n:perdidos,l:"Perdidos"}]
+    .map(function(m){return "<div class='crm-metric'><div class='crm-metric-n'>"+m.n+"</div><div class='crm-metric-l'>"+m.l+"</div></div>";}).join("");
+  if(!filt.length){
+    document.getElementById("crm-grid").innerHTML="<div style='color:#555;font-size:13px;padding:24px 0'>Sin resultados.</div>";return;
+  }
+  document.getElementById("crm-grid").innerHTML=filt.map(function(c){
+    var e=CRM_ETAPAS[c.etapa]||{label:c.etapa,cls:"etapa-prospecto"};
+    return "<div class='crm-card' onclick='openCRMForm(\""+c.id+"\")'>"
+      +"<div class='crm-nombre'>"+crmEsc(c.nombre)+"</div>"
+      +"<div class='crm-nit'>"+(c.nit?"ID: "+crmEsc(c.nit)+" · ":"")+crmEsc(c.pais)+"</div>"
+      +"<div class='crm-badges'>"
+        +"<span class='crm-badge "+e.cls+"'>"+e.label+"</span>"
+        +"<span class='crm-badge' style='background:#1E1E1E;color:#666;border:1px solid #2A2A2A'>"+crmEsc(c.sector)+"</span>"
+      +"</div>"
+      +"<div class='crm-footer'>"
+        +"<span class='crm-resp'>"+crmEsc(c.responsable)+"</span>"
+        +(c.seguimiento?"<span class='crm-seg'>📅 "+c.seguimiento+"</span>":"")
+      +"</div></div>";
+  }).join("");
+}
+
+function openCRMForm(id){
+  crmEditId=id;
+  var c=id?CRM_DATA.find(function(x){return x.id===id;})||{}:{};
+  document.getElementById("crm-modal-title").textContent=id?"Editar cliente":"Nuevo cliente";
+  document.getElementById("crm-del-btn").style.display=id?"":"none";
+  var eOpts=Object.keys(CRM_ETAPAS).map(function(k){
+    return "<option value='"+k+"'"+(c.etapa===k?" selected":"")+">"+CRM_ETAPAS[k].label+"</option>";
+  }).join("");
+  var respOpts=["Jairo Sánchez","Camila Arenas","Mariana Valencia","David Trujillo","Guillermo Ceballos"].map(function(r){
+    return "<option"+(c.responsable===r?" selected":"")+" value='"+r+"'>"+r+"</option>";
+  }).join("");
+  document.getElementById("crm-modal-body").innerHTML=
+    "<div class='lbl'>Razón Social / Nombre</div><input id='cf-nombre' value='"+crmEsc(c.nombre||"")+"' placeholder='Nombre completo'>"
+    +"<div class='grid2'><div><div class='lbl'>NIT / EIN / Reg. fiscal</div><input id='cf-nit' value='"+crmEsc(c.nit||"")+"'></div>"
+    +"<div><div class='lbl'>País</div><input id='cf-pais' value='"+crmEsc(c.pais||"Colombia")+"'></div></div>"
+    +"<div class='grid2'><div><div class='lbl'>Sector</div><input id='cf-sector' value='"+crmEsc(c.sector||"")+"'></div>"
+    +"<div><div class='lbl'>Responsable</div><select id='cf-resp'>"+respOpts+"</select></div></div>"
+    +"<div class='lbl'>Etapa</div><select id='cf-etapa'>"+eOpts+"</select>"
+    +"<div class='grid2'><div><div class='lbl'>Teléfono</div><input id='cf-tel' value='"+crmEsc(c.telefono||"")+"'></div>"
+    +"<div><div class='lbl'>Próximo seguimiento</div><input type='date' id='cf-seg' value='"+(c.seguimiento||"")+"'></div></div>"
+    +"<div class='lbl'>Email</div><input id='cf-email' value='"+crmEsc(c.email||"")+"'>"
+    +"<div class='lbl'>Notas</div><textarea id='cf-notas'>"+crmEsc(c.notas||"")+"</textarea>";
+  document.getElementById("crm-modal").classList.add("open");
+}
+
+function closeCRMModal(){document.getElementById("crm-modal").classList.remove("open");crmEditId=null;}
+
+function saveCRMRecord(){
+  var nombre=document.getElementById("cf-nombre").value.trim();
+  if(!nombre){alert("Ingresa el nombre del cliente.");return;}
+  var rec={
+    id:crmEditId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),
+    nombre:nombre,
+    nit:document.getElementById("cf-nit").value.trim(),
+    pais:document.getElementById("cf-pais").value.trim()||"Colombia",
+    sector:document.getElementById("cf-sector").value.trim(),
+    responsable:document.getElementById("cf-resp").value,
+    etapa:document.getElementById("cf-etapa").value,
+    seguimiento:document.getElementById("cf-seg").value,
+    email:document.getElementById("cf-email").value.trim(),
+    telefono:document.getElementById("cf-tel").value.trim(),
+    notas:document.getElementById("cf-notas").value.trim()
+  };
+  if(crmEditId){var i=CRM_DATA.findIndex(function(x){return x.id===crmEditId;});if(i>=0)CRM_DATA[i]=rec;}
+  else CRM_DATA.push(rec);
+  crmSave();closeCRMModal();renderCRM();
+}
+
+function deleteCRMRecord(){
+  if(!crmEditId||!confirm("¿Eliminar este cliente del CRM?")) return;
+  CRM_DATA=CRM_DATA.filter(function(x){return x.id!==crmEditId;});
+  crmSave();closeCRMModal();renderCRM();
+}
+
+function exportCRM(){
+  var cols=["Nombre","NIT/EIN","País","Sector","Responsable","Etapa","Seguimiento","Email","Teléfono","Notas"];
+  var rows=CRM_DATA.map(function(c){
+    var e=(CRM_ETAPAS[c.etapa]||{label:c.etapa}).label;
+    return [c.nombre,c.nit,c.pais,c.sector,c.responsable,e,c.seguimiento,c.email,c.telefono,(c.notas||"").replace(/\n/g," ")]
+      .map(function(v){return '"'+(v||"").replace(/"/g,'""')+'"';}).join(",");
+  });
+  var csv="﻿"+cols.join(",")+"\n"+rows.join("\n");
+  var a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
+  a.download="GTC_CRM_"+hoy()+".csv";a.click();
 }
 
 renderClientes();
