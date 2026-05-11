@@ -64,7 +64,9 @@ input.ro{background:#141414;border-color:#222;color:#666}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media print{.no-print{display:none!important}.header{display:none}.wrap{padding:0}}
 .crm-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
-.crm-metric{background:#141414;border:1px solid #2A2A2A;border-radius:8px;padding:10px;text-align:center}
+.crm-metric{background:#141414;border:1px solid #2A2A2A;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:border-color .15s}
+.crm-metric:hover{border-color:#C9A84C66}
+.crm-metric.crm-metric-activo{border-color:#C9A84C;background:#C9A84C12}
 .crm-metric-n{font-size:22px;font-weight:700;color:#E8C96A}
 .crm-metric-l{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
 .crm-filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -1160,6 +1162,7 @@ var CRM_DATA_INICIAL=[
 ];
 var CRM_DATA=(function(){var s=localStorage.getItem("gtc_crm");if(s)try{return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(CRM_DATA_INICIAL));})();
 var crmEditId=null;
+var crmMetricFiltro=null;
 
 function crmSave(){localStorage.setItem("gtc_crm",JSON.stringify(CRM_DATA));}
 function crmEsc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
@@ -1175,24 +1178,33 @@ function irCRM(){
   window.scrollTo(0,0);
 }
 
+function crmSetMetric(k){crmMetricFiltro=(crmMetricFiltro===k?null:k);renderCRM();}
 function renderCRM(){
   var q=(document.getElementById("crm-buscar").value||"").toLowerCase();
   var fe=document.getElementById("crm-filtro-etapa").value;
   var fr=document.getElementById("crm-filtro-resp").value;
+  var metricas=[
+    {k:"total",    n:CRM_DATA.length,                                                                                   l:"Total"},
+    {k:"activos",  n:CRM_DATA.filter(function(c){return c.etapa==="activo";}).length,                                   l:"Activos"},
+    {k:"pipeline", n:CRM_DATA.filter(function(c){return c.etapa!=="activo"&&c.etapa!=="perdido";}).length,              l:"Pipeline"},
+    {k:"internac", n:CRM_DATA.filter(function(c){return c.pais!=="Colombia";}).length,                                  l:"Internacional"},
+    {k:"perdidos", n:CRM_DATA.filter(function(c){return c.etapa==="perdido";}).length,                                  l:"Perdidos"}
+  ];
+  document.getElementById("crm-metrics").innerHTML=metricas.map(function(m){
+    var act=crmMetricFiltro===m.k;
+    return "<div class='crm-metric"+(act?" crm-metric-activo":"")+"' onclick='crmSetMetric(\""+m.k+"\")'>"
+      +"<div class='crm-metric-n'>"+m.n+"</div><div class='crm-metric-l'>"+m.l+"</div></div>";
+  }).join("");
   var filt=CRM_DATA.filter(function(c){
+    if(crmMetricFiltro==="activos"  && c.etapa!=="activo") return false;
+    if(crmMetricFiltro==="pipeline" && (c.etapa==="activo"||c.etapa==="perdido")) return false;
+    if(crmMetricFiltro==="internac" && c.pais==="Colombia") return false;
+    if(crmMetricFiltro==="perdidos" && c.etapa!=="perdido") return false;
     if(q&&c.nombre.toLowerCase().indexOf(q)<0&&(c.nit||"").toLowerCase().indexOf(q)<0) return false;
     if(fe&&c.etapa!==fe) return false;
     if(fr&&c.responsable!==fr) return false;
     return true;
   });
-  var total=CRM_DATA.length,
-      activos=CRM_DATA.filter(function(c){return c.etapa==="activo";}).length,
-      pipeline=CRM_DATA.filter(function(c){return c.etapa!=="activo"&&c.etapa!=="perdido";}).length,
-      internac=CRM_DATA.filter(function(c){return c.pais!=="Colombia";}).length,
-      perdidos=CRM_DATA.filter(function(c){return c.etapa==="perdido";}).length;
-  document.getElementById("crm-metrics").innerHTML=
-    [{n:total,l:"Total"},{n:activos,l:"Activos"},{n:pipeline,l:"Pipeline"},{n:internac,l:"Internacional"},{n:perdidos,l:"Perdidos"}]
-    .map(function(m){return "<div class='crm-metric'><div class='crm-metric-n'>"+m.n+"</div><div class='crm-metric-l'>"+m.l+"</div></div>";}).join("");
   if(!filt.length){
     document.getElementById("crm-grid").innerHTML="<div style='color:#555;font-size:13px;padding:24px 0'>Sin resultados.</div>";return;
   }
