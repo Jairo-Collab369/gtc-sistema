@@ -144,7 +144,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
   <div class="logo">G</div>
   <div>
     <div class="brand">GLOBAL TRADE COMMERCE</div>
-    <div class="sub">Sistema Integrado v2.1 — SOFR</div>
+    <div class="sub">Sistema Integrado v2.2 — SOFR</div>
   </div>
 </div>
 <div class="wrap">
@@ -174,6 +174,15 @@ input.ro{background:#141414;border-color:#222;color:#666}
       <div class="lbl">Dirección</div><input id="nc-dir" placeholder="Dirección completa">
       <div class="lbl">Ciudad</div><input id="nc-ciudad" placeholder="Ciudad">
       <div class="lbl">País</div><input id="nc-pais" value="Colombia">
+      <div class="sec" style="margin-top:16px">PRODUCTOS DEL CLIENTE</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px">Agrega los productos que este cliente vende a GTC. Puedes dejar el precio en 0 si es variable.</div>
+      <div style="overflow-x:auto">
+        <table class="prod-table" style="min-width:500px">
+          <thead><tr><th>Descripción</th><th>Unidad</th><th>Precio base</th><th>IVA%</th><th></th></tr></thead>
+          <tbody id="nc-prod-body"></tbody>
+        </table>
+      </div>
+      <button class="add-btn" onclick="ncAddProd()" style="margin-bottom:14px">+ Agregar producto</button>
       <button class="btn" onclick="guardarNuevoCliente()">Guardar cliente</button>
       <button class="btn btn-sec" onclick="cancelarNuevoCliente()">Cancelar</button>
     </div>
@@ -563,6 +572,9 @@ var COMISION_ADMIN=[{nombre:"Camila Arenas",pct:10},{nombre:"Mariana Valencia Ho
 var COMISIONES_CLI={"shalom":[{nombre:"David Trujillo",pct:20}],"meyan":[{nombre:"David Trujillo",pct:20}],"empanorte":[{nombre:"Jairo Sánchez",pct:20}],"carbones":[{nombre:"Jairo Sánchez",pct:20}],"metco":[{nombre:"Jairo Sánchez",pct:20}],"andes":[{nombre:"Jairo Sánchez",pct:20}],"parex":[{nombre:"Jairo Sánchez",pct:20}],"geopark":[{nombre:"Jairo Sánchez",pct:20}],"tak":[{nombre:"Guillermo Ceballos",pct:10}]};
 // Clientes propios de Camila y Mariana — pendiente definir con Jairo
 var clienteActual=null,productos=[],pidx=0;
+// Cargar clientes guardados en localStorage
+(function(){var s=localStorage.getItem("gtc_clientes");if(s)try{var extra=JSON.parse(s);Object.keys(extra).forEach(function(k){CLIENTES[k]=extra[k];});}catch(e){}})();
+function saveClientes(){var extra={};Object.keys(CLIENTES).forEach(function(k){if(k.indexOf("cli_")===0)extra[k]=CLIENTES[k];});localStorage.setItem("gtc_clientes",JSON.stringify(extra));}
 var ooGmfOn=false,ooBolsaOn=false,ooMode="m",ooBmcMode="ea";
 var FOND_AYUDA={"BMC Miguel Quijano":"<b>BMC — Bolsa Mercantil de Colombia</b><br>Modo recomendado: <b>EA anual</b>. Ingresa la tasa EA comunicada por el corredor.<br>SCB: <b>0.40%</b> sobre VP · IVA 19% sobre bolsa y SCB · Exento de retefuente.","BMC Mercado y Bolsa":"<b>BMC — Bolsa Mercantil de Colombia</b><br>Modo recomendado: <b>VP directo</b>. Ingresa el valor presente comunicado por BMC tras la subasta.<br>SCB: <b>2.43%</b> sobre VP (editable) · IVA 19% sobre bolsa y SCB · Exento de retefuente.","Coltefinanciera":"<b>Coltefinanciera</b><br>Tasa: <b>anual × días/365</b>. Sin reserva.<br>Costo fijo: <b>$14.700</b> (IVA incluido) por transferencia bancaria.","Integra":"<b>Integra</b><br>Tasa: <b>anual × días/365</b>. Sin reserva ni costo fijo.","Cesion Bank":"<b>Cesion Bank</b><br>Tasa: <b>mensual × meses</b> sobre el neto (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento) · Base intereses = facial − reserva.","Servifin":"<b>Servifin</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento).","Irisbank":"<b>Irisbank</b><br>Tasa: <b>mensual</b> sobre el valor de compra (facial − reserva).<br>Reserva: <b>5%</b> del facial · Plazo efectivo: <b>plazo + 30 días</b> de cobertura adicional.<br>Fórmula: (facial−5%) × tasa_m% × (plazo+30)/30.","Liquitech":"<b>Liquitech</b><br>Tasa: <b>mensual × meses sobre el neto</b> (facial − reserva).<br>Reserva: <b>10%</b> del facial (devuelta al vencimiento).","Ruta SOFR — Wells Fargo":"<b>🌐 Ruta SOFR Internacional</b><br>Fondeador: <b>Wells Fargo</b> vía Payment Undertaking.<br>Tasa: <b>SOFR + spread</b> (hoy SOFR 3.62% + spread 3% = <b>6.62% EA</b>).<br>Liquidación en USD convertida a COP a la TRM. Retefuente exenta.<br>Anchor: Importador / Comprador internacional."};
 var garantias={pagare:true,poliza:false,bmc:false};
@@ -670,7 +682,13 @@ function renderContratoStatus(){if(!clienteActual)return;var c=CLIENTES[clienteA
 function selCliente(id){clienteActual=id;renderClientes(document.getElementById("buscar").value);irPaso(2);}
 function nuevoCliente(){document.getElementById("nuevo-cliente-form").style.display="block";}
 function cancelarNuevoCliente(){document.getElementById("nuevo-cliente-form").style.display="none";}
-function guardarNuevoCliente(){var nombre=document.getElementById("nc-nombre").value.trim();var nit=document.getElementById("nc-nit").value.trim();if(!nombre||!nit){document.getElementById("p1-err").textContent="Nombre y NIT son obligatorios.";document.getElementById("p1-err").style.display="block";return;}var id="cli_"+Date.now();CLIENTES[id]={nombre:nombre,nit:nit,rep:document.getElementById("nc-rep").value.trim(),cc:document.getElementById("nc-cc").value.trim(),cargo:document.getElementById("nc-cargo").value.trim(),tel:document.getElementById("nc-tel").value.trim(),dir:document.getElementById("nc-dir").value.trim(),ciudad:document.getElementById("nc-ciudad").value.trim(),pais:document.getElementById("nc-pais").value.trim(),contrato:null,productos:[]};document.getElementById("p1-err").style.display="none";cancelarNuevoCliente();selCliente(id);}
+function guardarNuevoCliente(){var nombre=document.getElementById("nc-nombre").value.trim();var nit=document.getElementById("nc-nit").value.trim();if(!nombre||!nit){document.getElementById("p1-err").textContent="Nombre y NIT son obligatorios.";document.getElementById("p1-err").style.display="block";return;}var id="cli_"+Date.now();
+// Recoger productos nuevos del formulario
+var prods=[];var prows=document.querySelectorAll("#nc-prod-body tr");prows.forEach(function(tr){var ins=tr.querySelectorAll("input");if(ins[0]&&ins[0].value.trim()){prods.push({desc:ins[0].value.trim(),umd:ins[1]?ins[1].value.trim():"UND",precio:parseFloat(ins[2]?ins[2].value:0)||0,iva:parseFloat(ins[3]?ins[3].value:0)||0,variable:true});}});
+CLIENTES[id]={nombre:nombre,nit:nit,rep:document.getElementById("nc-rep").value.trim(),cc:document.getElementById("nc-cc").value.trim(),cargo:document.getElementById("nc-cargo").value.trim(),tel:document.getElementById("nc-tel").value.trim(),dir:document.getElementById("nc-dir").value.trim(),ciudad:document.getElementById("nc-ciudad").value.trim(),pais:document.getElementById("nc-pais").value.trim(),contrato:null,productos:prods};
+saveClientes();
+document.getElementById("p1-err").style.display="none";cancelarNuevoCliente();selCliente(id);}
+function ncAddProd(){var tb=document.getElementById("nc-prod-body");var tr=document.createElement("tr");var td1=document.createElement("td");var i1=document.createElement("input");i1.placeholder="Descripcion del producto";i1.style.cssText="font-size:13px;padding:7px;margin:0";td1.appendChild(i1);var td2=document.createElement("td");var i2=document.createElement("input");i2.placeholder="UND";i2.style.cssText="font-size:13px;padding:7px;margin:0;max-width:80px";td2.appendChild(i2);var td3=document.createElement("td");var i3=document.createElement("input");i3.setAttribute("inputmode","decimal");i3.placeholder="Precio";i3.style.cssText="font-size:13px;padding:7px;margin:0;max-width:100px";td3.appendChild(i3);var td4=document.createElement("td");var i4=document.createElement("input");i4.setAttribute("inputmode","decimal");i4.placeholder="IVA%";i4.value="0";i4.style.cssText="font-size:13px;padding:7px;margin:0;max-width:70px";td4.appendChild(i4);var td5=document.createElement("td");var btn=document.createElement("button");btn.textContent="✕";btn.style.cssText="background:#E07B3922;border:1px solid #E07B3944;color:#E07B39;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px";btn.onclick=function(){this.closest("tr").remove();};td5.appendChild(btn);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(td5);tb.appendChild(tr);}
 function toggleGar(g){garantias[g]=!garantias[g];document.getElementById("gar-"+g).classList.toggle("on",garantias[g]);}
 function generarContratoMarco(){var num=document.getElementById("cm-num-input").value.trim();var fecha=document.getElementById("cm-fecha-input").value;var ciudad=document.getElementById("cm-ciudad-firma").value.trim();if(!num||!fecha){document.getElementById("p2-err").textContent="Complete número y fecha.";document.getElementById("p2-err").style.display="block";return;}document.getElementById("p2-err").style.display="none";var fv=new Date(fecha+"T12:00:00");fv.setFullYear(fv.getFullYear()+2);CLIENTES[clienteActual].contrato={num:num,fecha:fecha,vigencia:fv.toISOString().split("T")[0],ciudad:ciudad};irPaso(4);document.getElementById("doc-output").innerHTML=buildCM();}
 function verContratoMarco(){irPaso(4);document.getElementById("doc-output").innerHTML=buildCM();}
