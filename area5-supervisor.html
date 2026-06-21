@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTC — Área 5 Supervisor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size:15px;min-height:100vh}
+
+/* ── HEADER ── */
+.header{background:#141414;border-bottom:1px solid #C9A84C44;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.logo{width:36px;height:36px;border-radius:50%;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0A0A0A;flex-shrink:0}
+.brand{font-size:14px;font-weight:700;color:#E8C96A;letter-spacing:1px}
+.sub{font-size:11px;color:#666}
+.header-right{margin-left:auto}
+.back-link{font-size:11px;padding:5px 12px;border:1px solid #C9A84C33;border-radius:6px;background:transparent;color:#C9A84C99;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;transition:all .15s}
+.back-link:hover{border-color:#C9A84C;color:#C9A84C}
+
+/* ── LAYOUT ── */
+.wrap{max-width:100%;padding:16px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid #2A2A2A}
+.tab{flex:1;padding:11px 6px;text-align:center;font-size:11px;font-weight:600;color:#555;background:#141414;border-right:1px solid #2A2A2A;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.tab:last-child{border-right:none}
+.tab.active{background:#C9A84C18;color:#E8C96A;border-bottom:2px solid #C9A84C}
+.panel{display:none}.panel.active{display:block}
+
+/* ── SECTION / LABELS ── */
+.sec{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:1px;margin-bottom:10px;margin-top:20px;padding-bottom:6px;border-bottom:1px solid #2A2A2A}
+.sec:first-child{margin-top:0}
+.lbl{font-size:13px;color:#999;margin-bottom:5px}
+
+/* ── FORMS ── */
+textarea{display:block;width:100%;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#F0F0F0;padding:11px 13px;font-size:15px;margin-bottom:14px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;min-height:110px;resize:vertical;line-height:1.5}
+textarea:focus{border-color:#C9A84C66}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:14px;background:#C9A84C;color:#000;border:none;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:12px;font-family:inherit;touch-action:manipulation}
+.btn:active{background:#b8943d}
+.btn-sec{background:#1C1C1C;color:#C9A84C;border:1px solid #C9A84C44}
+.btn-sec:active{background:#252525}
+.btn-sm{padding:10px;font-size:13px;margin-bottom:8px}
+.btn-green{background:#1A5C2E;color:#fff;border:none}
+.btn-green:active{background:#154826}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+
+/* ── CARDS ── */
+.card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px;margin-bottom:14px}
+.info-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #1E1E1E;gap:8px}
+.info-row:last-child{border-bottom:none}
+.info-row .l{color:#888;flex:1}.info-row .r{color:#F0F0F0;text-align:right;font-size:12px}
+
+/* ── ERR / NOTA ── */
+.err{color:#E07B39;font-size:13px;margin-bottom:14px;padding:10px;background:#E07B3915;border-radius:8px}
+.nota{background:#1C1C1C;border-left:3px solid #C9A84C;border-radius:4px;padding:10px 12px;font-size:12px;color:#999;line-height:1.6;margin-bottom:14px}
+
+/* ── RESULT HEADER ── */
+.result-banner{background:#141414;border:1px solid #C9A84C44;border-radius:10px;padding:14px;margin-bottom:16px}
+.result-title{font-size:14px;font-weight:600;color:#E8C96A;margin-bottom:8px}
+.result-chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:#C9A84C18;color:#C9A84C;border:1px solid #C9A84C33}
+
+/* ── AGENT GRID ── */
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+.ag-card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:12px 8px;text-align:center;position:relative;transition:border-color .25s,background .25s,box-shadow .25s}
+.ag-card.on{border-color:var(--c);background:var(--cbg);box-shadow:0 0 10px var(--cglow)}
+.ag-icon{font-size:22px;margin-bottom:5px;display:block;transition:transform .25s}
+.ag-card.on .ag-icon{transform:scale(1.12)}
+.ag-name{font-size:11px;font-weight:600;color:#666;transition:color .25s;letter-spacing:.3px}
+.ag-card.on .ag-name{color:var(--c)}
+.ag-desc{font-size:10px;color:#444;margin-top:4px;line-height:1.35;transition:color .25s}
+.ag-card.on .ag-desc{color:#777}
+.ag-score{position:absolute;top:5px;right:7px;font-size:9px;font-weight:700;display:none}
+.ag-card.on .ag-score{display:block;color:var(--c)}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-bottom:14px}
+.prog-labels{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px}
+.prog-bar{height:4px;background:#1E1E1E;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:#C9A84C;border-radius:2px;transition:width .35s}
+.prog-fill.done{background:#1A5C2E}
+
+/* ── FLOW STEPS ── */
+.flow-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;padding:12px 14px;background:#141414;border:1px solid #2A2A2A;border-radius:10px;transition:border-color .2s,background .2s}
+.flow-step.completed{border-color:#1A5C2E44;background:#1A5C2E0A}
+.snum{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:#222;color:#666;border:1px solid #2A2A2A;transition:all .2s}
+.flow-step.completed .snum{background:#1A5C2E;color:#fff;border-color:#1A5C2E}
+.scontent{flex:1;min-width:0}
+.sagent{font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:3px;color:#666;transition:color .2s}
+.flow-step.completed .sagent{color:#4CAF5099}
+.sdesc{font-size:13px;color:#CCC;line-height:1.4}
+.flow-step.completed .sdesc{color:#666}
+.scheck{width:28px;height:28px;border-radius:6px;border:1px solid #2A2A2A;background:#1C1C1C;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:#444;transition:all .15s;flex-shrink:0;font-family:inherit}
+.scheck:hover{border-color:#4CAF50;color:#4CAF50}
+.flow-step.completed .scheck{background:#1A5C2E;border-color:#1A5C2E;color:#fff;cursor:default;pointer-events:none}
+
+/* ── HISTORY ── */
+.hist-card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.hist-card:hover{border-color:#C9A84C33}
+.hist-card.open{border-color:#C9A84C44}
+.hist-top{display:flex;align-items:flex-start;gap:10px}
+.hist-num{width:24px;height:24px;border-radius:50%;background:#C9A84C;color:#000;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.hist-meta{flex:1;min-width:0}
+.hist-date{font-size:11px;color:#555;margin-bottom:3px}
+.hist-text{font-size:13px;color:#F0F0F0;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hist-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.hist-tag{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#C9A84C12;color:#C9A84C88;border:1px solid #C9A84C22}
+.hist-body{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1E1E1E}
+.hist-card.open .hist-body{display:block}
+.hstep{font-size:12px;color:#666;padding:4px 0;border-bottom:1px solid #1A1A1A;display:flex;gap:8px;line-height:1.4}
+.hstep:last-child{border-bottom:none}
+.hstep-n{color:#444;flex-shrink:0;width:18px;padding-top:1px}
+.hstep.ok{color:#1A5C2E99}
+.hist-pct{font-size:11px;font-weight:600;color:#C9A84C}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:44px 20px;color:#555}
+.empty-icon{font-size:38px;margin-bottom:12px;display:block}
+.empty-text{font-size:13px;line-height:1.5}
+
+/* ── ECO GRID (panel agentes) ── */
+.eco-card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px}
+.eco-icon{font-size:24px;flex-shrink:0;margin-top:1px}
+.eco-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.eco-desc{font-size:12px;color:#666;line-height:1.4}
+.eco-kw{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.eco-kw-chip{padding:2px 7px;border-radius:4px;font-size:10px;background:#1C1C1C;color:#555;border:1px solid #252525}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">5</div>
+  <div>
+    <div class="brand">ÁREA 5 — SUPERVISOR</div>
+    <div class="sub">Agente Orquestador · GTC v5.0</div>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="back-link">← Sistema</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <div class="tab active" id="tab-nueva"    onclick="goTab('nueva')">Nueva Tarea</div>
+    <div class="tab"        id="tab-historial" onclick="goTab('historial')">Historial</div>
+    <div class="tab"        id="tab-eco"       onclick="goTab('eco')">Ecosistema</div>
+  </div>
+
+  <!-- ══════════════════ PANEL NUEVA TAREA ══════════════════ -->
+  <div id="panel-nueva" class="panel active">
+    <div class="sec">DESCRIBIR TAREA</div>
+    <div class="lbl">Ingresa la tarea en lenguaje natural</div>
+    <textarea id="tarea-txt" placeholder="Ej: Procesar nueva operación de factoring para EMPANORTE por $850M con Coltefinanciera a 120 días, incluir registro en bolsa y transferencia al cliente..."></textarea>
+    <div id="tarea-err" class="err" style="display:none"></div>
+    <button class="btn" onclick="analizar()">Analizar y Enrutar →</button>
+
+    <div id="resultado" style="display:none">
+
+      <div id="banner" class="result-banner"></div>
+
+      <div class="sec">AGENTES IDENTIFICADOS</div>
+      <div id="ag-grid" class="agent-grid"></div>
+
+      <div class="sec">FLUJO DE EJECUCIÓN</div>
+      <div id="prog-wrap" class="prog-wrap">
+        <div class="prog-labels">
+          <span>Progreso de ejecución</span>
+          <span id="prog-pct">0 / 0 pasos</span>
+        </div>
+        <div class="prog-bar"><div id="prog-fill" class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div id="flow"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="guardar()">Guardar en Historial</button>
+        <button class="btn btn-sec"   onclick="reset()">Nueva Tarea</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ PANEL HISTORIAL ══════════════════ -->
+  <div id="panel-historial" class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="sec" style="margin:0;border:none">HISTORIAL DE TAREAS</div>
+      <button class="btn btn-sec btn-sm" style="width:auto;margin:0;padding:6px 14px;font-size:12px" onclick="limpiarHist()">Limpiar todo</button>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+  <!-- ══════════════════ PANEL ECOSISTEMA ══════════════════ -->
+  <div id="panel-eco" class="panel">
+    <div class="sec">ECOSISTEMA DE AGENTES GTC v5.0</div>
+    <div class="nota">12 agentes especializados. El Orquestador los activa según las palabras clave detectadas en cada tarea. A mayor detalle en la descripción, mayor precisión en el enrutamiento.</div>
+    <div id="eco-list"></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// REGISTRO DE AGENTES
+// ══════════════════════════════════════════════════════════════════
+var AG = {
+  liquidador: {
+    nombre:'Liquidador', icono:'💰', color:'#C9A84C',
+    desc:'Calcula tasas, preliquidaciones, valor presente y diferencial GTC',
+    kw:['liquidar','liquidación','preliquidar','preliquidación','tasa','interés','cálculo','calcular',
+        'valor presente','fondeador','descuento','rendimiento','ea anual','mensual','anual','flujo de caja',
+        'cuánto cuesta','monto','capital','coltefinanciera','irisbank','cesion bank','servifin','liquitech',
+        'integra','bmq','diferencial','3%','4%','retefuente','gmf','cuánto','costo financiero']
+  },
+  contratos: {
+    nombre:'Contratos', icono:'📄', color:'#5ba3d9',
+    desc:'Genera y gestiona contratos marco y órdenes de operación',
+    kw:['contrato','contrato marco','orden de operación','orden operación','oo-','cm-','firma','cláusula',
+        'garantía','pagaré','carta de instrucciones','vigencia','renovar','nueva orden','generar orden',
+        'documento legal','suscribir','firmar contrato','acuerdo','cm-gtc','oo-gtc']
+  },
+  crm: {
+    nombre:'CRM', icono:'◈', color:'#9b59b6',
+    desc:'Gestiona pipeline comercial, etapas y datos de clientes',
+    kw:['cliente','clientes','prospecto','pipeline','etapa','contacto','kyc','documentos del cliente',
+        'perfil','segmento','nuevo cliente','onboarding','vinculación','activo','oportunidad',
+        'base de datos','cartera de clientes','ficha','registro cliente','historial cliente']
+  },
+  comercial: {
+    nombre:'Comercial', icono:'★', color:'#0F6E56',
+    desc:'Prospección, propuestas comerciales y cadena de valor',
+    kw:['propuesta','cadena de valor','ancla','proveedor','sector','visita','reunión','presentación',
+        'oferta','prospección','prospecto','negociación','pitch','nueva oportunidad','vender',
+        'captar','ingreso risaralda','propuesta comercial','modelo de negocio']
+  },
+  transferencias: {
+    nombre:'Transferencias', icono:'⇄', color:'#E07B39',
+    desc:'Coordina desembolsos, pagos y transferencias bancarias',
+    kw:['transferencia','pago','desembolso','giro','banco','cuenta','bancolombia','davivienda',
+        'occidente','cobrar','girar','ach','dispersión','recibir pago','pagar al cliente',
+        'consignar','nequi','daviplata','transferir','enviar dinero','recaudar']
+  },
+  documental: {
+    nombre:'Gest. Documental', icono:'🗂', color:'#f5b041',
+    desc:'Administra documentos, facturas electrónicas y carpetas operativas',
+    kw:['documento','archivo','carpeta','xml','factura electrónica','dian','cufe','adjunto',
+        'escanear','registrar documento','factura','radicado','soporte','carpeta operativa',
+        'doce pasos','12 pasos','expediente','acervo','factura xml','nueva_operacion']
+  },
+  educacion: {
+    nombre:'Educación', icono:'📚', color:'#2ecc71',
+    desc:'Capacitación sobre el modelo GTC y productos financieros',
+    kw:['capacitar','capacitación','explicar','cómo funciona','tutorial','formación','entender',
+        'aprender','manual','guía','qué es','modelo gtc','explicación','presentar modelo',
+        'enseñar','taller','inducción','onboarding interno','training']
+  },
+  contabilidad: {
+    nombre:'Contabilidad', icono:'📊', color:'#3498db',
+    desc:'Registro contable, tributario y estados financieros',
+    kw:['contabilidad','asiento','balance','p&g','pérdidas','ganancias','impuesto','iva',
+        'retefuente','retención','gmf','declaración','tributario','renta','niif','causación',
+        'libro mayor','estado financiero','cuentas','puc','causación contable']
+  },
+  cartera: {
+    nombre:'Cartera', icono:'⏱', color:'#e74c3c',
+    desc:'Seguimiento de vencimientos, cobranza y gestión de cartera',
+    kw:['vencimiento','vencer','mora','cobro','recaudo','cartera','plazo','días','vencido',
+        'recordatorio','cobranza','días por vencer','cuándo paga','próximo pago',
+        'alerta de cobro','recuperar cartera','operación vencida','fecha límite']
+  },
+  cumplimiento: {
+    nombre:'Cumplimiento', icono:'🛡', color:'#1abc9c',
+    desc:'SARLAFT, SAGRILAFT y gestión de riesgos regulatorios',
+    kw:['sarlaft','sagrilaft','laft','lavado','cumplimiento','compliance','riesgo',
+        'uiaf','pep','listas','vinculación','siplaft','debida diligencia','riesgos',
+        'seguridad','control','circular','superintendencia','financiero']
+  },
+  broker: {
+    nombre:'Bróker', icono:'🏛', color:'#8e44ad',
+    desc:'Operaciones en Bolsa Mercantil de Colombia (BMC)',
+    kw:['bolsa','bmc','mercado y bolsa','miguel quijano','scb','registro en bolsa',
+        'operación bursátil','corredor','bolsa mercantil','subasta','precio pantalla',
+        'valor futuro','valor presente bolsa','registro bmc','corredor de bolsa']
+  },
+  auditor: {
+    nombre:'Auditor', icono:'🔍', color:'#95a5a6',
+    desc:'Auditoría interna, control y conciliación de operaciones',
+    kw:['auditar','auditoría','revisar','revisión','verificar','inconsistencia',
+        'error','conciliar','conciliación','control interno','validar','chequear',
+        'cuadrar','diferencia','cierre','cierre de operación','trazabilidad','revisoría']
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════
+// GENERACIÓN DE PASOS
+// ══════════════════════════════════════════════════════════════════
+var PIPELINE = [
+  { id:'crm-check',    ag:'crm',          condicion: function(t){ return t.crm; },
+    desc:'Verificar estado del cliente en CRM: etapa del pipeline, documentos KYC y vinculación activa' },
+  { id:'cumpl',        ag:'cumplimiento',  condicion: function(t){ return t.cumplimiento; },
+    desc:'Consultar listas SARLAFT/SAGRILAFT — confirmar debida diligencia y ausencia en listas restrictivas' },
+  { id:'contratos-cm', ag:'contratos',     condicion: function(t){ return t.contratos; },
+    desc:'Verificar Contrato Marco vigente. Si no existe, generarlo antes de continuar con la operación' },
+  { id:'comercial',    ag:'comercial',     condicion: function(t){ return t.comercial && !t.liquidador; },
+    desc:'Preparar y presentar propuesta comercial con condiciones GTC (diferencial 3%-4%, plazo y garantías)' },
+  { id:'liquidador',   ag:'liquidador',    condicion: function(t){ return t.liquidador; },
+    desc:'Calcular preliquidación: valor facial, descuento fondeador, diferencial GTC, retefuente y GMF' },
+  { id:'broker',       ag:'broker',        condicion: function(t){ return t.broker; },
+    desc:'Registrar operación en BMC — obtener número de subasta, VP confirmado y liquidar SCB' },
+  { id:'contratos-oo', ag:'contratos',     condicion: function(t){ return t.contratos && (t.liquidador || t.broker); },
+    desc:'Generar Orden de Operación firmada con preliquidación, fondeador asignado y plazo acordado' },
+  { id:'documental',   ag:'documental',    condicion: function(t){ return t.documental; },
+    desc:'Crear carpeta operativa con los 12 sub-pasos: órdenes de compra, facturas XML, registros y soportes' },
+  { id:'contabilidad', ag:'contabilidad',  condicion: function(t){ return t.contabilidad; },
+    desc:'Causar la operación en libros: asiento de compra de inventario, IVA, retefuente y diferencial GTC' },
+  { id:'transfer',     ag:'transferencias',condicion: function(t){ return t.transferencias; },
+    desc:'Recibir desembolso del fondeador y transferir el valor neto pactado al cliente' },
+  { id:'cartera',      ag:'cartera',       condicion: function(t){ return t.cartera; },
+    desc:'Registrar vencimiento en cartera y programar alertas automáticas de recordatorio al cliente' },
+  { id:'educacion',    ag:'educacion',     condicion: function(t){ return t.educacion; },
+    desc:'Elaborar material explicativo o presentación del modelo GTC para el cliente o equipo interno' },
+  { id:'auditor',      ag:'auditor',       condicion: function(t){ return t.auditor; },
+    desc:'Verificar trazabilidad completa: documentos, montos, fechas y firmas — cerrar expediente operativo' }
+];
+
+function generarPasos(activos) {
+  var set = {};
+  activos.forEach(function(a){ set[a.id] = true; });
+  var pasos = [];
+  PIPELINE.forEach(function(p) {
+    if (p.condicion(set)) {
+      pasos.push({ stepId: p.id, ag: p.ag, desc: p.desc, done: false });
+    }
+  });
+  if (!pasos.length) {
+    pasos.push({ stepId:'fallback', ag:'auditor', desc:'Revisar la tarea manualmente y asignar responsable.', done:false });
+  }
+  return pasos;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════════════════════════
+var estado = { agentes:[], pasos:[], texto:'', fecha:null, guardada:false };
+
+// ══════════════════════════════════════════════════════════════════
+// ANÁLISIS
+// ══════════════════════════════════════════════════════════════════
+function analizar() {
+  var txt = document.getElementById('tarea-txt').value.trim();
+  var errEl = document.getElementById('tarea-err');
+  if (!txt) {
+    errEl.textContent = 'Ingresa la descripción de la tarea antes de continuar.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  var lower = txt.toLowerCase();
+  var scored = [];
+  Object.keys(AG).forEach(function(id) {
+    var ag = AG[id];
+    var score = 0;
+    ag.kw.forEach(function(k){ if (lower.indexOf(k) !== -1) score++; });
+    if (score > 0) scored.push({ id:id, score:score });
+  });
+  scored.sort(function(a,b){ return b.score - a.score; });
+  if (!scored.length) scored.push({ id:'auditor', score:1 });
+
+  estado.texto    = txt;
+  estado.fecha    = new Date().toISOString();
+  estado.agentes  = scored;
+  estado.pasos    = generarPasos(scored);
+  estado.guardada = false;
+
+  renderResultado();
+  document.getElementById('resultado').style.display = 'block';
+  setTimeout(function(){
+    document.getElementById('resultado').scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 80);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════════
+function renderResultado() {
+  var na = estado.agentes.length;
+  var np = estado.pasos.length;
+
+  // Banner
+  document.getElementById('banner').innerHTML =
+    '<div class="result-title">Tarea enrutada — ' + na + ' agente' + (na!==1?'s':'') + ' identificado' + (na!==1?'s':'') + '</div>' +
+    '<div class="result-chips">' +
+      '<span class="chip">' + na + ' agentes</span>' +
+      '<span class="chip">' + np + ' pasos</span>' +
+      '<span class="chip">' + fechaCorta(estado.fecha) + '</span>' +
+    '</div>';
+
+  // Agent grid
+  renderGrid();
+
+  // Flow
+  renderFlow();
+
+  // Progress
+  actualizarProg();
+}
+
+function renderGrid() {
+  var activosSet = {};
+  estado.agentes.forEach(function(a){ activosSet[a.id] = a.score; });
+  var html = '';
+  Object.keys(AG).forEach(function(id) {
+    var ag = AG[id];
+    var on = activosSet[id] !== undefined;
+    var score = activosSet[id] || 0;
+    var c = ag.color;
+    var cbg  = c + '18';
+    var cglow = c + '33';
+    var style = on ? 'style="--c:' + c + ';--cbg:' + cbg + ';--cglow:' + cglow + '"' : '';
+    html +=
+      '<div class="ag-card' + (on?' on':'') + '" ' + style + '>' +
+        '<span class="ag-icon">' + ag.icono + '</span>' +
+        '<div class="ag-name">' + ag.nombre + '</div>' +
+        (on ? '<span class="ag-score">' + score + '✓</span>' : '') +
+        '<div class="ag-desc">' + ag.desc + '</div>' +
+      '</div>';
+  });
+  document.getElementById('ag-grid').innerHTML = html;
+}
+
+function renderFlow() {
+  var html = '';
+  estado.pasos.forEach(function(paso, i) {
+    var ag = AG[paso.ag] || {};
+    var done = paso.done;
+    var colorStr = done ? '#4CAF50' : (ag.color || '#888');
+    html +=
+      '<div class="flow-step' + (done?' completed':'') + '" id="fs-' + i + '">' +
+        '<div class="snum">' + (i+1) + '</div>' +
+        '<div class="scontent">' +
+          '<div class="sagent" style="color:' + colorStr + '">' + (ag.icono||'⚙') + ' ' + (ag.nombre||paso.ag) + '</div>' +
+          '<div class="sdesc">' + paso.desc + '</div>' +
+        '</div>' +
+        (done
+          ? '<button class="scheck">✓</button>'
+          : '<button class="scheck" onclick="completar(' + i + ')" title="Marcar como completado">✓</button>'
+        ) +
+      '</div>';
+  });
+  document.getElementById('flow').innerHTML = html;
+}
+
+function completar(i) {
+  estado.pasos[i].done = true;
+  renderFlow();
+  actualizarProg();
+}
+
+function actualizarProg() {
+  var total = estado.pasos.length;
+  var done  = estado.pasos.filter(function(p){ return p.done; }).length;
+  var pct   = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('prog-pct').textContent = done + ' / ' + total + ' pasos';
+  var fill = document.getElementById('prog-fill');
+  fill.style.width = pct + '%';
+  fill.classList.toggle('done', pct === 100);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// GUARDAR / HISTORIAL
+// ══════════════════════════════════════════════════════════════════
+function guardar() {
+  if (!estado.texto) return;
+  if (estado.guardada) { alert('Esta tarea ya fue guardada.'); return; }
+  var hist = cargarHist();
+  var registro = {
+    texto:   estado.texto,
+    fecha:   estado.fecha,
+    agentes: estado.agentes.map(function(a){ return { id:a.id, score:a.score }; }),
+    pasos:   estado.pasos.map(function(p){ return { stepId:p.stepId, ag:p.ag, desc:p.desc, done:p.done }; })
+  };
+  hist.unshift(registro);
+  localStorage.setItem('gtc_orq_hist', JSON.stringify(hist));
+  estado.guardada = true;
+  alert('Tarea guardada correctamente en el historial.');
+}
+
+function cargarHist() {
+  try { return JSON.parse(localStorage.getItem('gtc_orq_hist') || '[]'); }
+  catch(e) { return []; }
+}
+
+function renderHistorial() {
+  var el   = document.getElementById('hist-list');
+  var hist = cargarHist();
+  if (!hist.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">🗂</span><div class="empty-text">No hay tareas guardadas aún.<br>Analiza una tarea y pulsa "Guardar en Historial".</div></div>';
+    return;
+  }
+  var html = '';
+  hist.forEach(function(t, i) {
+    var total = (t.pasos||[]).length;
+    var done  = (t.pasos||[]).filter(function(p){ return p.done; }).length;
+    var pct   = total ? Math.round((done/total)*100) : 0;
+    var tags  = (t.agentes||[]).slice(0,5).map(function(a){
+      var ag = AG[a.id];
+      return '<span class="hist-tag">' + (ag?ag.icono:'') + ' ' + (ag?ag.nombre:a.id) + '</span>';
+    }).join('');
+    if ((t.agentes||[]).length > 5) tags += '<span class="hist-tag">+' + ((t.agentes||[]).length-5) + '</span>';
+    var steps = (t.pasos||[]).map(function(p, pi){
+      var ag = AG[p.ag];
+      return '<div class="hstep' + (p.done?' ok':'') + '">' +
+        '<span class="hstep-n">' + (pi+1) + '.</span>' +
+        '<span>' + (ag?ag.icono:'⚙') + ' ' + (ag?ag.nombre:p.ag) + ' — ' + p.desc + '</span>' +
+      '</div>';
+    }).join('');
+    html +=
+      '<div class="hist-card" id="hc-' + i + '" onclick="toggleHist(' + i + ')">' +
+        '<div class="hist-top">' +
+          '<div class="hist-num">' + (hist.length - i) + '</div>' +
+          '<div class="hist-meta">' +
+            '<div class="hist-date">' + fechaLarga(t.fecha) + ' &nbsp;·&nbsp; <span class="hist-pct">' + pct + '% completado</span></div>' +
+            '<div class="hist-text">' + esc(t.texto) + '</div>' +
+            '<div class="hist-tags">' + tags + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hist-body">' + steps + '</div>' +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function toggleHist(i) {
+  var card = document.getElementById('hc-' + i);
+  if (card) card.classList.toggle('open');
+}
+
+function limpiarHist() {
+  if (!confirm('¿Eliminar todo el historial de tareas del Orquestador?')) return;
+  localStorage.removeItem('gtc_orq_hist');
+  renderHistorial();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ECOSISTEMA
+// ══════════════════════════════════════════════════════════════════
+function renderEco() {
+  var html = '';
+  Object.keys(AG).forEach(function(id) {
+    var ag = AG[id];
+    var kwHtml = ag.kw.slice(0, 6).map(function(k){
+      return '<span class="eco-kw-chip">' + k + '</span>';
+    }).join('');
+    html +=
+      '<div class="eco-card" style="border-left:3px solid ' + ag.color + '">' +
+        '<div class="eco-icon">' + ag.icono + '</div>' +
+        '<div>' +
+          '<div class="eco-name" style="color:' + ag.color + '">' + ag.nombre + '</div>' +
+          '<div class="eco-desc">' + ag.desc + '</div>' +
+          '<div class="eco-kw">' + kwHtml + '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  document.getElementById('eco-list').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════
+function goTab(id) {
+  ['nueva','historial','eco'].forEach(function(t) {
+    document.getElementById('tab-' + t).classList.toggle('active', t === id);
+    document.getElementById('panel-' + t).classList.toggle('active', t === id);
+  });
+  if (id === 'historial') renderHistorial();
+  if (id === 'eco') renderEco();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════
+function reset() {
+  document.getElementById('tarea-txt').value = '';
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('tarea-err').style.display = 'none';
+  estado = { agentes:[], pasos:[], texto:'', fecha:null, guardada:false };
+}
+
+function fechaCorta(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  return d.toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+function fechaLarga(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  return d.toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Enter en textarea = analizar
+document.getElementById('tarea-txt').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); analizar(); }
+});
+</script>
+</body>
+</html>
