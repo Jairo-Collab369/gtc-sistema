@@ -690,7 +690,7 @@ function irCOM(){
 }
 // ── UTILIDADES ────────────────────────────────────────────────────────────────
 function cop(n){return "$ "+Math.round(n).toLocaleString("es-CO");}
-function pn(v){return parseFloat(String(v).trim())||0;}
+function pn(v){return parseFloat(String(v).trim().replace(",","."))||0;}
 function fechaStr(d){var M=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];var dt=new Date(d+"T12:00:00");return dt.getDate()+" de "+M[dt.getMonth()]+" de "+dt.getFullYear();}
 function hoy(){return new Date().toISOString().split("T")[0];}
 function genNumOrden(){var d=new Date();var dd=String(d.getDate()).padStart(2,"0");var mm=String(d.getMonth()+1).padStart(2,"0");var yyyy=d.getFullYear();var key="oo_consec_"+yyyy+mm+dd;var consec=(parseInt(localStorage.getItem(key)||"0")+1);localStorage.setItem(key,consec);return "OO-GTC-"+String(consec).padStart(2,"0")+dd+mm+"-"+yyyy;}
