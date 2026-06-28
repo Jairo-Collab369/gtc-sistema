@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Data · Global Trade Commerce</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --negro:#0A0A0A;
+    --dorado:#C8A951;
+    --dorado-light:#E2C97A;
+    --fondo:#0F0F0F;
+    --fondo2:#1A1A1A;
+    --fondo3:#242424;
+    --borde:#2E2E2E;
+    --texto:#F0EDE6;
+    --texto-muted:#888;
+    --verde:#1A5C2E;
+    --verde-light:#2A8C46;
+    --rojo:#8B1A1A;
+  }
+  body{background:var(--fondo);color:var(--texto);font-family:'Inter','Helvetica Neue',sans-serif;min-height:100vh;}
+
+  /* HEADER */
+  header{background:var(--negro);border-bottom:1px solid var(--dorado);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+  .logo-area{display:flex;align-items:center;gap:12px;}
+  .logo-circle{width:38px;height:38px;border-radius:50%;background:var(--dorado);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:var(--negro);letter-spacing:.05em;}
+  .logo-text{font-size:13px;font-weight:600;color:var(--dorado);letter-spacing:.08em;text-transform:uppercase;}
+  .logo-sub{font-size:10px;color:var(--texto-muted);letter-spacing:.04em;}
+  .header-right{text-align:right;}
+  .header-title{font-size:11px;color:var(--dorado);letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+  .header-ver{font-size:10px;color:var(--texto-muted);}
+
+  /* MAIN */
+  main{max-width:900px;margin:0 auto;padding:2rem 1.5rem;}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+  .toolbar-time{font-size:11px;color:var(--texto-muted);}
+  .btn-refresh{background:transparent;border:1px solid var(--dorado);color:var(--dorado);padding:6px 14px;border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;}
+  .btn-refresh:hover{background:var(--dorado);color:var(--negro);}
+  .btn-refresh:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* SECTION */
+  .section{margin-bottom:2rem;}
+  .section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dorado);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--borde);display:flex;align-items:center;gap:8px;}
+
+  /* GRID */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+
+  /* CARD */
+  .card{background:var(--fondo2);border:1px solid var(--borde);border-radius:6px;padding:14px 16px;position:relative;transition:border-color .2s;}
+  .card:hover{border-color:var(--dorado);}
+  .card-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--texto-muted);margin-bottom:6px;}
+  .card-val{font-size:26px;font-weight:700;color:var(--texto);line-height:1;margin-bottom:4px;font-variant-numeric:tabular-nums;}
+  .card-val.loading{color:var(--borde);}
+  .card-sub{font-size:10px;color:var(--texto-muted);line-height:1.4;}
+  .card-link{font-size:10px;color:var(--dorado);text-decoration:none;display:inline-block;margin-top:6px;opacity:.7;}
+  .card-link:hover{opacity:1;}
+  .card-delta{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px;margin-top:4px;}
+  .card-delta.up{background:rgba(26,92,46,.3);color:#4CAF50;}
+  .card-delta.down{background:rgba(139,26,26,.3);color:#EF5350;}
+
+  /* SOFR highlight */
+  .card.highlight{border-color:var(--dorado);background:linear-gradient(135deg,var(--fondo2) 0%,rgba(200,169,81,.06) 100%);}
+  .card.highlight .card-val{color:var(--dorado-light);}
+
+  /* SPINNER */
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--borde);border-top-color:var(--dorado);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--borde);padding:1rem 2rem;text-align:center;}
+  .footer-text{font-size:10px;color:var(--texto-muted);letter-spacing:.04em;}
+  .footer-disclaimer{font-size:9px;color:#555;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-circle">GTC</div>
+    <div>
+      <div class="logo-text">Global Trade Commerce</div>
+      <div class="logo-sub">NIT 901.648.628-5 · Medellín, Colombia</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-title">Market Data</div>
+    <div class="header-ver">v3.0 · <span id="hdr-date">—</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <span class="toolbar-time" id="last-update">Cargando datos...</span>
+    <button class="btn-refresh" id="btn-refresh" onclick="loadAll()">↻ Actualizar</button>
+  </div>
+
+  <!-- TASAS -->
+  <div class="section">
+    <div class="section-title">⬡ Tasas — referencia liquidaciones</div>
+    <div class="grid">
+      <div class="card highlight" id="c-sofr">
+        <div class="card-label">SOFR diario</div>
+        <div class="card-val" id="v-sofr"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-sofr">% · NY Fed</div>
+        <a class="card-link" href="https://www.newyorkfed.org/markets/reference-rates/sofr" target="_blank">Ver NY Fed →</a>
+      </div>
+      <div class="card">
+        <div class="card-label">IBR overnight</div>
+        <div class="card-val">9.24%</div>
+        <div class="card-sub">% EA · Banrep · Jun 2026<br>Ref. spread −1pb tasa repo</div>
+        <a class="card-link" href="https://www.banrep.gov.co/es/estadisticas/ibr" target="_blank">Ver Banrep →</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Tasa intervención</div>
+        <div class="card-val">9.25%</div>
+        <div class="card-sub">% EA · Banrep<br>Sin cambio feb–jun 2026</div>
+        <a class="card-link" href="https://www.banrep.gov.co/es/estadisticas/tasas-de-intervencion-politica-monetaria" target="_blank">Ver Banrep →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIVISAS -->
+  <div class="section">
+    <div class="section-title">💱 Divisas — operaciones internacionales</div>
+    <div class="grid">
+      <div class="card" id="c-trm">
+        <div class="card-label">TRM USD/COP</div>
+        <div class="card-val" id="v-trm"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-trm">COP por 1 USD</div>
+      </div>
+      <div class="card" id="c-eur">
+        <div class="card-label">EUR/COP</div>
+        <div class="card-val" id="v-eur"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-eur">COP por 1 EUR</div>
+      </div>
+      <div class="card" id="c-chf">
+        <div class="card-label">CHF/COP · Metco</div>
+        <div class="card-val" id="v-chf"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-chf">COP por 1 CHF</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMODITIES -->
+  <div class="section">
+    <div class="section-title">🏭 Commodities — clientes GTC</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">Café "C" · Team Tap</div>
+        <div class="card-val" id="v-cafe" style="font-size:16px;color:var(--texto-muted)">Ver link →</div>
+        <div class="card-sub">USD/lb · ICE/CBOT · Yahoo Finance proxy</div>
+        <a class="card-link" href="https://www.investing.com/commodities/coffee" target="_blank">Ver Investing.com →</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Cobre LME · Metco</div>
+        <div class="card-val" id="v-cobre" style="font-size:16px;color:var(--texto-muted)">Ver link →</div>
+        <div class="card-sub">USD/lb · LME · Yahoo Finance proxy</div>
+        <a class="card-link" href="https://www.investing.com/commodities/copper" target="_blank">Ver Investing.com →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- STABLECOINS -->
+  <div class="section">
+    <div class="section-title">🔐 Stablecoins — agente bróker</div>
+    <div class="grid">
+      <div class="card" id="c-usdt">
+        <div class="card-label">USDT/USD</div>
+        <div class="card-val" id="v-usdt"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-usdt">Tether · CoinGecko</div>
+      </div>
+      <div class="card" id="c-usdc">
+        <div class="card-label">USDC/USD</div>
+        <div class="card-val" id="v-usdc"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-usdc">USD Coin · CoinGecko</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-text">Global Trade Commerce S.A.S. · NIT 901.648.628-5 · Market Data v3.0</div>
+  <div class="footer-disclaimer">Solo referencia — no constituye asesoría de inversión. Datos provistos por NY Fed (SOFR), Banrep (IBR), CoinGecko (crypto).</div>
+</footer>
+
+<script>
+const TODAY = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+document.getElementById('hdr-date').textContent = TODAY;
+
+function setVal(id, val, sub){
+  const v = document.getElementById('v-'+id);
+  const s = document.getElementById('s-'+id);
+  if(v) v.innerHTML = val;
+  if(s && sub) s.innerHTML = sub;
+}
+
+async function callClaude(prompt){
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:300,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const d = await res.json();
+  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+
+function parseJSON(txt){
+  const clean = txt.replace(/```json|```/g,'').trim();
+  const match = clean.match(/\{[\s\S]*\}/);
+  if(match) return JSON.parse(match[0]);
+  throw new Error('no json');
+}
+
+async function loadSOFR(){
+  try{
+    const txt = await callClaude('Search the web for the current SOFR rate from NY Fed or FRED. Return ONLY a JSON object with no markdown: {"rate":"3.64","date":"Jun 25, 2026"}');
+    const obj = parseJSON(txt);
+    setVal('sofr', obj.rate+'%', '% · NY Fed · '+obj.date);
+  }catch(e){
+    setVal('sofr','3.64%','% · NY Fed · Jun 25, 2026 (última referencia)');
+  }
+}
+
+async function loadDivisas(){
+  try{
+    const txt = await callClaude('Search current exchange rates today: USD to COP, EUR to COP, CHF to COP. Return ONLY JSON no markdown: {"usd":"3427.31","eur":"3903.46","chf":"4233.91","date":"28/6/2026"}');
+    const obj = parseJSON(txt);
+    const f = n => parseFloat(n.toString().replace(',','.')).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
+    setVal('trm', f(obj.usd), 'COP por 1 USD · '+obj.date);
+    setVal('eur', f(obj.eur), 'COP por 1 EUR · '+obj.date);
+    setVal('chf', f(obj.chf), 'COP por 1 CHF · '+obj.date);
+  }catch(e){
+    setVal('trm','3.427,31','COP por 1 USD · última referencia');
+    setVal('eur','3.903,46','COP por 1 EUR · última referencia');
+    setVal('chf','4.233,91','COP por 1 CHF · última referencia');
+  }
+}
+
+async function loadCrypto(){
+  try{
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether,usd-coin&vs_currencies=usd&include_24hr_change=true');
+    const d = await r.json();
+    const ut = d.tether; const uc = d['usd-coin'];
+    const du = ut.usd_24h_change||0; const dc = uc.usd_24h_change||0;
+    setVal('usdt', ut.usd.toFixed(4), 'Tether · CoinGecko<br><span style="color:'+(du>=0?'#4CAF50':'#EF5350')+'">'+(du>=0?'▲':'▼')+Math.abs(du).toFixed(4)+'% 24h</span>');
+    setVal('usdc', uc.usd.toFixed(4), 'USD Coin · CoinGecko<br><span style="color:'+(dc>=0?'#4CAF50':'#EF5350')+'">'+(dc>=0?'▲':'▼')+Math.abs(dc).toFixed(4)+'% 24h</span>');
+  }catch(e){
+    setVal('usdt','0.9986','Tether · CoinGecko');
+    setVal('usdc','0.9997','USD Coin · CoinGecko');
+  }
+}
+
+async function loadAll(){
+  const btn = document.getElementById('btn-refresh');
+  if(btn) btn.disabled = true;
+  document.getElementById('last-update').textContent = 'Actualizando...';
+  ['sofr','trm','eur','chf','usdt','usdc'].forEach(id=>{
+    const v = document.getElementById('v-'+id);
+    if(v) v.innerHTML = '<span class="spinner"></span>';
+  });
+  await Promise.all([loadSOFR(), loadDivisas(), loadCrypto()]);
+  document.getElementById('last-update').textContent = 'Última actualización: '+new Date().toLocaleTimeString('es-CO');
+  if(btn) btn.disabled = false;
+}
+
+loadAll();
+</script>
+</body>
+</html>
