@@ -152,14 +152,14 @@
     <div class="grid-2">
       <div class="card">
         <div class="card-label">Café "C" · Team Tap</div>
-        <div class="card-val" id="v-cafe" style="font-size:16px;color:var(--texto-muted)">Ver link →</div>
-        <div class="card-sub">USD/lb · ICE/CBOT · Yahoo Finance proxy</div>
+        <div class="card-val" id="v-cafe"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-cafe">USD/lb · ICE/CBOT</div>
         <a class="card-link" href="https://www.investing.com/commodities/coffee" target="_blank">Ver Investing.com →</a>
       </div>
       <div class="card">
         <div class="card-label">Cobre LME · Metco</div>
-        <div class="card-val" id="v-cobre" style="font-size:16px;color:var(--texto-muted)">Ver link →</div>
-        <div class="card-sub">USD/lb · LME · Yahoo Finance proxy</div>
+        <div class="card-val" id="v-cobre"><span class="spinner"></span></div>
+        <div class="card-sub" id="s-cobre">USD/lb · LME</div>
         <a class="card-link" href="https://www.investing.com/commodities/copper" target="_blank">Ver Investing.com →</a>
       </div>
     </div>
@@ -199,33 +199,17 @@ function setVal(id, val, sub){
   if(s && sub) s.innerHTML = sub;
 }
 
-async function callClaude(prompt){
-  const res = await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens:300,
-      tools:[{type:'web_search_20250305',name:'web_search'}],
-      messages:[{role:'user',content:prompt}]
-    })
-  });
-  const d = await res.json();
-  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-}
-
-function parseJSON(txt){
-  const clean = txt.replace(/```json|```/g,'').trim();
-  const match = clean.match(/\{[\s\S]*\}/);
-  if(match) return JSON.parse(match[0]);
-  throw new Error('no json');
-}
+const PROXY = 'https://gtc-proxy.comercioglobal.workers.dev';
 
 async function loadSOFR(){
   try{
-    const txt = await callClaude('Search the web for the current SOFR rate from NY Fed or FRED. Return ONLY a JSON object with no markdown: {"rate":"3.64","date":"Jun 25, 2026"}');
-    const obj = parseJSON(txt);
-    setVal('sofr', obj.rate+'%', '% · NY Fed · '+obj.date);
+    const r = await fetch(PROXY+'/sofr');
+    const d = await r.json();
+    const obs = d?.refRates?.[0];
+    if(!obs) throw new Error('sin datos');
+    const rate = obs.percentRate;
+    const date = obs.effectiveDate;
+    setVal('sofr', rate+'%', '% · NY Fed · '+date);
   }catch(e){
     setVal('sofr','3.64%','% · NY Fed · Jun 25, 2026 (última referencia)');
   }
@@ -233,16 +217,49 @@ async function loadSOFR(){
 
 async function loadDivisas(){
   try{
-    const txt = await callClaude('Search current exchange rates today: USD to COP, EUR to COP, CHF to COP. Return ONLY JSON no markdown: {"usd":"3427.31","eur":"3903.46","chf":"4233.91","date":"28/6/2026"}');
-    const obj = parseJSON(txt);
-    const f = n => parseFloat(n.toString().replace(',','.')).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
-    setVal('trm', f(obj.usd), 'COP por 1 USD · '+obj.date);
-    setVal('eur', f(obj.eur), 'COP por 1 EUR · '+obj.date);
-    setVal('chf', f(obj.chf), 'COP por 1 CHF · '+obj.date);
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d = await r.json();
+    const cop = d.rates.COP;
+    const eur = d.rates.EUR;
+    const chf = d.rates.CHF;
+    if(!cop) throw new Error();
+    const f = n => n.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fecha = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+    setVal('trm', f(cop), 'COP por 1 USD · '+fecha);
+    setVal('eur', f(cop/eur), 'COP por 1 EUR · '+fecha);
+    setVal('chf', f(cop/chf), 'COP por 1 CHF · '+fecha);
   }catch(e){
     setVal('trm','3.427,31','COP por 1 USD · última referencia');
     setVal('eur','3.903,46','COP por 1 EUR · última referencia');
     setVal('chf','4.233,91','COP por 1 CHF · última referencia');
+  }
+}
+
+async function loadCommodities(){
+  try{
+    const [rc, rcu] = await Promise.all([
+      fetch(PROXY+'/cafe'),
+      fetch(PROXY+'/cobre')
+    ]);
+    const cafe = await rc.json();
+    const cobre = await rcu.json();
+
+    if(cafe.price){
+      // USX = centavos USD → dividir entre 100
+      const p = cafe.currency==='USX' ? cafe.price/100 : cafe.price;
+      const pv = cafe.currency==='USX' ? cafe.prev/100 : cafe.prev;
+      const delta = pv ? ((p - pv)/pv*100) : 0;
+      setVal('cafe','$'+p.toFixed(4),'USD/lb · ICE/CBOT<br><span style="color:'+(delta>=0?'#4CAF50':'#EF5350')+'">'+(delta>=0?'▲':'▼')+Math.abs(delta).toFixed(2)+'%</span>');
+    }
+    if(cobre.price){
+      const p = cobre.currency==='USX' ? cobre.price/100 : cobre.price;
+      const pv = cobre.currency==='USX' ? cobre.prev/100 : cobre.prev;
+      const delta = pv ? ((p - pv)/pv*100) : 0;
+      setVal('cobre','$'+p.toFixed(4),'USD/lb · LME<br><span style="color:'+(delta>=0?'#4CAF50':'#EF5350')+'">'+(delta>=0?'▲':'▼')+Math.abs(delta).toFixed(2)+'%</span>');
+    }
+  }catch(e){
+    setVal('cafe','Ver link →','USD/lb · ICE/CBOT');
+    setVal('cobre','Ver link →','USD/lb · LME');
   }
 }
 
@@ -264,11 +281,11 @@ async function loadAll(){
   const btn = document.getElementById('btn-refresh');
   if(btn) btn.disabled = true;
   document.getElementById('last-update').textContent = 'Actualizando...';
-  ['sofr','trm','eur','chf','usdt','usdc'].forEach(id=>{
+  ['sofr','trm','eur','chf','usdt','usdc','cafe','cobre'].forEach(id=>{
     const v = document.getElementById('v-'+id);
     if(v) v.innerHTML = '<span class="spinner"></span>';
   });
-  await Promise.all([loadSOFR(), loadDivisas(), loadCrypto()]);
+  await Promise.all([loadSOFR(), loadDivisas(), loadCommodities(), loadCrypto()]);
   document.getElementById('last-update').textContent = 'Última actualización: '+new Date().toLocaleTimeString('es-CO');
   if(btn) btn.disabled = false;
 }
