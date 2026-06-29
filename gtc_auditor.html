@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTC — Auditor Documental</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size:15px;min-height:100vh}
+
+/* HEADER */
+.header{background:#141414;border-bottom:1px solid #C9A84C44;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{width:36px;height:36px;border-radius:50%;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0A0A0A;flex-shrink:0}
+.brand{font-size:14px;font-weight:700;color:#E8C96A;letter-spacing:1px}
+.sub{font-size:11px;color:#666}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.back-btn{padding:6px 12px;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#888;font-size:12px;cursor:pointer;text-decoration:none;font-family:inherit}
+.back-btn:hover{border-color:#C9A84C55;color:#C9A84C}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px}
+
+/* INTEGRA BANNER */
+.integra-banner{background:#E07B3910;border:1px solid #E07B3944;border-left:4px solid #E07B39;border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px}
+.integra-icon{font-size:24px;flex-shrink:0;margin-top:1px}
+.integra-body{flex:1;min-width:0}
+.integra-title{font-size:14px;font-weight:700;color:#E07B39;margin-bottom:5px}
+.integra-desc{font-size:12px;color:#999;line-height:1.55}
+.integra-badge{padding:4px 12px;border-radius:10px;font-size:11px;font-weight:700;background:#E07B3922;color:#E07B39;border:1px solid #E07B3944;white-space:nowrap;flex-shrink:0;align-self:flex-start}
+
+/* DASHBOARD */
+.dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.dash-card{background:#141414;border:1px solid #2A2A2A;border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+.dash-card:hover{border-color:#C9A84C55}
+.dash-card.active{border-color:#C9A84C;background:#C9A84C08}
+.dash-num{font-size:30px;font-weight:700;line-height:1;margin-bottom:6px}
+.dash-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.7px;line-height:1.3}
+.dash-sub{font-size:11px;margin-top:5px;opacity:.7}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.tb-input{background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#F0F0F0;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;-webkit-appearance:none;flex:1;min-width:140px}
+.tb-select{background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#F0F0F0;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;-webkit-appearance:none;min-width:160px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.btn{padding:9px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-gold{background:#C9A84C;color:#000}
+.btn-gold:hover{background:#b8943d}
+.btn-sec{background:#1C1C1C;border:1px solid #C9A84C44;color:#C9A84C}
+.btn-sec:hover{background:#C9A84C18;border-color:#C9A84C}
+.btn-danger{background:#E07B3912;border:1px solid #E07B3944;color:#E07B39}
+.btn-danger:hover{background:#E07B3922}
+.btn-sm{padding:5px 9px;font-size:11px;font-weight:600}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #2A2A2A;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;min-width:760px}
+thead{background:#141414}
+th{padding:10px 12px;font-size:10px;font-weight:600;color:#C9A84C;letter-spacing:.6px;text-transform:uppercase;text-align:left;white-space:nowrap;border-bottom:1px solid #2A2A2A}
+td{padding:11px 12px;font-size:13px;border-bottom:1px solid #1A1A1A;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#111}
+.td-num{font-family:monospace;font-size:12px;color:#C9A84C;white-space:nowrap}
+.td-cliente{font-weight:500;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-valor{font-family:monospace;font-size:12px;text-align:right;white-space:nowrap}
+.td-actions{display:flex;gap:4px;white-space:nowrap}
+.td-center{text-align:center}
+.empty-state{text-align:center;padding:32px;color:#444;font-size:13px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-completo{background:#4CAF5022;color:#4CAF50;border:1px solid #4CAF5044}
+.badge-parcial{background:#f5b04122;color:#f5b041;border:1px solid #f5b04144}
+.badge-sin{background:#E07B3922;color:#E07B39;border:1px solid #E07B3944}
+.badge-integra{background:#E74C3C22;color:#E74C3C;border:1px solid #E74C3C44}
+
+/* CERT COUNT PILL */
+.cert-pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;padding:0 6px;font-size:11px;font-weight:700}
+.cert-pill.has{background:#C9A84C22;color:#E8C96A;border:1px solid #C9A84C44}
+.cert-pill.none{background:#E07B3922;color:#E07B39;border:1px solid #E07B3944}
+
+/* FONDEADOR TAG */
+.fond-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;white-space:nowrap}
+.f-bmc1{background:#1a6fa820;color:#5ba3d9;border:1px solid #1a6fa840}
+.f-bmc2{background:#2980b920;color:#7fb3d3;border:1px solid #2980b940}
+.f-colt{background:#8e44ad20;color:#c39bd3;border:1px solid #8e44ad40}
+.f-iris{background:#27ae6020;color:#2ecc71;border:1px solid #27ae6040}
+.f-intg{background:#E74C3C22;color:#E74C3C;border:1px solid #E74C3C44}
+.f-ces{background:#f39c1220;color:#f5b041;border:1px solid #f39c1240}
+.f-srv{background:#16a08520;color:#1abc9c;border:1px solid #16a08540}
+.f-liq{background:#2c3e5020;color:#95a5a6;border:1px solid #2c3e5040}
+
+/* SECTION TITLE */
+.sec-title{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1E1E1E;display:flex;align-items:center;justify-content:space-between}
+
+/* ALERT LIST */
+.alert-list{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
+.alert-item{background:#141414;border:1px solid #E07B3930;border-left:3px solid #E07B39;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s}
+.alert-item:hover{border-left-color:#E07B39;border-color:#E07B3960}
+.alert-item.is-integra{border-color:#E74C3C44;border-left-color:#E74C3C;background:#E74C3C08}
+.alert-item.is-parcial{border-left-color:#f5b041;border-color:#f5b04130}
+.al-num{font-size:12px;font-weight:700;color:#C9A84C;min-width:85px;flex-shrink:0}
+.al-client{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.al-meta{font-size:11px;color:#666;margin-top:2px}
+.al-val{font-size:12px;font-family:monospace;text-align:right;flex-shrink:0;color:#F0F0F0}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px}
+.modal.open{display:flex}
+.modal-box{background:#161616;border:1px solid #333;border-radius:14px;padding:24px;width:min(520px,96vw);margin:auto}
+.modal-box.wide{width:min(580px,96vw)}
+.modal-hdr{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #222}
+.modal-title{font-size:16px;font-weight:700;color:#E8C96A;flex:1}
+.modal-close{background:none;border:none;color:#666;font-size:22px;cursor:pointer;line-height:1;padding:0;font-family:inherit}
+.modal-close:hover{color:#F0F0F0}
+.flbl{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:.7px;text-transform:uppercase;margin-bottom:5px;display:block}
+.finput{display:block;width:100%;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#F0F0F0;padding:10px 13px;font-size:14px;margin-bottom:14px;font-family:inherit;outline:none;-webkit-appearance:none}
+.finput:focus{border-color:#C9A84C55}
+.fsel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-actions{display:flex;gap:8px;margin-top:6px}
+.form-actions .btn{flex:1}
+
+/* UPLOAD DROP */
+.upload-drop{border:2px dashed #333;border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.upload-drop:hover,.upload-drop.drag{border-color:#C9A84C;background:#C9A84C08}
+.upload-drop-icon{font-size:32px;margin-bottom:8px}
+.upload-drop-hint{font-size:13px;color:#777}
+.upload-fname{font-size:12px;color:#C9A84C;margin-top:6px;font-weight:600;word-break:break-all}
+
+/* CERT LIST (detail) */
+.cert-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto}
+.cert-row{background:#1C1C1C;border:1px solid #2A2A2A;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.cert-row-icon{font-size:18px;flex-shrink:0}
+.cert-row-info{flex:1;min-width:0}
+.cert-row-name{font-size:12px;color:#F0F0F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cert-row-meta{font-size:10px;color:#666;margin-top:2px}
+.cert-row-del{background:none;border:none;color:#555;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1;flex-shrink:0}
+.cert-row-del:hover{color:#E07B39}
+.cert-empty{color:#555;font-size:13px;text-align:center;padding:20px}
+
+/* INFO ROWS (detail modal) */
+.irow{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px solid #1E1E1E;gap:8px}
+.irow:last-child{border-bottom:none}
+.irow .il{color:#888;flex:1}
+.irow .ir{color:#F0F0F0;text-align:right;font-size:12px}
+
+/* FOOTER */
+.page-footer{text-align:center;padding:20px 0;border-top:1px solid #1A1A1A;font-size:11px;color:#444;margin-top:12px}
+.page-footer span{color:#C9A84C44}
+
+/* RESPONSIVE */
+@media(max-width:720px){
+  .dashboard{grid-template-columns:repeat(2,1fr)}
+  .tb-select{min-width:130px}
+}
+@media(max-width:480px){
+  .frow{grid-template-columns:1fr}
+  .integra-banner{flex-wrap:wrap}
+  .integra-badge{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">GTC</div>
+  <div>
+    <div class="brand">GTCO — Auditor Documental</div>
+    <div class="sub">Verificación de soportes por operación</div>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="back-btn">← Sistema</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- INTEGRA ALERT BANNER -->
+  <div class="integra-banner">
+    <div class="integra-icon">🚨</div>
+    <div class="integra-body">
+      <div class="integra-title">ALERTA CRÍTICA — INTEGRA: Sin certificados de descuento</div>
+      <div class="integra-desc">El barrido automatizado de <strong style="color:#F0F0F0">497 emails</strong> no encontró ningún certificado emitido por Integra. Todas las operaciones con este fondeador están marcadas como <strong style="color:#E74C3C">Sin Soporte</strong> y requieren gestión manual urgente. Contactar directamente al ejecutivo de Integra para obtener los comprobantes de descuento y liquidación.</div>
+    </div>
+    <span class="integra-badge" id="integra-count">— ops</span>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard">
+    <div class="dash-card active" id="dash-all" onclick="setStatusFilter('')">
+      <div class="dash-num" style="color:#E8C96A" id="d-total">—</div>
+      <div class="dash-lbl">Total operaciones</div>
+      <div class="dash-sub" style="color:#C9A84C55" id="d-total-val"></div>
+    </div>
+    <div class="dash-card" id="dash-completo" onclick="setStatusFilter('completo')">
+      <div class="dash-num" style="color:#4CAF50" id="d-completo">—</div>
+      <div class="dash-lbl">Con soporte completo</div>
+      <div class="dash-sub" style="color:#4CAF5077" id="d-completo-pct"></div>
+    </div>
+    <div class="dash-card" id="dash-parcial" onclick="setStatusFilter('parcial')">
+      <div class="dash-num" style="color:#f5b041" id="d-parcial">—</div>
+      <div class="dash-lbl">Soporte parcial</div>
+      <div class="dash-sub" style="color:#f5b04177" id="d-parcial-pct"></div>
+    </div>
+    <div class="dash-card" id="dash-sin" onclick="setStatusFilter('sin_soporte')">
+      <div class="dash-num" style="color:#E07B39" id="d-sin">—</div>
+      <div class="dash-lbl">Sin soporte</div>
+      <div class="dash-sub" style="color:#E07B3977" id="d-sin-pct"></div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <input class="tb-input" id="search" type="text" placeholder="Buscar operación, cliente…" oninput="render()">
+    <select class="tb-select" id="f-fond" onchange="render()">
+      <option value="">Todos los fondeadores</option>
+      <option>BMC Miguel Quijano</option>
+      <option>BMC Mercado y Bolsa</option>
+      <option>Coltefinanciera</option>
+      <option>Irisbank</option>
+      <option>Integra</option>
+      <option>Cesion Bank</option>
+      <option>Servifin</option>
+      <option>Liquitech</option>
+    </select>
+    <select class="tb-select" id="f-status" onchange="render()">
+      <option value="">Todos los estados</option>
+      <option value="completo">✅ Completo</option>
+      <option value="parcial">⚠️ Parcial</option>
+      <option value="sin_soporte">❌ Sin soporte</option>
+    </select>
+    <button class="btn btn-sec" onclick="openUpload(null)">↑ Subir Certificado</button>
+    <button class="btn btn-gold" onclick="openOpModal(null)">+ Operación</button>
+  </div>
+
+  <!-- OPERATIONS TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Operación</th>
+          <th>Cliente</th>
+          <th>Fondeador</th>
+          <th style="text-align:right">Valor Facial</th>
+          <th>Fecha</th>
+          <th style="text-align:center">Plazo</th>
+          <th style="text-align:center">Certs</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="ops-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ALERTS SECTION -->
+  <div class="sec-title">
+    Alertas — Operaciones sin soporte documental completo
+    <span id="alert-count" style="font-size:11px;color:#E07B39;font-weight:600"></span>
+  </div>
+  <div class="alert-list" id="alert-list"></div>
+
+  <div class="page-footer">
+    Auditor Documental · <span>Global Trade Commerce S.A.S.</span> · NIT 901.648.628-5 · Medellín
+  </div>
+</div>
+
+<!-- MODAL: ADD / EDIT OPERATION -->
+<div class="modal" id="op-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title" id="op-modal-ttl">Nueva Operación</div>
+      <button class="modal-close" onclick="closeModal('op-modal')">✕</button>
+    </div>
+    <form onsubmit="saveOp(event)">
+      <div class="frow">
+        <div>
+          <label class="flbl">N° Operación</label>
+          <input class="finput" id="op-numero" placeholder="GTC-2025-001" required>
+        </div>
+        <div>
+          <label class="flbl">Fondeador</label>
+          <select class="finput fsel" id="op-fond" required>
+            <option value="">Seleccionar…</option>
+            <option>BMC Miguel Quijano</option>
+            <option>BMC Mercado y Bolsa</option>
+            <option>Coltefinanciera</option>
+            <option>Irisbank</option>
+            <option>Integra</option>
+            <option>Cesion Bank</option>
+            <option>Servifin</option>
+            <option>Liquitech</option>
+          </select>
+        </div>
+      </div>
+      <label class="flbl">Cliente (Razón Social)</label>
+      <input class="finput" id="op-cliente" placeholder="Distribuidora Andina S.A.S." required>
+      <div class="frow">
+        <div>
+          <label class="flbl">NIT</label>
+          <input class="finput" id="op-nit" placeholder="900.000.000-0">
+        </div>
+        <div>
+          <label class="flbl">Valor Facial (COP)</label>
+          <input class="finput" id="op-valor" type="number" min="0" placeholder="100000000" required>
+        </div>
+      </div>
+      <div class="frow">
+        <div>
+          <label class="flbl">Fecha</label>
+          <input class="finput" id="op-fecha" type="date" required>
+        </div>
+        <div>
+          <label class="flbl">Plazo (días)</label>
+          <input class="finput" id="op-plazo" type="number" min="1" placeholder="120" required>
+        </div>
+      </div>
+      <label class="flbl">Notas</label>
+      <textarea class="finput" id="op-notas" placeholder="Observaciones…" style="min-height:68px;resize:vertical"></textarea>
+      <div class="form-actions">
+        <button type="button" class="btn btn-sec" onclick="closeModal('op-modal')">Cancelar</button>
+        <button type="submit" class="btn btn-gold" id="op-save-btn">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: UPLOAD CERTIFICATE -->
+<div class="modal" id="upload-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">Registrar Certificado</div>
+      <button class="modal-close" onclick="closeModal('upload-modal')">✕</button>
+    </div>
+    <div class="upload-drop" id="upload-drop" onclick="document.getElementById('cert-file').click()">
+      <div class="upload-drop-icon">📎</div>
+      <div class="upload-drop-hint">Arrastra el PDF o toca para seleccionar</div>
+      <div class="upload-fname" id="upload-fname"></div>
+    </div>
+    <input type="file" id="cert-file" accept=".pdf,image/*" style="display:none">
+    <label class="flbl">Operación</label>
+    <select class="finput fsel" id="cert-op-sel"></select>
+    <label class="flbl">Tipo de documento</label>
+    <select class="finput fsel" id="cert-tipo">
+      <option>Certificado de Descuento</option>
+      <option>Confirmación de Desembolso</option>
+      <option>Liquidación</option>
+      <option>Nota de Crédito</option>
+      <option>Extracto / Estado de Cuenta</option>
+      <option>Otro</option>
+    </select>
+    <div class="form-actions">
+      <button class="btn btn-sec" onclick="closeModal('upload-modal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="doSaveCert()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: OPERATION DETAIL -->
+<div class="modal" id="detail-modal">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <div class="modal-title" id="detail-ttl">Detalle</div>
+      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────
+const LS_OPS   = 'gtc_aud_ops';
+const LS_CERTS = 'gtc_aud_certs';
+
+const FOND_CLASS = {
+  'BMC Miguel Quijano':'f-bmc1','BMC Mercado y Bolsa':'f-bmc2',
+  'Coltefinanciera':'f-colt','Irisbank':'f-iris','Integra':'f-intg',
+  'Cesion Bank':'f-ces','Servifin':'f-srv','Liquitech':'f-liq'
+};
+
+const STATUS_LABEL = { completo:'✅ Completo', parcial:'⚠️ Parcial', sin_soporte:'❌ Sin soporte' };
+const STATUS_BADGE = { completo:'badge-completo', parcial:'badge-parcial', sin_soporte:'badge-sin' };
+
+// ── DEMO DATA ─────────────────────────────────────────────
+const DEMO_OPS = [
+  {id:'OP001',numero:'GTC-2025-001',cliente:'Cementos del Norte S.A.S.',nit:'800.123.456-1',fondeador:'Coltefinanciera',valor_facial:85000000,fecha:'2025-03-15',plazo:120,notas:''},
+  {id:'OP002',numero:'GTC-2025-002',cliente:'Textiles Medellín Ltda.',nit:'900.234.567-2',fondeador:'BMC Miguel Quijano',valor_facial:120000000,fecha:'2025-03-22',plazo:90,notas:''},
+  {id:'OP003',numero:'GTC-2025-003',cliente:'Ferretería El Progreso S.A.S.',nit:'901.345.678-3',fondeador:'Servifin',valor_facial:45000000,fecha:'2025-04-01',plazo:150,notas:''},
+  {id:'OP004',numero:'GTC-2025-004',cliente:'Importadora Pacific S.A.',nit:'860.456.789-4',fondeador:'Irisbank',valor_facial:200000000,fecha:'2025-04-10',plazo:180,notas:''},
+  {id:'OP005',numero:'GTC-2025-005',cliente:'Agro Caribe S.A.S.',nit:'901.567.890-5',fondeador:'Integra',valor_facial:90000000,fecha:'2025-04-15',plazo:120,notas:'Gestión manual requerida — Integra no reporta por email.'},
+  {id:'OP006',numero:'GTC-2025-006',cliente:'Distribuidora La 14 S.A.',nit:'890.678.901-6',fondeador:'Cesion Bank',valor_facial:150000000,fecha:'2025-04-20',plazo:210,notas:''},
+  {id:'OP007',numero:'GTC-2025-007',cliente:'Constructora Palmar S.A.S.',nit:'901.789.012-7',fondeador:'Liquitech',valor_facial:75000000,fecha:'2025-05-01',plazo:150,notas:''},
+  {id:'OP008',numero:'GTC-2025-008',cliente:'Materiales El Constructor Ltda.',nit:'900.890.123-8',fondeador:'BMC Mercado y Bolsa',valor_facial:300000000,fecha:'2025-05-05',plazo:90,notas:''},
+  {id:'OP009',numero:'GTC-2025-009',cliente:'Plásticos del Oriente S.A.S.',nit:'901.901.234-9',fondeador:'Integra',valor_facial:55000000,fecha:'2025-05-10',plazo:120,notas:'Gestión manual requerida — Integra no reporta por email.'},
+  {id:'OP010',numero:'GTC-2025-010',cliente:'Alimentos del Valle S.A.',nit:'800.012.345-0',fondeador:'Coltefinanciera',valor_facial:180000000,fecha:'2025-05-15',plazo:180,notas:''},
+  {id:'OP011',numero:'GTC-2025-011',cliente:'Calzado Andino S.A.S.',nit:'901.123.456-1',fondeador:'BMC Miguel Quijano',valor_facial:62000000,fecha:'2025-05-20',plazo:90,notas:''},
+  {id:'OP012',numero:'GTC-2025-012',cliente:'Maderas del Pacífico Ltda.',nit:'900.234.567-2',fondeador:'Servifin',valor_facial:38000000,fecha:'2025-05-25',plazo:120,notas:''},
+];
+
+const DEMO_CERTS = [
+  {id:1,op_id:'OP001',nombre:'cert_coltefinanciera_OP001.pdf',tipo:'Certificado de Descuento',fecha:'2025-03-20T09:15:00Z'},
+  {id:2,op_id:'OP001',nombre:'liquidacion_coltefinanciera_OP001.pdf',tipo:'Liquidación',fecha:'2025-03-20T09:18:00Z'},
+  {id:3,op_id:'OP002',nombre:'confirmacion_BMC_MQ_OP002.pdf',tipo:'Confirmación de Desembolso',fecha:'2025-03-25T11:30:00Z'},
+  {id:4,op_id:'OP004',nombre:'cert_irisbank_OP004.pdf',tipo:'Certificado de Descuento',fecha:'2025-04-12T14:00:00Z'},
+  {id:5,op_id:'OP006',nombre:'cert_cesion_bank_OP006.pdf',tipo:'Certificado de Descuento',fecha:'2025-04-22T10:45:00Z'},
+  {id:6,op_id:'OP006',nombre:'confirmacion_desembolso_OP006.pdf',tipo:'Confirmación de Desembolso',fecha:'2025-04-22T10:50:00Z'},
+  {id:7,op_id:'OP008',nombre:'cert_BMC_bolsa_OP008.pdf',tipo:'Certificado de Descuento',fecha:'2025-05-07T08:20:00Z'},
+  {id:8,op_id:'OP010',nombre:'cert_coltefinanciera_OP010.pdf',tipo:'Certificado de Descuento',fecha:'2025-05-18T15:10:00Z'},
+  {id:9,op_id:'OP011',nombre:'confirmacion_BMC_MQ_OP011.pdf',tipo:'Confirmación de Desembolso',fecha:'2025-05-22T09:00:00Z'},
+];
+
+// ── STORAGE ───────────────────────────────────────────────
+function getOps()   { try { const d=JSON.parse(localStorage.getItem(LS_OPS));   return Array.isArray(d)?d:null; } catch{return null;} }
+function getCerts() { try { const d=JSON.parse(localStorage.getItem(LS_CERTS)); return Array.isArray(d)?d:[];   } catch{return [];} }
+function putOps(v)   { localStorage.setItem(LS_OPS,   JSON.stringify(v)); }
+function putCerts(v) { localStorage.setItem(LS_CERTS, JSON.stringify(v)); }
+
+// ── STATUS LOGIC ──────────────────────────────────────────
+function opStatus(op, certs) {
+  if (op.fondeador === 'Integra') return 'sin_soporte';
+  const n = certs.filter(c => c.op_id === op.id).length;
+  if (n === 0) return 'sin_soporte';
+  if (n === 1) return 'parcial';
+  return 'completo';
+}
+
+// ── ACTIVE FILTER STATE ───────────────────────────────────
+let statusFilter = '';
+
+function setStatusFilter(s) {
+  statusFilter = s;
+  document.getElementById('f-status').value = s;
+  ['all','completo','parcial','sin'].forEach(k => {
+    document.getElementById('dash-' + k).classList.remove('active');
+  });
+  const map = {'':'all','completo':'completo','parcial':'parcial','sin_soporte':'sin'};
+  document.getElementById('dash-' + (map[s] || 'all')).classList.add('active');
+  render();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function renderDash() {
+  const ops = getOps() || DEMO_OPS;
+  const certs = getCerts();
+  const t = ops.length;
+  const c = ops.filter(o => opStatus(o,certs)==='completo').length;
+  const p = ops.filter(o => opStatus(o,certs)==='parcial').length;
+  const s = ops.filter(o => opStatus(o,certs)==='sin_soporte').length;
+  const intg = ops.filter(o => o.fondeador === 'Integra').length;
+  const totalVal = ops.reduce((a,o) => a+o.valor_facial, 0);
+
+  document.getElementById('d-total').textContent = t;
+  document.getElementById('d-total-val').textContent = t ? '$' + Math.round(totalVal/1e6) + 'M total' : '';
+  document.getElementById('d-completo').textContent = c;
+  document.getElementById('d-completo-pct').textContent = t ? Math.round(c/t*100) + '%' : '';
+  document.getElementById('d-parcial').textContent = p;
+  document.getElementById('d-parcial-pct').textContent = t ? Math.round(p/t*100) + '%' : '';
+  document.getElementById('d-sin').textContent = s;
+  document.getElementById('d-sin-pct').textContent = t ? Math.round(s/t*100) + '%' : '';
+  document.getElementById('integra-count').textContent = intg + (intg === 1 ? ' op' : ' ops');
+}
+
+// ── TABLE ─────────────────────────────────────────────────
+function renderTable() {
+  const ops = getOps() || DEMO_OPS;
+  const certs = getCerts();
+  const q = document.getElementById('search').value.toLowerCase();
+  const ff = document.getElementById('f-fond').value;
+  const sf = document.getElementById('f-status').value || statusFilter;
+
+  const rows = ops.filter(o => {
+    if (ff && o.fondeador !== ff) return false;
+    if (sf && opStatus(o,certs) !== sf) return false;
+    if (q) {
+      const hay = (o.numero + o.cliente + o.nit + o.fondeador).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById('ops-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Sin operaciones que coincidan</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(o => {
+    const st = opStatus(o, certs);
+    const nc = certs.filter(c => c.op_id === o.id).length;
+    const isI = o.fondeador === 'Integra';
+    return `<tr>
+      <td class="td-num">${esc(o.numero)}</td>
+      <td class="td-cliente" title="${esc(o.cliente)}">${esc(o.cliente)}</td>
+      <td><span class="fond-tag ${FOND_CLASS[o.fondeador]||''}">${esc(o.fondeador)}</span></td>
+      <td class="td-valor">$${Number(o.valor_facial).toLocaleString('es-CO')}</td>
+      <td style="font-size:12px;color:#888;white-space:nowrap">${fmtD(o.fecha)}</td>
+      <td class="td-center" style="font-size:12px;color:#888">${o.plazo}d</td>
+      <td class="td-center"><span class="cert-pill ${nc>0?'has':'none'}">${nc}</span></td>
+      <td><span class="badge ${isI?'badge-integra':STATUS_BADGE[st]}">${isI?'🚨 Integra':STATUS_LABEL[st]}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-sec btn-sm" onclick="openDetail('${o.id}')">Ver</button>
+        <button class="btn btn-sec btn-sm" onclick="openUpload('${o.id}')">↑</button>
+        <button class="btn btn-sec btn-sm" onclick="openOpModal('${o.id}')">✎</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOp('${o.id}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ALERTS ────────────────────────────────────────────────
+function renderAlerts() {
+  const ops = getOps() || DEMO_OPS;
+  const certs = getCerts();
+  const bad = ops.filter(o => opStatus(o,certs) !== 'completo');
+  const list = document.getElementById('alert-list');
+  document.getElementById('alert-count').textContent = bad.length ? bad.length + ' pendientes' : '';
+
+  if (!bad.length) {
+    list.innerHTML = '<div class="empty-state" style="color:#4CAF50;border:1px solid #4CAF5022;border-radius:8px;background:#4CAF5008">✅ Todas las operaciones tienen soporte documental completo</div>';
+    return;
+  }
+
+  list.innerHTML = bad.map(o => {
+    const st = opStatus(o, certs);
+    const isI = o.fondeador === 'Integra';
+    const nc = certs.filter(c => c.op_id === o.id).length;
+    const metaStr = isI
+      ? 'Sin certificados en sweep de 497 emails — gestión manual urgente'
+      : st === 'parcial'
+        ? `${nc} certificado(s) registrado(s) · requiere soporte adicional`
+        : '0 certificados registrados';
+    return `<div class="alert-item ${isI?'is-integra':st==='parcial'?'is-parcial':''}" onclick="openDetail('${o.id}')">
+      <div class="al-num">${esc(o.numero)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="al-client">${esc(o.cliente)}</div>
+        <div class="al-meta"><span class="fond-tag ${FOND_CLASS[o.fondeador]||''}" style="font-size:9px">${esc(o.fondeador)}</span> &nbsp;${metaStr}</div>
+      </div>
+      <div class="al-val">$${Number(o.valor_facial).toLocaleString('es-CO')}</div>
+      <span class="badge ${isI?'badge-integra':STATUS_BADGE[st]}" style="flex-shrink:0">${isI?'🚨':STATUS_LABEL[st]}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── MAIN RENDER ───────────────────────────────────────────
+function render() {
+  renderDash();
+  renderTable();
+  renderAlerts();
+}
+
+// ── OP MODAL ──────────────────────────────────────────────
+let editId = null;
+
+function openOpModal(id) {
+  editId = id;
+  document.getElementById('op-modal-ttl').textContent = id ? 'Editar Operación' : 'Nueva Operación';
+  document.getElementById('op-save-btn').textContent = id ? 'Actualizar' : 'Guardar';
+  if (id) {
+    const o = (getOps() || DEMO_OPS).find(x => x.id === id);
+    if (o) {
+      document.getElementById('op-numero').value  = o.numero;
+      document.getElementById('op-fond').value    = o.fondeador;
+      document.getElementById('op-cliente').value = o.cliente;
+      document.getElementById('op-nit').value     = o.nit || '';
+      document.getElementById('op-valor').value   = o.valor_facial;
+      document.getElementById('op-fecha').value   = o.fecha;
+      document.getElementById('op-plazo').value   = o.plazo;
+      document.getElementById('op-notas').value   = o.notas || '';
+    }
+  } else {
+    ['op-numero','op-cliente','op-nit','op-notas'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('op-fond').value  = '';
+    document.getElementById('op-valor').value = '';
+    document.getElementById('op-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('op-plazo').value = '120';
+  }
+  openModal('op-modal');
+}
+
+function saveOp(e) {
+  e.preventDefault();
+  let ops = getOps() || [...DEMO_OPS];
+  const entry = {
+    id:          editId || ('OP' + Date.now()),
+    numero:      document.getElementById('op-numero').value.trim(),
+    fondeador:   document.getElementById('op-fond').value,
+    cliente:     document.getElementById('op-cliente').value.trim(),
+    nit:         document.getElementById('op-nit').value.trim(),
+    valor_facial: parseFloat(document.getElementById('op-valor').value) || 0,
+    fecha:       document.getElementById('op-fecha').value,
+    plazo:       parseInt(document.getElementById('op-plazo').value) || 120,
+    notas:       document.getElementById('op-notas').value.trim(),
+  };
+  ops = editId ? ops.map(o => o.id === editId ? entry : o) : [entry, ...ops];
+  putOps(ops);
+  closeModal('op-modal');
+  render();
+}
+
+function deleteOp(id) {
+  if (!confirm('¿Eliminar esta operación y todos sus certificados?')) return;
+  putOps((getOps() || DEMO_OPS).filter(o => o.id !== id));
+  putCerts(getCerts().filter(c => c.op_id !== id));
+  render();
+}
+
+// ── UPLOAD CERT ───────────────────────────────────────────
+let pendingFile = null;
+
+function openUpload(opId) {
+  pendingFile = null;
+  document.getElementById('upload-fname').textContent = '';
+  document.getElementById('upload-drop').classList.remove('drag');
+  const ops = getOps() || DEMO_OPS;
+  document.getElementById('cert-op-sel').innerHTML =
+    '<option value="">Seleccionar operación…</option>' +
+    ops.map(o => `<option value="${esc(o.id)}" ${o.id===opId?'selected':''}>${esc(o.numero)} — ${esc(o.cliente.slice(0,28))}</option>`).join('');
+  openModal('upload-modal');
+}
+
+const certFile = document.getElementById('cert-file');
+certFile.addEventListener('change', e => {
+  if (e.target.files[0]) { pendingFile = e.target.files[0]; document.getElementById('upload-fname').textContent = pendingFile.name; }
+  certFile.value = '';
+});
+
+const upDrop = document.getElementById('upload-drop');
+upDrop.addEventListener('dragover', e => { e.preventDefault(); upDrop.classList.add('drag'); });
+upDrop.addEventListener('dragleave', () => upDrop.classList.remove('drag'));
+upDrop.addEventListener('drop', e => {
+  e.preventDefault(); upDrop.classList.remove('drag');
+  if (e.dataTransfer.files[0]) { pendingFile = e.dataTransfer.files[0]; document.getElementById('upload-fname').textContent = pendingFile.name; }
+});
+
+function doSaveCert() {
+  const opId = document.getElementById('cert-op-sel').value;
+  const tipo  = document.getElementById('cert-tipo').value;
+  if (!opId)        { alert('Selecciona una operación'); return; }
+  if (!pendingFile) { alert('Selecciona un archivo'); return; }
+  const certs = getCerts();
+  certs.push({ id: Date.now(), op_id: opId, nombre: pendingFile.name, tipo, fecha: new Date().toISOString() });
+  putCerts(certs);
+  closeModal('upload-modal');
+  render();
+}
+
+// ── DETAIL MODAL ──────────────────────────────────────────
+function openDetail(id) {
+  const ops = getOps() || DEMO_OPS;
+  const certs = getCerts();
+  const o = ops.find(x => x.id === id);
+  if (!o) return;
+  const opCerts = certs.filter(c => c.op_id === id);
+  const st = opStatus(o, certs);
+  const isI = o.fondeador === 'Integra';
+
+  document.getElementById('detail-ttl').textContent = o.numero;
+
+  const certsHtml = opCerts.length === 0
+    ? `<div class="cert-empty">Sin certificados registrados</div>`
+    : opCerts.map(c => `
+        <div class="cert-row">
+          <div class="cert-row-icon">📎</div>
+          <div class="cert-row-info">
+            <div class="cert-row-name">${esc(c.nombre)}</div>
+            <div class="cert-row-meta">${esc(c.tipo)} · ${fmtD(c.fecha)}</div>
+          </div>
+          <button class="cert-row-del" onclick="deleteCert(${c.id},'${id}')" title="Eliminar">✕</button>
+        </div>`).join('');
+
+  const integraWarning = isI ? `
+    <div style="background:#E74C3C10;border:1px solid #E74C3C44;border-left:3px solid #E74C3C;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:#E74C3C;line-height:1.55">
+      <strong>🚨 Fondeador sin soportes en sistema:</strong> El barrido de 497 emails no encontró ningún certificado de Integra. Se requiere contactar directamente al ejecutivo del fondeador para obtener los comprobantes de descuento y liquidación.
+    </div>` : '';
+
+  document.getElementById('detail-body').innerHTML = `
+    <div style="margin-bottom:14px">
+      <span class="badge ${isI?'badge-integra':STATUS_BADGE[st]}" style="font-size:13px;padding:5px 13px">${isI?'🚨 Integra — Sin soporte':STATUS_LABEL[st]}</span>
+    </div>
+    <div style="background:#111;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div class="irow"><span class="il">Cliente</span><span class="ir">${esc(o.cliente)}</span></div>
+      <div class="irow"><span class="il">NIT</span><span class="ir">${esc(o.nit||'—')}</span></div>
+      <div class="irow"><span class="il">Fondeador</span><span class="ir"><span class="fond-tag ${FOND_CLASS[o.fondeador]||''}">${esc(o.fondeador)}</span></span></div>
+      <div class="irow"><span class="il">Valor Facial</span><span class="ir">$${Number(o.valor_facial).toLocaleString('es-CO')} COP</span></div>
+      <div class="irow"><span class="il">Fecha</span><span class="ir">${fmtD(o.fecha)}</span></div>
+      <div class="irow" style="border:none"><span class="il">Plazo</span><span class="ir">${o.plazo} días</span></div>
+    </div>
+    ${o.notas ? `<div style="font-size:12px;color:#888;background:#0D0D0D;border:1px solid #222;border-radius:8px;padding:10px;margin-bottom:14px;line-height:1.55">${esc(o.notas)}</div>` : ''}
+    ${integraWarning}
+    <div style="font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">Certificados registrados (${opCerts.length})</div>
+    <div class="cert-list">${certsHtml}</div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-sec" style="flex:1" onclick="closeModal('detail-modal');openUpload('${id}')">↑ Subir Certificado</button>
+      <button class="btn btn-sec" style="flex:1" onclick="closeModal('detail-modal');openOpModal('${id}')">✎ Editar</button>
+    </div>`;
+
+  openModal('detail-modal');
+}
+
+function deleteCert(certId, opId) {
+  if (!confirm('¿Eliminar este certificado?')) return;
+  putCerts(getCerts().filter(c => c.id !== certId));
+  openDetail(opId);
+  renderDash();
+  renderTable();
+  renderAlerts();
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── UTILS ─────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtD(s) {
+  if (!s) return '—';
+  try {
+    const d = s.length === 10 ? new Date(s + 'T12:00:00') : new Date(s);
+    return d.toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'});
+  } catch { return s; }
+}
+
+// ── INIT ──────────────────────────────────────────────────
+(function init() {
+  if (!getOps()) {
+    putOps(DEMO_OPS);
+    putCerts(DEMO_CERTS);
+  }
+  render();
+})();
+</script>
+</body>
+</html>
