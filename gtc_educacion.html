@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTC — Educación SCF</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size:15px;min-height:100vh}
+
+/* HEADER */
+.header{background:#141414;border-bottom:1px solid #C9A84C44;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{width:36px;height:36px;border-radius:50%;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0A0A0A;flex-shrink:0}
+.brand{font-size:14px;font-weight:700;color:#E8C96A;letter-spacing:1px}
+.sub{font-size:11px;color:#666}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.back-btn{padding:6px 12px;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#888;font-size:12px;cursor:pointer;text-decoration:none;font-family:inherit}
+.back-btn:hover{border-color:#C9A84C55;color:#C9A84C}
+.icon-btn{background:none;border:none;color:#666;font-size:18px;cursor:pointer;padding:5px 7px;border-radius:7px;font-family:inherit;line-height:1}
+.icon-btn:hover{background:#1C1C1C;color:#C9A84C}
+
+/* LAYOUT */
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px}
+
+/* PROGRESS BANNER */
+.prog-banner{background:#141414;border:1px solid #2A2A2A;border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:20px}
+.prog-num{font-size:38px;font-weight:700;color:#E8C96A;line-height:1;flex-shrink:0}
+.prog-side{flex:1;min-width:0}
+.prog-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.prog-track{height:8px;background:#1C1C1C;border-radius:4px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;background:#C9A84C;border-radius:4px;transition:width .5s}
+.prog-text{font-size:12px;color:#888}
+.prog-text b{color:#C9A84C}
+
+/* SEARCH */
+.search-wrap{margin-bottom:20px;position:relative}
+.search-input{display:block;width:100%;background:#141414;border:1px solid #2A2A2A;border-radius:10px;color:#F0F0F0;padding:12px 16px 12px 42px;font-size:14px;font-family:inherit;outline:none}
+.search-input:focus{border-color:#C9A84C44}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#555;font-size:16px;pointer-events:none}
+.search-results{position:absolute;width:100%;background:#161616;border:1px solid #333;border-radius:10px;margin-top:4px;overflow:hidden;z-index:50;display:none}
+.sr-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid #1E1E1E;transition:background .1s}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover{background:#1C1C1C}
+.sr-topic{font-size:13px;font-weight:500;color:#F0F0F0}
+.sr-mod{font-size:11px;color:#C9A84C;margin-top:2px}
+
+/* MODULE GRID */
+.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px}
+.mod-card{background:#141414;border:1px solid #2A2A2A;border-radius:14px;padding:20px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column}
+.mod-card:hover{border-color:#C9A84C55;transform:translateY(-2px)}
+.mod-icon-big{font-size:38px;margin-bottom:12px}
+.mod-title{font-size:15px;font-weight:700;color:#F0F0F0;margin-bottom:6px}
+.mod-desc{font-size:12px;color:#666;line-height:1.55;flex:1;margin-bottom:14px}
+.mod-prog-track{height:4px;background:#1C1C1C;border-radius:2px;overflow:hidden;margin-bottom:5px}
+.mod-prog-fill{height:100%;background:#C9A84C;border-radius:2px;transition:width .4s}
+.mod-prog-text{display:flex;justify-content:space-between;font-size:10px;color:#555}
+.mod-prog-done{color:#4CAF50!important}
+
+/* BREADCRUMB */
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:#666;margin-bottom:18px;flex-wrap:wrap}
+.crumb-link{color:#C9A84C;cursor:pointer;text-decoration:none}
+.crumb-link:hover{text-decoration:underline}
+.crumb-sep{color:#333}
+
+/* MODULE DETAIL HEADER */
+.mod-detail-hdr{background:#141414;border:1px solid #2A2A2A;border-radius:14px;padding:20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:16px}
+.mod-detail-icon{font-size:48px;flex-shrink:0}
+.mod-detail-info{flex:1}
+.mod-detail-title{font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:6px}
+.mod-detail-desc{font-size:13px;color:#888;line-height:1.55}
+.mod-detail-stats{display:flex;gap:16px;margin-top:10px;font-size:12px;color:#666}
+.mod-detail-stats span{color:#C9A84C;font-weight:600}
+
+/* TOPIC LIST */
+.topic-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.topic-row{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s}
+.topic-row:hover{border-color:#C9A84C44;background:#161616}
+.topic-row.done-row{border-color:#4CAF5022}
+.check-circle{width:22px;height:22px;border-radius:50%;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .2s}
+.check-circle.done{background:#4CAF50;border-color:#4CAF50;color:#fff;font-size:13px}
+.tr-title{flex:1;font-size:14px;font-weight:500;color:#F0F0F0}
+.tr-meta{font-size:11px;color:#555;text-align:right;flex-shrink:0;line-height:1.4}
+.tr-score{color:#C9A84C;font-weight:600;font-size:12px}
+.tr-quiz{color:#555;font-size:10px;margin-top:2px}
+.tr-arrow{color:#444;font-size:16px}
+
+/* TOPIC CONTENT */
+.content-card{background:#141414;border:1px solid #2A2A2A;border-radius:14px;padding:24px 26px;margin-bottom:16px;line-height:1.75}
+.content-card h3{font-size:18px;font-weight:700;color:#E8C96A;margin:24px 0 10px;padding-bottom:8px;border-bottom:1px solid #222}
+.content-card h3:first-child{margin-top:0}
+.content-card h4{font-size:14px;font-weight:700;color:#C9A84C;margin:16px 0 8px;letter-spacing:.3px;text-transform:uppercase}
+.content-card p{color:#C8C8C8;font-size:14px;margin-bottom:12px}
+.content-card ul{margin:8px 0 14px 22px}
+.content-card li{color:#C8C8C8;font-size:14px;margin-bottom:5px}
+.content-card strong{color:#F0F0F0;font-weight:600}
+.content-card em{color:#C9A84C;font-style:normal;font-weight:500}
+.content-card code{background:#1A1A1A;color:#E8C96A;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;border:1px solid #2A2A2A}
+.content-card hr{border:none;border-top:1px solid #222;margin:18px 0}
+.callout{background:#C9A84C0D;border:1px solid #C9A84C2A;border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13px;color:#D4B866;line-height:1.6}
+.ctable{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px;overflow-x:auto;display:block}
+.ctable th{background:#1C1C1C;color:#C9A84C;padding:8px 10px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap}
+.ctable td{padding:7px 10px;border-bottom:1px solid #1A1A1A;color:#C8C8C8;white-space:nowrap}
+.ctable tr:last-child td{border-bottom:none}
+
+/* DONE BADGE */
+.done-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:20px;background:#4CAF5018;border:1px solid #4CAF5033;color:#4CAF50;font-size:13px;font-weight:600;margin-bottom:14px}
+
+/* QUIZ */
+.quiz-card{background:#0D0D0D;border:1px solid #C9A84C2A;border-radius:14px;padding:24px;margin-bottom:16px}
+.quiz-hdr{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.quiz-hdr-icon{font-size:20px}
+.quiz-hdr-title{font-size:13px;font-weight:700;color:#C9A84C;letter-spacing:.8px;text-transform:uppercase}
+.quiz-q{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #1A1A1A}
+.quiz-q:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.quiz-q-num{font-size:10px;color:#C9A84C;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.quiz-q-text{font-size:14px;color:#F0F0F0;margin-bottom:10px;line-height:1.5}
+.quiz-opts{display:flex;flex-direction:column;gap:5px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#141414;border:1px solid #222;border-radius:8px;cursor:pointer;transition:all .15s;font-size:13px;color:#C8C8C8;user-select:none}
+.quiz-opt:hover{border-color:#C9A84C44;color:#F0F0F0}
+.quiz-opt.sel{border-color:#C9A84C;background:#C9A84C0D;color:#F0F0F0}
+.quiz-opt.correct{border-color:#4CAF50;background:#4CAF5018;color:#4CAF50}
+.quiz-opt.wrong{border-color:#E07B39;background:#E07B3918;color:#E07B39}
+.quiz-opt input[type=radio]{accent-color:#C9A84C;width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.quiz-result{background:#1C1C1C;border-radius:10px;padding:18px;text-align:center;margin-top:18px}
+.qr-score{font-size:32px;font-weight:700;line-height:1;margin-bottom:6px}
+.qr-score.pass{color:#4CAF50}
+.qr-score.fail{color:#E07B39}
+.qr-msg{font-size:13px;color:#888}
+
+/* ACTION BAR */
+.action-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn{padding:11px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-gold{background:#C9A84C;color:#000}
+.btn-gold:hover{background:#b8943d}
+.btn-sec{background:#1C1C1C;border:1px solid #C9A84C44;color:#C9A84C}
+.btn-sec:hover{background:#C9A84C18;border-color:#C9A84C}
+.btn-green{background:#4CAF5018;border:1px solid #4CAF5033;color:#4CAF50}
+.btn-green:hover{background:#4CAF5028}
+.btn-danger{background:#E07B3910;border:1px solid #E07B3933;color:#E07B39}
+.btn-danger:hover{background:#E07B3920}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:7px}
+
+/* NAV BUTTONS (prev/next) */
+.topic-nav{display:flex;justify-content:space-between;gap:8px;margin-top:8px;margin-bottom:20px}
+.topic-nav .btn{flex:1;font-size:13px;padding:9px 14px}
+
+/* ADMIN */
+.admin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.admin-section-title{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1E1E1E}
+.admin-mod-block{background:#141414;border:1px solid #2A2A2A;border-radius:12px;padding:14px;margin-bottom:10px}
+.admin-mod-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.admin-mod-name{font-size:14px;font-weight:700;color:#E8C96A;flex:1}
+.admin-topic-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0F0F0F;border:1px solid #1A1A1A;border-radius:8px;margin-bottom:5px}
+.admin-topic-name{flex:1;font-size:13px;color:#CCC}
+.admin-acts{display:flex;gap:4px}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px}
+.modal.open{display:flex}
+.mbox{background:#161616;border:1px solid #333;border-radius:14px;padding:24px;width:min(520px,96vw);margin:auto}
+.mbox.wide{width:min(640px,96vw)}
+.mhdr{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #222}
+.mtitle{font-size:16px;font-weight:700;color:#E8C96A;flex:1}
+.mclose{background:none;border:none;color:#666;font-size:22px;cursor:pointer;line-height:1;padding:0;font-family:inherit}
+.mclose:hover{color:#F0F0F0}
+.flbl{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:.7px;text-transform:uppercase;margin-bottom:5px;display:block}
+.finput{display:block;width:100%;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#F0F0F0;padding:10px 13px;font-size:14px;margin-bottom:14px;font-family:inherit;outline:none;-webkit-appearance:none}
+.finput:focus{border-color:#C9A84C44}
+.fhint{font-size:11px;color:#555;margin-bottom:6px;line-height:1.5}
+.fhint code{color:#C9A84C;background:#1A1A1A;padding:1px 5px;border-radius:3px;font-family:monospace}
+.form-actions{display:flex;gap:8px;margin-top:6px}
+.form-actions .btn{flex:1}
+
+/* FOOTER */
+.page-footer{text-align:center;padding:20px 0;border-top:1px solid #1A1A1A;font-size:11px;color:#444;margin-top:16px}
+.page-footer span{color:#C9A84C44}
+
+/* EMPTY */
+.empty{text-align:center;padding:36px;color:#444;font-size:13px}
+
+/* RESPONSIVE */
+@media(max-width:620px){
+  .module-grid{grid-template-columns:1fr}
+  .mod-detail-hdr{flex-direction:column}
+  .prog-banner{flex-direction:column;text-align:center}
+  .topic-nav{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">GTC</div>
+  <div>
+    <div class="brand">GTCO — Educación SCF</div>
+    <div class="sub">Formación continua del equipo GTC</div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="openAdmin()" title="Panel Admin">⚙</button>
+    <a href="index.html" class="back-btn">← Sistema</a>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<!-- ADMIN PASSWORD MODAL -->
+<div class="modal" id="pw-modal">
+  <div class="mbox" style="max-width:380px">
+    <div class="mhdr">
+      <div class="mtitle">⚙ Panel de Administración</div>
+      <button class="mclose" onclick="closeModal('pw-modal')">✕</button>
+    </div>
+    <p style="font-size:13px;color:#888;margin-bottom:16px">Ingresa el código de administrador para gestionar módulos y temas sin tocar el código.</p>
+    <label class="flbl">Código de acceso</label>
+    <input class="finput" type="password" id="admin-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    <div id="pw-err" style="color:#E07B39;font-size:12px;margin-bottom:10px;display:none">Código incorrecto. Intenta de nuevo.</div>
+    <div class="form-actions">
+      <button class="btn btn-sec" onclick="closeModal('pw-modal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="checkPw()">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODULE MODAL -->
+<div class="modal" id="mod-modal">
+  <div class="mbox">
+    <div class="mhdr">
+      <div class="mtitle" id="mod-modal-ttl">Nuevo Módulo</div>
+      <button class="mclose" onclick="closeModal('mod-modal')">✕</button>
+    </div>
+    <label class="flbl">Ícono (emoji)</label>
+    <input class="finput" id="mod-icon" placeholder="📚" maxlength="6" style="font-size:22px">
+    <label class="flbl">Título del módulo</label>
+    <input class="finput" id="mod-title" placeholder="NOMBRE DEL MÓDULO">
+    <label class="flbl">Descripción breve</label>
+    <textarea class="finput" id="mod-desc" style="min-height:68px;resize:vertical" placeholder="Descripción que aparece en la tarjeta del módulo..."></textarea>
+    <input type="hidden" id="editing-mod-id">
+    <div class="form-actions">
+      <button class="btn btn-sec" onclick="closeModal('mod-modal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveMod()">Guardar Módulo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT TOPIC MODAL -->
+<div class="modal" id="topic-modal">
+  <div class="mbox wide">
+    <div class="mhdr">
+      <div class="mtitle" id="topic-modal-ttl">Nuevo Tema</div>
+      <button class="mclose" onclick="closeModal('topic-modal')">✕</button>
+    </div>
+    <label class="flbl">Título del tema</label>
+    <input class="finput" id="t-title" placeholder="¿Qué es Supply Chain Finance?">
+    <label class="flbl">Contenido</label>
+    <div class="fhint">
+      <code># Título</code> &nbsp;<code>## Subtítulo</code> &nbsp;<code>- Item de lista</code> &nbsp;<code>&gt; Nota destacada</code> &nbsp;<code>**negrita**</code> &nbsp;<code>| Col1 | Col2 |</code>
+    </div>
+    <textarea class="finput" id="t-content" style="min-height:240px;resize:vertical;font-family:monospace;font-size:12px;line-height:1.6" placeholder="# Título principal&#10;&#10;Párrafo introductorio del tema.&#10;&#10;## Subtítulo&#10;&#10;- Punto clave uno&#10;- Punto clave dos&#10;&#10;> Nota o concepto destacado"></textarea>
+    <label class="flbl">Preguntas del quiz (JSON — opcional)</label>
+    <div class="fhint">Formato: <code>[{"q":"¿Pregunta?","opts":["Op A","Op B","Op C"],"ans":0}]</code> — <code>ans</code> es el índice (0-based) de la opción correcta.</div>
+    <textarea class="finput" id="t-quiz" style="min-height:80px;resize:vertical;font-family:monospace;font-size:11px" placeholder='[{"q":"¿Ejemplo?","opts":["Opción A","Opción B","Opción C"],"ans":1}]'></textarea>
+    <input type="hidden" id="t-mod-id">
+    <input type="hidden" id="t-topic-id">
+    <div class="form-actions">
+      <button class="btn btn-sec" onclick="closeModal('topic-modal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveTopic()">Guardar Tema</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────
+const LS_DATA = 'gtc_edu_data';
+const LS_PROG = 'gtc_edu_prog';
+const ADMIN_CODE = 'GTC2025';
+
+// ── INITIAL CONTENT ───────────────────────────────────────
+const INITIAL_DATA = { modules: [
+  { id:'m1', icon:'📚', title:'ESTRUCTURA SCF',
+    description:'Fundamentos del Supply Chain Finance y el modelo GTC de compraventa de inventario físico sin movimiento de mercancía.',
+    topics:[
+      { id:'t1a', title:'¿Qué es Supply Chain Finance?',
+        content:`# ¿Qué es Supply Chain Finance?
+
+**Supply Chain Finance (SCF)** optimiza el flujo de caja en la cadena de suministro usando activos comerciales —facturas, inventario, órdenes de compra— como respaldo del financiamiento, en lugar de evaluar la capacidad crediticia individual del cliente.
+
+## Principio fundamental
+
+El SCF financia la **transacción**, no al deudor. Esto permite acceder a liquidez a un costo menor y sin consumir cupo bancario tradicional.
+
+## Tipos principales de SCF
+
+- **Factoring**: el proveedor cede sus facturas por cobrar a un factor financiero
+- **Reverse Factoring (Confirming)**: el comprador ancla el pago de sus proveedores a través de un banco
+- **Inventory Finance (Modelo GTC)**: GTC compra el inventario de contado y lo revende a crédito al mismo cliente
+
+> El modelo GTC opera bajo **Inventory Finance** — la categoría más especializada del SCF. Menos del 5% de las empresas de financiamiento en Colombia la ejecutan.
+
+## Ventajas vs crédito bancario
+
+- No consume cupo de crédito bancario
+- El activo financiado es tangible y valorizable (el inventario)
+- Tasas competitivas para plazos de 90–210 días
+- Proceso de aprobación más ágil que un crédito bancario`,
+        quiz:[
+          {q:'¿A qué categoría de SCF pertenece el modelo GTC?',opts:['Factoring','Reverse Factoring','Inventory Finance','Confirming'],ans:2},
+          {q:'¿Cuál es la ventaja principal del SCF frente al crédito bancario?',opts:['Tasas más bajas siempre','No consume cupo bancario y usa el activo comercial como respaldo','No requiere documentación alguna','Solo disponible para grandes empresas'],ans:1}
+        ]
+      },
+      { id:'t1b', title:'Modelo GTC: compraventa de inventario físico',
+        content:`# Modelo GTC de compraventa
+
+El modelo GTC opera con una **doble compraventa**: GTC compra el inventario de contado y lo revende a crédito al mismo cliente, sin que la mercancía se mueva físicamente de sus instalaciones.
+
+## Los 4 pasos
+
+1. **Compra de contado**: GTC adquiere el inventario al precio acordado. El cliente recibe el giro inmediatamente (o vía fondeador).
+2. **Sin movimiento físico**: la mercancía permanece en las instalaciones del cliente. Solo cambia el propietario legal en los documentos.
+3. **Venta a crédito**: GTC emite factura de venta al cliente por el **Valor Facial** (precio + diferencial GTC + IVA), con plazo de 120–210 días.
+4. **Cesión al fondeador**: GTC cede la factura al fondeador, recibe el Valor Presente (VP), y gira al cliente descontando el diferencial.
+
+## El Valor Facial
+
+> **VF = Precio de compra × (1 + diferencial GTC%) × (1 + IVA%)**
+
+El diferencial GTC es del **3% al 4%** sobre el valor de compra. Este es el ingreso de GTC por operación.
+
+## Por qué funciona para todos
+
+- **Cliente**: convierte inventario inmovilizado en liquidez sin deuda bancaria
+- **GTC**: gana el diferencial sin asumir directamente el riesgo crediticio del cliente
+- **Fondeador**: obtiene rentabilidad respaldada en una factura comercial real`,
+        quiz:[
+          {q:'¿El inventario se mueve físicamente en una operación GTC?',opts:['Sí, siempre se traslada a GTC','No, permanece en instalaciones del cliente','Solo si el fondeador lo exige','Depende del Contrato Marco'],ans:1},
+          {q:'¿Qué es el Valor Facial en el modelo GTC?',opts:['El precio de compra de contado','El precio de recompra a plazo: compra + diferencial + IVA','Solo el diferencial GTC','El valor contable según NIIF 9'],ans:1},
+          {q:'¿Cuál es el diferencial típico de GTC?',opts:['1% – 2%','3% – 4%','5% – 6%','Variable según BMC'],ans:1}
+        ]
+      },
+      { id:'t1c', title:'Diferencia con factoring tradicional',
+        content:`# Diferencia con factoring tradicional
+
+Aunque el factoring y el modelo GTC buscan dar liquidez al proveedor, son **estructuralmente diferentes** en lo legal y lo operativo.
+
+## Factoring tradicional (Ley 1231/2008)
+
+El proveedor ya **vendió** a crédito a su cliente y tiene una factura por cobrar. Cede esa factura a un factor que le anticipa el dinero.
+
+- Activo cedido: cuenta por cobrar (derechos ya existentes)
+- El factor cobra directamente al deudor final del proveedor
+- Regulado por la Ley 1231 de 2008
+
+## Modelo GTC (Código de Comercio)
+
+El proveedor aún **no ha vendido**: tiene inventario. GTC lo compra y revende:
+
+- GTC es comprador (de contado) y vendedor (a crédito)
+- La cuenta por cobrar la **crea** GTC mediante la venta a crédito
+- Regulado por el Código de Comercio (compraventa mercantil)
+
+> En el factoring se **ceden** cuentas por cobrar preexistentes. En GTC se **crean** las cuentas por cobrar mediante la venta a plazo.
+
+## Implicaciones prácticas
+
+- IVA: GTC genera nueva factura de venta con IVA (5% o 19% según el bien)
+- Retefuente: en BMC (bolsa) GTC está exento; en factoring aplica normalmente
+- Garantías: GTC puede apalancar el inventario físico + pagaré como respaldo`,
+        quiz:[
+          {q:'¿Qué ley regula el factoring tradicional en Colombia?',opts:['Ley 1231 de 2008','Código de Comercio Art. 850','Ley 1819 de 2016','Decreto 2649 de 1993'],ans:0},
+          {q:'¿Quién emite la factura de venta a crédito en el modelo GTC?',opts:['El cliente proveedor','El fondeador','GTC','La DIAN automáticamente'],ans:2}
+        ]
+      },
+      { id:'t1d', title:'Payment Undertaking — ICC URBPO 750',
+        content:`# Payment Undertaking — ICC URBPO 750
+
+El **Payment Undertaking (PU)** es un instrumento financiero digital que representa un compromiso irrevocable de pago del comprador a una fecha futura, verificable electrónicamente sin documentos físicos.
+
+## ¿Qué son las URBPO 750?
+
+Las **Uniform Rules for Bank Payment Obligations** son las reglas publicadas por la **Cámara de Comercio Internacional (ICC)** en 2013 que rigen los instrumentos de pago electrónicos en comercio internacional.
+
+- Equivalente digital moderno a la carta de crédito
+- Verificación por **Data Match** automático (no documentos físicos)
+- El pago es irrevocable: no lo afectan disputas comerciales posteriores
+
+## Cómo funciona en una operación GTC
+
+1. El comprador (cliente GTC) emite el PU comprometiendo el pago a vencimiento
+2. GTC o el fondeador es el **beneficiario irrevocable** del PU
+3. El sistema verifica Data Match: datos del PU vs factura, orden de compra, embarque
+4. Solo ante match completo se activa el desembolso
+
+> El PU transforma una obligación comercial en un **instrumento financiero negociable**, con mayor liquidez y menor riesgo que una factura ordinaria.
+
+## Clientes GTC donde aplica
+
+- **Geopark**: operaciones de alto valor en oil & gas
+- **Metco Suisse**: operaciones con componente internacional en USD
+- Cualquier cliente con flujos de comercio internacional verificables`,
+        quiz:[
+          {q:'¿Qué organización publicó las reglas URBPO 750?',opts:['BID','FMI','ICC — Cámara de Comercio Internacional','Superintendencia Financiera de Colombia'],ans:2},
+          {q:'¿Qué verifica el proceso de Data Match en un PU?',opts:['El historial crediticio del cliente','Que los datos del PU coincidan con los documentos de la transacción','El registro en la DIAN','El precio de bolsa del inventario'],ans:1}
+        ]
+      },
+      { id:'t1e', title:'Flujo completo de una operación GTC',
+        content:`# Flujo completo de una operación GTC
+
+## Fase 1 — Estructuración (Días 1–3)
+
+1. **KYC y SARLAFT**: verificar cliente, listas Clinton/OFAC, documentos corporativos
+2. **Parámetros**: definir valor facial, plazo (90–210 días), diferencial GTC, fondeador
+3. **Preliquidación**: calcular en el Sistema GTC, presentar al cliente con comparativo
+4. **Contrato Marco**: firmar el Contrato Marco de Compraventa con Pacto de Recompra
+
+## Fase 2 — Ejecución (Días 4–7)
+
+5. **Factura de compra GTC** → al cliente (precio de compra de contado)
+6. **Factura de venta GTC** → al cliente (Valor Facial a plazo)
+7. **Orden de Operación**: documento resumen con todos los parámetros firmado por ambas partes
+8. **Cesión al fondeador**: notificación formal al cliente de la cesión de la factura
+
+## Fase 3 — Desembolso (Días 7–10)
+
+9. **Giro del fondeador** → GTC: Valor Presente (VP = VF − costos fondeador)
+10. **Giro GTC → cliente**: VP − diferencial GTC − retefuente − GMF si aplica
+11. **Certificado fondeador**: soporte documental de auditoría emitido por el fondeador
+
+## Fase 4 — Vencimiento
+
+12. **Pago del cliente** → fondeador: el cliente paga el VF completo directamente al fondeador
+13. **Liberación de reserva**: el fondeador devuelve la reserva al cliente (Cesion Bank 13.5%, Servifin/Liquitech 10%)
+14. **Cierre GTC**: registro del ingreso neto (diferencial − GMF asumido por GTC si aplica)
+
+> El Auditor GTC verifica: Contrato Marco + Orden de Operación + Facturas + **Certificado Fondeador**`,
+        quiz:[
+          {q:'¿En qué fase se emite el Certificado del Fondeador?',opts:['Fase 1 — Estructuración','Fase 2 — Ejecución','Fase 3 — Desembolso','Fase 4 — Vencimiento'],ans:2},
+          {q:'¿Quién paga el Valor Facial al vencimiento de la operación?',opts:['GTC directamente','El cliente paga al fondeador directamente','El fondeador lo descuenta de la reserva','BMC lo liquida en bolsa'],ans:1}
+        ]
+      }
+    ]
+  },
+  { id:'m2', icon:'🏦', title:'FONDEADORES',
+    description:'Cómo funciona cada fondeador GTC: tasas, reservas, costos fijos y cuándo usar cada uno para maximizar el giro al cliente.',
+    topics:[
+      { id:'t2a', title:'Ecosistema de fondeadores GTC',
+        content:`# Ecosistema de fondeadores GTC
+
+GTC trabaja con **8 fondeadores activos**, clasificados en tres categorías según su mecanismo de liquidación y estructura de costos.
+
+## Categoría 1 — Bolsa Mercantil de Colombia (BMC)
+
+Liquidación por **valor futuro**: VP = VF ÷ (1 + tasa_período).
+
+- **BMC Miguel Quijano**: SCB 0.40% s/VP + IVA 19%
+- **BMC Mercado y Bolsa**: SCB 2.43% editable s/VP + IVA 19%
+
+> Ventaja clave BMC: **exención de retefuente** bajo Art. 879 ET por operar en bolsa.
+
+## Categoría 2 — Tasa anual × días/365
+
+Interés proporcional al plazo real en días.
+
+- **Coltefinanciera**: sin reserva, costo fijo $14.700 por transferencia
+- **Irisbank**: reserva 5%, fórmula con +30 días de cobertura
+- **Integra**: sin reserva, sin costo fijo — ⚠️ sin certificados digitales
+
+## Categoría 3 — Tasa mensual × meses
+
+Interés calculado en meses completos sobre el neto (VF − reserva).
+
+- **Cesion Bank**: reserva 13.5%, **sin recurso**, respaldado por seguro de crédito
+- **Servifin**: reserva 10%, con recurso
+- **Liquitech**: reserva 10%, con recurso
+
+## Criterios de selección
+
+1. **Menor costo total** para el cliente (usar el Sistema GTC para comparar)
+2. **Plazo requerido** (120, 150, 180 o 210 días)
+3. **Tolerancia al riesgo**: clientes nuevos → Cesion Bank (sin recurso protege a GTC)
+4. **Retefuente**: si el cliente es gran retenedor → BMC puede ser más económica`,
+        quiz:[
+          {q:'¿Cuál es la ventaja tributaria de usar BMC como fondeador?',opts:['Cero IVA en la operación','Exención de retefuente bajo Art. 879 ET','Tasa de interés más baja siempre','Sin GMF en el desembolso'],ans:1},
+          {q:'¿Cuál fondeador opera sin recurso, respaldado por seguro de crédito?',opts:['Coltefinanciera','Irisbank','Cesion Bank','Servifin'],ans:2}
+        ]
+      },
+      { id:'t2b', title:'BMC — Bolsa Mercantil de Colombia',
+        content:`# BMC — Bolsa Mercantil de Colombia
+
+La **Bolsa Mercantil de Colombia** es el mercado organizado de commodities de Colombia. GTC registra sus facturas como Títulos de Contenido Crediticio, logrando **exención de retefuente** y acceso a inversionistas institucionales.
+
+## Fórmula de liquidación BMC
+
+> **VP = VF ÷ (1 + tasa_período)**
+>
+> Donde tasa_período = tasa_EA^(días/365) − 1
+
+## BMC Miguel Quijano
+
+- **SCB (corredor)**: 0.40% sobre VP
+- **Costos de bolsa**: 0.20% sobre VP + IVA 19%
+- **IVA sobre SCB**: 19%
+- **Modos de tasa**: EA (estándar), MC (mensual capitalizado), VP directo
+- **Retefuente**: EXENTA
+
+## BMC Mercado y Bolsa
+
+- **SCB (corredor)**: **2.43%** sobre VP (editable según negociación)
+- **Costos de bolsa**: 0.20% sobre VP + IVA 19%
+- **IVA sobre SCB**: 19%
+- **Modos**: EA o VP directo (corredor informa el VP subastado)
+- **Retefuente**: EXENTA
+
+## ¿Cuándo preferir BMC?
+
+- El cliente retiene fuente a GTC → BMC elimina ese costo
+- Operaciones > $200M donde el SCB impacta menos en términos relativos
+- Clientes que ya tienen cupo en BMC (trámite más ágil)
+
+> ⚠️ BMC requiere 3–5 días hábiles adicionales vs fondeadores directos por trámites de bolsa.`,
+        quiz:[
+          {q:'¿Cuál es el SCB de BMC Miguel Quijano sobre el VP?',opts:['0.20%','0.40%','2.43%','1.50%'],ans:1},
+          {q:'¿En BMC aplica retefuente sobre las ganancias de GTC?',opts:['Sí, al 2.5%','Sí, al 3.5%','No, está exento por Art. 879 ET','Solo en operaciones superiores a $200M'],ans:2}
+        ]
+      },
+      { id:'t2c', title:'Coltefinanciera, Irisbank e Integra',
+        content:`# Coltefinanciera, Irisbank e Integra
+
+## Coltefinanciera
+
+Compañía de financiamiento vigilada por la Superintendencia Financiera de Colombia.
+
+- **Fórmula**: Costo = VF × tasa_EA × días ÷ 365
+- **Reserva**: ninguna — giro completo del VP al cliente
+- **Costo fijo**: **$14.700** por cada transferencia (IVA incluido)
+- **Retefuente**: aplica (tarifa según actividad del cliente)
+- **Ideal para**: operaciones > $50M donde el costo fijo es marginal
+
+## Irisbank
+
+- **Fórmula**: Costo = (VF − 5%) × tasa_mensual% × (plazo + 30) ÷ 30
+- **Reserva**: **5%** del VF, devuelta al cliente al vencimiento
+- **+30 días**: cobertura adicional en la fórmula para proteger retrasos
+- **Retefuente**: aplica
+
+> Irisbank gira al cliente: VP − reserva 5%. El cliente recupera el 5% al vencimiento cuando paga el VF completo.
+
+## Integra
+
+- **Fórmula**: Costo = VF × tasa_EA × días ÷ 365 (igual que Coltefinanciera)
+- **Reserva**: ninguna
+- **Costo fijo**: ninguno — la estructura más simple y económica
+- **Retefuente**: aplica
+- **Estado actual**: ⚠️ **Sin certificados digitales** — el barrido de 497 emails no encontró soportes. Requiere gestión manual presencial con el ejecutivo de Integra.`,
+        quiz:[
+          {q:'¿Cuál es el costo fijo de Coltefinanciera por transferencia?',opts:['$10.000','$14.700','$25.000','No tiene costo fijo'],ans:1},
+          {q:'¿Cuál es la reserva de Irisbank?',opts:['0%','5%','10%','13.5%'],ans:1},
+          {q:'¿Cuál es el problema actual documentado con Integra?',opts:['Tasa muy alta','No tiene cupo disponible','El barrido de emails no encontró certificados de descuento','Requiere garantías adicionales'],ans:2}
+        ]
+      },
+      { id:'t2d', title:'Cesion Bank, Servifin y Liquitech',
+        content:`# Cesion Bank, Servifin y Liquitech
+
+Los tres operan con **tasa mensual × meses** aplicada sobre el neto (VF − reserva). El cliente recibe menos de entrada pero recupera la reserva al vencimiento.
+
+## Fórmula general
+
+> **Costo = (VF − Reserva%) × tasa_mensual% × meses**
+>
+> **Giro al cliente = VP − Reserva − costos**
+
+## Cesion Bank
+
+- **Reserva**: **13.5%** del VF (la más alta del ecosistema)
+- **Modalidad**: **sin recurso** — GTC no responde si el cliente no paga
+- **Respaldo**: seguro de crédito comercial
+- **Plazo típico**: 210 días (7 meses)
+
+> Sin recurso = GTC no asume responsabilidad ante mora. Ideal para clientes nuevos o sectores de mayor riesgo.
+
+## Servifin
+
+- **Reserva**: **10%** del VF
+- **Modalidad**: **con recurso** — GTC responde si el cliente no paga
+- **Retefuente**: aplica normalmente
+
+## Liquitech
+
+- **Reserva**: **10%** del VF
+- **Modalidad**: **con recurso**
+- Estructura idéntica a Servifin; la diferencia real es la tasa mensual negociada
+
+## Comparativa rápida
+
+| Fondeador | Reserva | Recurso | Seguro |
+|---|---|---|---|
+| Cesion Bank | 13.5% | Sin recurso | Sí |
+| Servifin | 10% | Con recurso | No |
+| Liquitech | 10% | Con recurso | No |
+
+> **Regla**: clientes de buen historial → Servifin/Liquitech (menor reserva). Clientes nuevos o riesgosos → Cesion Bank (sin recurso protege a GTC).`,
+        quiz:[
+          {q:'¿Cuál es la reserva de Cesion Bank?',opts:['5%','10%','13.5%','15%'],ans:2},
+          {q:'¿Cesion Bank opera con o sin recurso?',opts:['Con recurso','Sin recurso','Depende del monto','Ambos según el cliente'],ans:1},
+          {q:'¿Cuál es la reserva de Servifin y Liquitech?',opts:['5%','10%','13.5%','Sin reserva'],ans:1}
+        ]
+      }
+    ]
+  },
+  { id:'m3', icon:'📊', title:'FISCAL Y CONTABLE',
+    description:'Tratamiento tributario y contable de las operaciones GTC: IVA, GMF, retefuente, NIIF 9, NIIF 15, NIC 23 y artículos del Estatuto Tributario.',
+    topics:[
+      { id:'t3a', title:'Los 5 tributos clave de una operación GTC',
+        content:`# Los 5 tributos clave de una operación GTC
+
+Cada operación GTC involucra múltiples eventos tributarios. Identificarlos correctamente determina el giro neto real al cliente.
+
+## 1. IVA — Impuesto al Valor Agregado
+
+GTC genera dos facturas: de compra (adquisición del inventario) y de venta a crédito (recompra / Valor Facial).
+
+- **Tarifa 5%**: alimentos básicos, algunos insumos agrícolas
+- **Tarifa 19%**: tarifa general (manufactura, materiales, equipos)
+- El IVA de la venta GTC es **descontable** vs el IVA de la compra → el IVA neto GTC suele ser bajo o cero
+
+## 2. Retefuente — Retención en la Fuente
+
+Pago anticipado del impuesto de renta, descontado por GTC en el giro al cliente.
+
+- Base: el valor de compra (no el Valor Facial)
+- Tarifa: 2.5% servicios financieros / 3.5% actividades comerciales (según CIIU)
+- En **BMC**: exenta bajo Art. 879 ET
+
+## 3. GMF — Gravamen a los Movimientos Financieros
+
+> **4 pesos por cada $1.000 transferidos (4×1000)**
+
+Aplica en cada movimiento bancario. En una operación GTC hay 3 movimientos: fondeador → GTC → cliente, y cliente → fondeador al vencimiento.
+
+- Si **GTC asume el GMF**: se descuenta de su diferencial (acordado en la Orden de Operación)
+- Si el **cliente asume**: se descuenta del giro al cliente
+
+## 4. Reteiva
+
+Retención del IVA: 15% del IVA generado. Aplica en algunos casos cuando GTC vende a responsables del régimen común que son grandes contribuyentes.
+
+## 5. Reteica
+
+Retención de ICA (industria y comercio). Varía por municipio. Medellín: 4.14×1000 para actividades comerciales.`,
+        quiz:[
+          {q:'¿Cuánto es el GMF (Gravamen a los Movimientos Financieros)?',opts:['2×1000','3×1000','4×1000','5×1000'],ans:2},
+          {q:'¿Cuál es la tarifa general de IVA en Colombia?',opts:['5%','12%','16%','19%'],ans:3},
+          {q:'¿En qué situación está exenta la retefuente en operaciones GTC?',opts:['Siempre que el monto sea mayor a $100M','Cuando el cliente pertenece al régimen simple','Cuando se usa BMC como fondeador (Art. 879 ET)','Nunca aplica retefuente en GTC'],ans:2}
+        ]
+      },
+      { id:'t3b', title:'NIIF 9, NIIF 15 y NIC 23',
+        content:`# NIIF 9, NIIF 15 y NIC 23
+
+Las Normas Internacionales de Información Financiera determinan cómo GTC y sus clientes registran contablemente las operaciones de compraventa.
+
+## NIIF 9 — Instrumentos Financieros
+
+NIIF 9 clasifica y mide activos y pasivos financieros.
+
+**Para GTC** (antes de ceder la factura):
+- La factura de venta a crédito es un **activo financiero**
+- Si se mide a **Costo Amortizado**: los intereses (diferencial) se reconocen en el período
+- Si se mide a **Valor Razonable**: el cambio se reconoce inmediatamente
+
+**Para el cliente**:
+- La deuda con GTC (factura de recompra) es un **pasivo financiero** bajo NIIF 9
+- El componente de interés del diferencial GTC debe separarse del precio de recompra
+
+## NIIF 15 — Ingresos de Contratos con Clientes
+
+Regula cuándo reconocer ingresos por contratos comerciales.
+
+**Para el cliente al vender inventario a GTC**:
+- Si la recompra está garantizada desde el inicio (pacto de recompra), la norma puede requerir tratarlo como un **financiamiento**, no como dos ventas separadas
+- Esto cambia completamente el reconocimiento: no hay ingreso por la venta a GTC, sino un préstamo con el inventario como colateral
+
+## NIC 23 — Costos por Préstamos
+
+Determina si los costos financieros se capitalizan o se llevan al gasto del período.
+
+- **Activo apto** (tarda > 12 meses): los costos se capitalizan en el valor del inventario
+- **No es activo apto** (mayoría de casos GTC): los costos van al **gasto financiero del período**
+
+> Para la mayoría de clientes GTC, el diferencial + costos de fondeador son **gasto financiero del período** según NIC 23.`,
+        quiz:[
+          {q:'¿Cuál NIIF regula la clasificación y medición de instrumentos financieros?',opts:['NIIF 9','NIIF 15','NIIF 16','NIC 23'],ans:0},
+          {q:'Según NIC 23, ¿cuándo se capitalizan los costos financieros del inventario?',opts:['Siempre en operaciones GTC','Nunca en Colombia','Cuando el inventario tarda más de 12 meses en estar listo para su uso','Solo bajo el modelo BMC'],ans:2}
+        ]
+      },
+      { id:'t3c', title:'Art. 107 ET, Art. 771-2 ET y el hueco contable',
+        content:`# Art. 107 ET, Art. 771-2 ET y el hueco contable
+
+## Art. 107 ET — Deducibilidad de gastos
+
+El artículo 107 del Estatuto Tributario permite deducir los gastos realizados cuando tienen **relación de causalidad** con la actividad productora de renta, son **necesarios** y **proporcionados**.
+
+El costo de una operación GTC (diferencial + costos fondeador) es **100% deducible** si:
+- El cliente usa el inventario para generar renta (tiene relación de causalidad)
+- No hay fuente de financiamiento equivalente disponible (es necesario)
+- El monto es razonable frente al nivel del negocio (es proporcional)
+
+## Art. 771-2 ET — Factura como soporte fiscal
+
+El Art. 771-2 exige que los costos y deducciones estén respaldados en **factura electrónica** válida en el sistema DIAN.
+
+- La factura de venta GTC al cliente es el **soporte del gasto financiero**
+- Debe estar registrada en DIAN como factura electrónica válida
+- El cliente debe conservarla por **5 años** para posibles auditorías
+
+## El hueco contable
+
+El **hueco contable** es la diferencia entre el giro recibido de contado y el Valor Facial pagado al vencimiento.
+
+> **Hueco = VF − Giro neto recibido = Diferencial GTC + IVA + Retefuente + GMF**
+
+**Cómo registrarlo correctamente (NIIF)**:
+
+- **Débito** Caja/Bancos (por el giro recibido)
+- **Crédito** Cuentas por Pagar GTC (Valor Facial completo)
+- **Débito** Gasto financiero diferido (por amortizar en el plazo)
+
+Al vencimiento:
+- **Débito** Cuentas por Pagar GTC
+- **Crédito** Caja/Bancos (pago al fondeador)
+
+> ⚠️ Error frecuente: registrar solo el giro como ingreso y el pago al vencimiento como gasto. Esto es incorrecto bajo NIIF 9 y puede ser objetado por la DIAN.`,
+        quiz:[
+          {q:'¿Qué artículo del ET respalda la deducibilidad del costo de la operación GTC?',opts:['Art. 107','Art. 771-2','Art. 879','Art. 126-1'],ans:0},
+          {q:'¿Cuántos años debe conservar el cliente la factura GTC para auditoría fiscal?',opts:['2 años','3 años','5 años','10 años'],ans:2}
+        ]
+      }
+    ]
+  },
+  { id:'m4', icon:'👥', title:'CLIENTES GTC',
+    description:'Perfiles de los clientes activos de GTC, criterios de selección, KYC y gestión de la relación comercial.',
+    topics:[
+      { id:'t4a', title:'Criterios de selección y KYC',
+        content:`# Criterios de selección de clientes y KYC
+
+## ¿Qué busca GTC en un cliente ideal?
+
+- **Inventario físico valorado**: mercancía, materia prima o producto terminado — tangible y valorizable
+- **Facturación activa**: empresa con operación real y clientes propios verificables
+- **Necesidad de liquidez de corto plazo**: 90–210 días, no crédito de largo plazo estructural
+- **Capacidad de pago**: el VF debe ser pagable al vencimiento (el cliente lo convierte en ventas)
+- **Voluntad contractual**: aceptar el Contrato Marco de Compraventa con Pacto de Recompra
+
+## Señales de alerta — No hacer KYC si:
+
+- Sin inventario físico real (empresa de servicios puros)
+- Sin historial de ventas verificable (empresa nueva sin track record)
+- Alta concentración de deuda bancaria sin flujo de caja demostrable
+- Sector de alto riesgo SARLAFT sin justificación clara
+- Incapacidad de demostrar origen lícito del inventario
+
+## Documentos KYC GTC (checklist)
+
+1. **RUT** vigente (actividad CIIU acorde al negocio)
+2. **Cámara de Comercio** — Certificado de Existencia y Representación Legal (< 30 días)
+3. **Cédula del Representante Legal** vigente
+4. **Estados financieros** — últimos 2 años (balance + estado de resultados)
+5. **Inventario valorado** — lista de productos con cantidades y precios de costo
+6. **Referencias comerciales** — mínimo 2 proveedores o clientes activos
+7. **Formulario SARLAFT/SAGRILAFT** — declaración de origen de fondos y bienes
+8. **Encuesta de debida diligencia** — formato interno GTC
+
+> GTC implementa **SAGRILAFT** (no vigilada por SF). Siempre verificar en listas: Clinton, OFAC, ONU y bases nacionales de la UIAF.`,
+        quiz:[
+          {q:'¿Cuántos días de vigencia máxima debe tener el Certificado de Cámara de Comercio para KYC GTC?',opts:['7 días','15 días','30 días','60 días'],ans:2},
+          {q:'¿Qué es SAGRILAFT?',opts:['Sistema de Administración de Garantías Reales','Sistema de Autocontrol y Gestión del Riesgo Integral de LA/FT para empresas no vigiladas por la SF','Software de gestión de liquidez GTC','Norma de la Superintendencia de Sociedades'],ans:1}
+        ]
+      },
+      { id:'t4b', title:'Perfiles de clientes activos GTC',
+        content:`# Perfiles de clientes activos GTC
+
+## Empanorte
+
+- **Sector**: Alimentos procesados (empanadas y panadería industrial)
+- **Inventario típico**: materias primas (harina, grasas, proteína animal), producto terminado congelado
+- **IVA**: 5% (alimentos básicos procesados)
+- **Plazo típico**: 120 días
+- **Fondeadores preferidos**: Coltefinanciera o BMC
+
+## Shalom
+
+- **Sector**: Distribución de consumo masivo y abarrotes
+- **Inventario**: productos de consumo masivo (alimentos, aseo, limpieza)
+- **IVA**: mixto (5% y 0% según producto)
+- **Plazo típico**: 150 días
+- **Característica**: alta rotación de inventario → operaciones frecuentes y recurrentes
+
+## TAK y Meyan
+
+- **Sector**: Industrial / Manufactura / Materiales
+- **IVA**: 19%
+- **Plazo típico**: 120–180 días
+- **Inventario**: materias primas industriales, insumos de producción
+
+## Geopark
+
+- **Sector**: Oil & Gas (exploración y producción de hidrocarburos)
+- **Inventario**: insumos de perforación, tuberías, equipos de campo, químicos
+- **IVA**: 19%
+- **Plazo típico**: 180–210 días
+- **Potencial**: operaciones de alto valor (> $500M COP)
+- **Instrumento recomendado**: Payment Undertaking ICC URBPO 750
+
+## Team Tap
+
+- **Sector**: Tecnología / Equipos especializados
+- **IVA**: 19%
+- **Plazo típico**: 120 días
+
+## Metco Suisse
+
+- **Sector**: Operaciones internacionales (importaciones / materias primas)
+- **Moneda**: puede involucrar USD
+- **Instrumento**: Ruta SOFR / Wells Fargo para estructuras en USD
+- **Conversión**: TRM vigente en la fecha de la operación
+
+> Para Geopark y Metco Suisse, el Sistema GTC tiene la calculadora de Ruta SOFR que compara el costo en USD vs fondeadores locales en COP.`,
+        quiz:[
+          {q:'¿Qué tarifa de IVA aplica en las operaciones con Empanorte?',opts:['0%','5%','12%','19%'],ans:1},
+          {q:'¿Qué instrumento financiero se recomienda para operaciones de alto valor con Geopark?',opts:['Pagaré ordinario','Cesión de facturas Ley 1231','Payment Undertaking ICC URBPO 750','Carta de crédito SWIFT MT700'],ans:2}
+        ]
+      }
+    ]
+  },
+  { id:'m5', icon:'🤝', title:'NEGOCIACIÓN',
+    description:'Argumentos comerciales, manejo de objeciones, estructuración de propuestas y cierre de operaciones SCF.',
+    topics:[
+      { id:'t5a', title:'Los 5 argumentos comerciales clave',
+        content:`# Los 5 argumentos comerciales clave
+
+## La propuesta de valor GTC en una frase
+
+> "GTC convierte el inventario inmovilizado del cliente en liquidez inmediata, sin deudas bancarias, sin mover la mercancía, con plazos de hasta 210 días y costos predecibles."
+
+## Argumento 1 — No consume cupo bancario
+
+La operación GTC no aparece en la central de riesgos bancaria como deuda financiera. El cliente mantiene intacto su cupo con su banco para cuando lo necesite de verdad.
+
+## Argumento 2 — Apalanca el activo que ya tiene
+
+No se necesitan garantías adicionales. El inventario que el cliente ya posee es el colateral. Sin hipotecas, sin avales, sin CDTs bloqueados.
+
+## Argumento 3 — Costo predecible desde el día 1
+
+El diferencial GTC (3–4%) se define antes de firmar. No hay tasas variables ni cláusulas de ajuste. El cliente puede calcular exactamente cuánto pagará al vencimiento y compararlo con sus ventas proyectadas.
+
+## Argumento 4 — Velocidad de desembolso
+
+De firma del Contrato Marco a giro bancario: **5–10 días hábiles**. Un crédito bancario equivalente tarda semanas o meses en aprobarse.
+
+## Argumento 5 — Flexibilidad de plazos
+
+90, 120, 150, 180 o 210 días según el ciclo de caja del cliente. El plazo se adapta a cuánto tarda el cliente en convertir ese inventario en ventas y caja — no al revés.
+
+## Cómo abrir la conversación
+
+No preguntes cuánto dinero necesitan. Pregunta:
+
+- **¿Cuánto inventario tienen valorado hoy?**
+- **¿Cuántos días les toma convertirlo en caja?**
+- **¿Su cupo bancario está disponible o ya comprometido?**
+
+Las respuestas posicionan automáticamente a GTC como la solución natural.`,
+        quiz:[
+          {q:'¿Cuál es el diferencial típico que cobra GTC?',opts:['1% a 2%','3% a 4%','5% a 6%','Variable según la SOFR'],ans:1},
+          {q:'¿Cuántos días hábiles toma típicamente el desembolso de GTC?',opts:['1 a 2 días','5 a 10 días hábiles','30 días como mínimo','Igual que un crédito bancario'],ans:1}
+        ]
+      },
+      { id:'t5b', title:'Manejo de objeciones',
+        content:`# Manejo de objeciones
+
+## "Está muy caro"
+
+**Respuesta**: Comparemos manzanas con manzanas. Un crédito rotativo bancario al 2% mensual equivale al 26.8% anual. Una operación GTC a 120 días con diferencial del 3.5% equivale a aproximadamente 10.5% anual. ¿Tiene a mano su tasa bancaria actual?
+
+> Abrir el Sistema GTC, calcular la preliquidación en vivo con los números reales del cliente.
+
+## "No entiendo cómo funciona"
+
+**Respuesta**: Es simple: yo le compro su inventario hoy de contado y se lo vendo de regreso a 120 días. Usted paga cuando ya lo haya vendido. No es un préstamo: es una compraventa. Como un sale-and-leaseback, pero con su inventario, no con sus activos fijos.
+
+## "¿Y si no puedo pagar al vencimiento?"
+
+**Respuesta**: Conversamos antes de que llegue la fecha. Podemos renovar la operación (rollover) con una nueva Orden de Operación. Lo importante es comunicarlo con anticipación — nunca en la fecha de vencimiento.
+
+## "Necesito pensarlo / consultarlo con mi socio"
+
+**Respuesta**: Perfecto. Para que tenga algo concreto que analizar, déjeme enviarle una preliquidación con los números exactos de SU inventario a la tasa de HOY. Así puede comparar directamente con su alternativa actual.
+
+> Siempre cerrar con una **acción concreta**: enviar preliquidación, agendar segunda reunión, pedir el inventario valorado.
+
+## "Ya tengo crédito con el banco"
+
+**Respuesta**: Excelente — GTC no compite con su banco, lo complementa. El cupo bancario es para emergencias y capital de trabajo estratégico. GTC le da liquidez sobre el inventario sin tocar ese cupo.
+
+## "¿Es legal?"
+
+**Respuesta**: Completamente. Es una compraventa mercantil regulada por el Código de Comercio colombiano. Tenemos Contrato Marco firmado por la Representante Legal de GTC, facturas electrónicas válidas en la DIAN, y todos los fondeadores están vigilados por la Superintendencia Financiera. NIT GTC: 901.648.628-5, verifique en la DIAN.`,
+        quiz:[
+          {q:'Cuando el cliente dice "está muy caro", ¿cuál es la mejor táctica de respuesta?',opts:['Reducir el diferencial GTC inmediatamente','Comparar el costo equivalente anual de GTC con la tasa bancaria real del cliente','Terminar la reunión y esperar que vuelva','Ofrecer un descuento del 50%'],ans:1},
+          {q:'¿Qué acción concreta debes proponer cuando el cliente dice "necesito pensarlo"?',opts:['Esperar que llame en 2 semanas','Enviar una preliquidación con los números reales de su inventario','Llamar a otro posible cliente','Consultar con Jairo si se puede hacer descuento'],ans:1}
+        ]
+      },
+      { id:'t5c', title:'Estructuración de propuesta y cierre',
+        content:`# Estructuración de propuesta y cierre
+
+## Los 3 documentos de una propuesta GTC
+
+**1. Preliquidación** (generada por el Sistema GTC)
+- Valor Facial de la operación
+- Fondeador recomendado y comparativo de tasas
+- Giro estimado al cliente (neto de todos los descuentos)
+- Costo total expresado en % y en COP
+
+**2. Resumen ejecutivo** (1 página máximo)
+- Qué es GTC y qué hace
+- Por qué es conveniente para este cliente específico
+- Comparativo: GTC vs alternativa bancaria del cliente
+
+**3. Contrato Marco borrador**
+- Para que el cliente lo revise con su abogado antes de firmar
+- Acelera el cierre cuando el cliente regresa con el sí
+
+## El cierre en 3 pasos
+
+**Paso 1 — Validar el inventario**
+"¿Puede enviarnos un listado del inventario que quiere financiar, con precio de costo?"
+
+**Paso 2 — Calcular y compartir**
+Con el Sistema GTC, calcular la preliquidación en vivo o enviarla por WhatsApp/email. El número concreto mueve a la acción más que cualquier argumento.
+
+**Paso 3 — Firmar el Contrato Marco**
+Cuando el cliente dice sí: el Contrato Marco se firma primero (relación de largo plazo), luego la Orden de Operación define la transacción específica.
+
+## Señales de compra — ya vendiste, no sigas explicando
+
+- "¿Cuándo podría tener el dinero?"
+- "¿Cuál es el monto máximo que pueden financiar?"
+- "¿Qué documentos necesitan de nuestra parte?"
+
+Cuando escuches estas preguntas, pasa **directamente al cierre**.
+
+## El cliente recurrente — la verdadera meta
+
+La primera operación es la más difícil. La segunda es casi automática:
+
+- Confirmar que el giro llegó correctamente el día del desembolso
+- Recordar al cliente 30 días antes del vencimiento
+- Proponer la siguiente operación antes del vencimiento de la actual
+- Los mejores clientes GTC operan cada 3–6 meses en ciclos recurrentes`,
+        quiz:[
+          {q:'¿Cuántos documentos principales componen una propuesta comercial GTC?',opts:['1 (solo la preliquidación)','2 (preliquidación + contrato)','3 (preliquidación + resumen ejecutivo + contrato marco)','4 o más documentos'],ans:2},
+          {q:'Si el cliente pregunta "¿cuándo podría tener el dinero?", ¿qué significa?',opts:['Todavía tiene dudas sobre el costo','Es una señal de compra — ya está listo para cerrar','Necesita más información sobre los fondeadores','Quiere comparar con más proveedores primero'],ans:1}
+        ]
+      }
+    ]
+  }
+]};
+
+// ── STORAGE ───────────────────────────────────────────────
+function getData()   { try{ const d=JSON.parse(localStorage.getItem(LS_DATA)); return d&&d.modules?d:null; }catch{return null;} }
+function getProgress(){ try{ return JSON.parse(localStorage.getItem(LS_PROG))||{}; }catch{return {};} }
+function putData(d)  { localStorage.setItem(LS_DATA, JSON.stringify(d)); }
+function putProgress(p){ localStorage.setItem(LS_PROG, JSON.stringify(p)); }
+
+function allTopics(data) { return data.modules.flatMap(m => m.topics.map(t => ({...t, modId:m.id, modTitle:m.title, modIcon:m.icon}))); }
+function findModule(data, mid) { return data.modules.find(m => m.id===mid); }
+function findTopic(data, tid)  { const all=allTopics(data); return all.find(t => t.id===tid); }
+
+function topicsDone(mod, prog) { return mod.topics.filter(t => prog[t.id]?.done).length; }
+function totalDone(data, prog) { return data.modules.reduce((s,m)=>s+topicsDone(m,prog),0); }
+function totalTopics(data) { return data.modules.reduce((s,m)=>s+m.topics.length,0); }
+
+// ── STATE ─────────────────────────────────────────────────
+let S = { view:'home', mid:null, tid:null, adminOk:false, quizSubmitted:false };
+
+function nav(view, mid, tid) {
+  S = {...S, view, mid:mid||null, tid:tid||null, quizSubmitted:false};
+  render();
+  window.scrollTo(0,0);
+}
+
+// ── CONTENT PARSER ─────────────────────────────────────────
+function parseContent(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let html = '', inList = false, inTable = false, tableHead = false;
+
+  const md = s => s
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>');
+
+  for (let i=0; i<lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
+
+    if (!line) {
+      if (inList) { html+='</ul>'; inList=false; }
+      if (inTable) { html+='</tbody></table>'; inTable=false; tableHead=false; }
+      continue;
+    }
+
+    if (line.startsWith('# ')) {
+      if (inList){html+='</ul>';inList=false;} if(inTable){html+='</tbody></table>';inTable=false;}
+      html += `<h3>${md(line.slice(2))}</h3>`;
+    } else if (line.startsWith('## ')) {
+      if (inList){html+='</ul>';inList=false;} if(inTable){html+='</tbody></table>';inTable=false;}
+      html += `<h4>${md(line.slice(3))}</h4>`;
+    } else if (line.startsWith('- ')) {
+      if (inTable){html+='</tbody></table>';inTable=false;}
+      if (!inList){html+='<ul>';inList=true;}
+      html += `<li>${md(line.slice(2))}</li>`;
+    } else if (line.startsWith('> ')) {
+      if (inList){html+='</ul>';inList=false;} if(inTable){html+='</tbody></table>';inTable=false;}
+      html += `<div class="callout">${md(line.slice(2))}</div>`;
+    } else if (line === '---') {
+      if (inList){html+='</ul>';inList=false;} if(inTable){html+='</tbody></table>';inTable=false;}
+      html += '<hr>';
+    } else if (line.startsWith('|') && line.endsWith('|')) {
+      if (inList){html+='</ul>';inList=false;}
+      const cells = line.split('|').slice(1,-1).map(c=>c.trim());
+      const isDivider = cells.every(c => /^[-:]+$/.test(c));
+      if (!inTable) { html+='<table class="ctable"><thead><tr>'; cells.forEach(c=>{html+=`<th>${md(c)}</th>`;}); html+='</tr></thead><tbody>'; inTable=true; tableHead=true; }
+      else if (!isDivider) { html+='<tr>'; cells.forEach(c=>{html+=`<td>${md(c)}</td>`;}); html+='</tr>'; }
+    } else {
+      if (inList){html+='</ul>';inList=false;} if(inTable){html+='</tbody></table>';inTable=false;}
+      html += `<p>${md(line)}</p>`;
+    }
+  }
+  if (inList) html+='</ul>';
+  if (inTable) html+='</tbody></table>';
+  return html;
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  const data = getData() || INITIAL_DATA;
+  const prog = getProgress();
+
+  if (S.view === 'home')   { app.innerHTML = renderHome(data, prog); bindSearch(data); }
+  if (S.view === 'module') { app.innerHTML = renderModule(data, prog); }
+  if (S.view === 'topic')  { app.innerHTML = renderTopic(data, prog); }
+  if (S.view === 'admin')  { app.innerHTML = renderAdmin(data); }
+}
+
+// HOME ─────────────────────────────────────────────────────
+function renderHome(data, prog) {
+  const done = totalDone(data, prog);
+  const total = totalTopics(data);
+  const pct = total ? Math.round(done/total*100) : 0;
+
+  const progHtml = `<div class="wrap">
+    <div class="prog-banner">
+      <div class="prog-num">${pct}%</div>
+      <div class="prog-side">
+        <div class="prog-label">Progreso general de formación</div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div class="prog-text">${done} de ${total} temas completados · <b>${data.modules.length} módulos</b></div>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <div class="search-icon">🔍</div>
+      <input class="search-input" id="search-input" placeholder="Buscar tema, concepto, fondeador…" oninput="onSearch(event,this.value)">
+      <div class="search-results" id="search-results"></div>
+    </div>
+    <div class="module-grid">
+      ${data.modules.map(m => {
+        const d=topicsDone(m,prog), tot=m.topics.length, p=tot?Math.round(d/tot*100):0;
+        return `<div class="mod-card" onclick="nav('module','${m.id}')">
+          <div class="mod-icon-big">${esc(m.icon)}</div>
+          <div class="mod-title">${esc(m.title)}</div>
+          <div class="mod-desc">${esc(m.description)}</div>
+          <div class="mod-prog-track"><div class="mod-prog-fill" style="width:${p}%"></div></div>
+          <div class="mod-prog-text"><span class="${d===tot&&tot>0?'mod-prog-done':''}">${d}/${tot} temas</span><span>${p}%</span></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="page-footer">Educación SCF · <span>Global Trade Commerce S.A.S.</span> · NIT 901.648.628-5</div>
+  </div>`;
+  return progHtml;
+}
+
+// MODULE ───────────────────────────────────────────────────
+function renderModule(data, prog) {
+  const m = findModule(data, S.mid);
+  if (!m) return '<div class="wrap"><div class="empty">Módulo no encontrado</div></div>';
+  const done = topicsDone(m, prog);
+
+  return `<div class="wrap">
+    <div class="crumbs">
+      <span class="crumb-link" onclick="nav('home')">Inicio</span>
+      <span class="crumb-sep">›</span>
+      <span style="color:#888">${esc(m.title)}</span>
+    </div>
+    <div class="mod-detail-hdr">
+      <div class="mod-detail-icon">${esc(m.icon)}</div>
+      <div class="mod-detail-info">
+        <div class="mod-detail-title">${esc(m.title)}</div>
+        <div class="mod-detail-desc">${esc(m.description)}</div>
+        <div class="mod-detail-stats"><span>${done}</span>/${m.topics.length} temas completados</div>
+      </div>
+    </div>
+    <div class="topic-list">
+      ${m.topics.map(t => {
+        const p = prog[t.id];
+        return `<div class="topic-row ${p?.done?'done-row':''}" onclick="nav('topic','${m.id}','${t.id}')">
+          <div class="check-circle ${p?.done?'done':''}">${p?.done?'✓':''}</div>
+          <div class="tr-title">${esc(t.title)}</div>
+          <div class="tr-meta">
+            ${p?.done?`<div class="tr-score">${p.score!=null?p.score+'%':''}</div>`:''}
+            ${t.quiz?.length?`<div class="tr-quiz">${t.quiz.length} preguntas</div>`:''}
+          </div>
+          <div class="tr-arrow">›</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="page-footer">Módulo ${esc(m.title)} · GTC Educación SCF</div>
+  </div>`;
+}
+
+// TOPIC ────────────────────────────────────────────────────
+function renderTopic(data, prog) {
+  const m = findModule(data, S.mid);
+  const t = m?.topics.find(x => x.id === S.tid);
+  if (!t) return '<div class="wrap"><div class="empty">Tema no encontrado</div></div>';
+
+  const p = prog[t.id];
+  const idx = m.topics.indexOf(t);
+  const prev = idx > 0 ? m.topics[idx-1] : null;
+  const next = idx < m.topics.length-1 ? m.topics[idx+1] : null;
+  const hasQuiz = t.quiz?.length > 0;
+
+  const quizHtml = hasQuiz && !S.quizSubmitted ? `
+    <div class="quiz-card" id="quiz-section">
+      <div class="quiz-hdr"><div class="quiz-hdr-icon">🎯</div><div class="quiz-hdr-title">Quiz de verificación</div></div>
+      ${t.quiz.map((q,qi)=>`
+        <div class="quiz-q">
+          <div class="quiz-q-num">Pregunta ${qi+1} de ${t.quiz.length}</div>
+          <div class="quiz-q-text">${esc(q.q)}</div>
+          <div class="quiz-opts">
+            ${q.opts.map((o,oi)=>`
+              <label class="quiz-opt" onclick="selectOpt(this)">
+                <input type="radio" name="q${qi}" value="${oi}"> ${esc(o)}
+              </label>`).join('')}
+          </div>
+        </div>`).join('')}
+      <div class="action-bar" style="margin-top:16px">
+        <button class="btn btn-gold" onclick="submitQuiz('${t.id}',${JSON.stringify(t.quiz).replace(/'/g,'&#39;')})">Enviar respuestas</button>
+      </div>
+    </div>` : '';
+
+  const resultHtml = S.quizSubmitted && p ? `
+    <div class="quiz-card">
+      <div class="quiz-result">
+        <div class="qr-score ${p.score>=60?'pass':'fail'}">${p.score}%</div>
+        <div class="qr-msg">${p.score>=60?'✅ Tema completado con éxito':'⚠️ Puntaje mínimo: 60%. Repasa el contenido e intenta de nuevo.'}</div>
+      </div>
+    </div>` : '';
+
+  return `<div class="wrap">
+    <div class="crumbs">
+      <span class="crumb-link" onclick="nav('home')">Inicio</span>
+      <span class="crumb-sep">›</span>
+      <span class="crumb-link" onclick="nav('module','${m.id}')">${esc(m.title)}</span>
+      <span class="crumb-sep">›</span>
+      <span style="color:#888">${esc(t.title)}</span>
+    </div>
+    ${p?.done?`<div class="done-badge">✓ Tema completado${p.score!=null?' · '+p.score+'%':''}</div>`:''}
+    <div class="content-card">${parseContent(t.content)}</div>
+    ${quizHtml}
+    ${resultHtml}
+    <div class="action-bar">
+      ${prev?`<button class="btn btn-sec" onclick="nav('topic','${m.id}','${prev.id}')">← ${esc(prev.title.slice(0,30))}</button>`:''}
+      ${!hasQuiz&&!p?.done?`<button class="btn btn-green" onclick="markDone('${t.id}',null)">✓ Marcar completado</button>`:''}
+      ${p?.done&&hasQuiz&&!S.quizSubmitted?`<button class="btn btn-sec" onclick="retakeQuiz()">↺ Retomar quiz</button>`:''}
+      ${p?.done?`<button class="btn btn-green" onclick="nav('module','${m.id}')">Volver al módulo ›</button>`:''}
+      ${next&&p?.done?`<button class="btn btn-gold" onclick="nav('topic','${m.id}','${next.id}')">Siguiente: ${esc(next.title.slice(0,22))} →</button>`:''}
+    </div>
+    <div class="page-footer">GTC Educación SCF · ${esc(m.title)}</div>
+  </div>`;
+}
+
+// ADMIN ────────────────────────────────────────────────────
+function renderAdmin(data) {
+  return `<div class="wrap">
+    <div class="crumbs">
+      <span class="crumb-link" onclick="nav('home')">Inicio</span>
+      <span class="crumb-sep">›</span>
+      <span style="color:#888">Panel de Administración</span>
+    </div>
+    <div class="admin-head">
+      <div style="font-size:16px;font-weight:700;color:#E8C96A">⚙ Panel de Administración</div>
+      <button class="btn btn-gold btn-sm" onclick="openModModal(null)">+ Módulo</button>
+    </div>
+    <div class="admin-section-title">Módulos y temas</div>
+    ${data.modules.map(m=>`
+      <div class="admin-mod-block">
+        <div class="admin-mod-hdr">
+          <span style="font-size:20px">${esc(m.icon)}</span>
+          <span class="admin-mod-name">${esc(m.title)}</span>
+          <button class="btn btn-sec btn-sm" onclick="openTopicModal('${m.id}',null)">+ Tema</button>
+          <button class="btn btn-sec btn-sm" onclick="openModModal('${m.id}')">✎</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMod('${m.id}')">✕</button>
+        </div>
+        <div class="admin-topic-list">
+          ${m.topics.map(t=>`
+            <div class="admin-topic-row">
+              <span class="admin-topic-name">${esc(t.title)}</span>
+              <div class="admin-acts">
+                <button class="btn btn-sec btn-sm" onclick="openTopicModal('${m.id}','${t.id}')">✎</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTopic('${m.id}','${t.id}')">✕</button>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('')}
+    <div class="page-footer">GTC Educación SCF — Admin · Solo Jairo Sánchez</div>
+  </div>`;
+}
+
+// ── QUIZ LOGIC ────────────────────────────────────────────
+function selectOpt(label) {
+  const opts = label.closest('.quiz-opts').querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.classList.remove('sel'));
+  label.classList.add('sel');
+}
+
+function submitQuiz(topicId, quiz) {
+  let correct = 0;
+  const results = quiz.map((q,qi) => {
+    const sel = document.querySelector(`input[name="q${qi}"]:checked`);
+    const userAns = sel ? parseInt(sel.value) : -1;
+    const isCorrect = userAns === q.ans;
+    if (isCorrect) correct++;
+    return { correct: isCorrect, userAns, correctAns: q.ans };
+  });
+
+  // Show visual feedback
+  quiz.forEach((q,qi) => {
+    const opts = document.querySelectorAll(`input[name="q${qi}"]`);
+    opts.forEach(inp => {
+      const oi = parseInt(inp.value);
+      const lbl = inp.closest('.quiz-opt');
+      if (oi === q.ans) lbl.classList.add('correct');
+      else if (inp.checked) lbl.classList.add('wrong');
+      inp.disabled = true;
+    });
+  });
+
+  const score = Math.round(correct/quiz.length*100);
+  const pass = score >= 60;
+
+  if (pass) markDone(topicId, score);
+
+  // Append result in place
+  const section = document.getElementById('quiz-section');
+  const resultDiv = document.createElement('div');
+  resultDiv.className = 'quiz-result';
+  resultDiv.innerHTML = `<div class="qr-score ${pass?'pass':'fail'}">${score}%</div>
+    <div class="qr-msg">${pass?'✅ Quiz superado — tema completado':'⚠️ Necesitas el 60% para aprobar. Repasa el contenido.'}</div>`;
+  if (section) section.appendChild(resultDiv);
+
+  S.quizSubmitted = true;
+  if (pass) {
+    // Refresh action bar
+    setTimeout(() => render(), 600);
+  }
+}
+
+function retakeQuiz() {
+  S.quizSubmitted = false;
+  render();
+}
+
+function markDone(topicId, score) {
+  const prog = getProgress();
+  prog[topicId] = { done: true, score, date: new Date().toISOString() };
+  putProgress(prog);
+  if (!S.quizSubmitted) render();
+}
+
+// ── SEARCH ────────────────────────────────────────────────
+function bindSearch(data) {
+  const inp = document.getElementById('search-input');
+  if (inp) inp.addEventListener('input', e => onSearch(e, e.target.value));
+}
+
+function onSearch(e, q) {
+  const data = getData() || INITIAL_DATA;
+  const res = document.getElementById('search-results');
+  if (!q || q.length < 2) { res.style.display='none'; return; }
+  const all = allTopics(data);
+  const hits = all.filter(t =>
+    (t.title+t.content+t.modTitle).toLowerCase().includes(q.toLowerCase())
+  ).slice(0, 6);
+  if (!hits.length) { res.style.display='none'; return; }
+  res.innerHTML = hits.map(t =>
+    `<div class="sr-item" onclick="nav('topic','${t.modId}','${t.id}')">
+      <div class="sr-topic">${esc(t.title)}</div>
+      <div class="sr-mod">${esc(t.modIcon)} ${esc(t.modTitle)}</div>
+    </div>`
+  ).join('');
+  res.style.display = 'block';
+}
+
+document.addEventListener('click', e => {
+  const res = document.getElementById('search-results');
+  if (res && !res.contains(e.target) && e.target.id !== 'search-input') res.style.display='none';
+});
+
+// ── ADMIN LOGIC ───────────────────────────────────────────
+function openAdmin() {
+  if (S.adminOk) { nav('admin'); return; }
+  document.getElementById('admin-pw').value = '';
+  document.getElementById('pw-err').style.display = 'none';
+  openModal('pw-modal');
+}
+
+function checkPw() {
+  const pw = document.getElementById('admin-pw').value;
+  if (pw === ADMIN_CODE) {
+    S.adminOk = true;
+    closeModal('pw-modal');
+    nav('admin');
+  } else {
+    document.getElementById('pw-err').style.display = 'block';
+  }
+}
+
+function openModModal(mid) {
+  const data = getData() || INITIAL_DATA;
+  document.getElementById('mod-modal-ttl').textContent = mid ? 'Editar Módulo' : 'Nuevo Módulo';
+  document.getElementById('editing-mod-id').value = mid || '';
+  if (mid) {
+    const m = findModule(data, mid);
+    document.getElementById('mod-icon').value = m?.icon || '';
+    document.getElementById('mod-title').value = m?.title || '';
+    document.getElementById('mod-desc').value = m?.description || '';
+  } else {
+    document.getElementById('mod-icon').value = '';
+    document.getElementById('mod-title').value = '';
+    document.getElementById('mod-desc').value = '';
+  }
+  openModal('mod-modal');
+}
+
+function saveMod() {
+  const mid = document.getElementById('editing-mod-id').value;
+  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const entry = {
+    id: mid || 'm' + Date.now(),
+    icon: document.getElementById('mod-icon').value.trim() || '📖',
+    title: document.getElementById('mod-title').value.trim(),
+    description: document.getElementById('mod-desc').value.trim(),
+    topics: mid ? (findModule(data, mid)?.topics || []) : []
+  };
+  if (!entry.title) { alert('El título es obligatorio'); return; }
+  if (mid) {
+    data.modules = data.modules.map(m => m.id===mid ? {...m, ...entry} : m);
+  } else {
+    data.modules.push(entry);
+  }
+  putData(data);
+  closeModal('mod-modal');
+  render();
+}
+
+function deleteMod(mid) {
+  if (!confirm('¿Eliminar este módulo y todos sus temas? Esta acción no se puede deshacer.')) return;
+  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  data.modules = data.modules.filter(m => m.id !== mid);
+  putData(data);
+  render();
+}
+
+function openTopicModal(mid, tid) {
+  const data = getData() || INITIAL_DATA;
+  document.getElementById('topic-modal-ttl').textContent = tid ? 'Editar Tema' : 'Nuevo Tema';
+  document.getElementById('t-mod-id').value = mid;
+  document.getElementById('t-topic-id').value = tid || '';
+  if (tid) {
+    const m = findModule(data, mid);
+    const t = m?.topics.find(x => x.id===tid);
+    document.getElementById('t-title').value = t?.title || '';
+    document.getElementById('t-content').value = t?.content || '';
+    document.getElementById('t-quiz').value = t?.quiz?.length ? JSON.stringify(t.quiz, null, 2) : '';
+  } else {
+    document.getElementById('t-title').value = '';
+    document.getElementById('t-content').value = '';
+    document.getElementById('t-quiz').value = '';
+  }
+  openModal('topic-modal');
+}
+
+function saveTopic() {
+  const mid = document.getElementById('t-mod-id').value;
+  const tid = document.getElementById('t-topic-id').value;
+  const title = document.getElementById('t-title').value.trim();
+  const content = document.getElementById('t-content').value;
+  const quizRaw = document.getElementById('t-quiz').value.trim();
+  if (!title) { alert('El título es obligatorio'); return; }
+  let quiz = [];
+  if (quizRaw) { try { quiz = JSON.parse(quizRaw); } catch { alert('El formato del quiz no es JSON válido. Revisa la sintaxis.'); return; } }
+
+  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const m = findModule(data, mid);
+  if (!m) return;
+  const entry = { id: tid || 't' + Date.now(), title, content, quiz };
+  if (tid) {
+    m.topics = m.topics.map(t => t.id===tid ? entry : t);
+  } else {
+    m.topics.push(entry);
+  }
+  putData(data);
+  closeModal('topic-modal');
+  render();
+}
+
+function deleteTopic(mid, tid) {
+  if (!confirm('¿Eliminar este tema? El progreso del tema también se perderá.')) return;
+  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const m = findModule(data, mid);
+  if (m) m.topics = m.topics.filter(t => t.id !== tid);
+  const prog = getProgress();
+  delete prog[tid];
+  putData(data);
+  putProgress(prog);
+  render();
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
+});
+
+// ── UTILS ─────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+(function init() {
+  if (!getData()) putData(INITIAL_DATA);
+  render();
+})();
+</script>
+</body>
+</html>
