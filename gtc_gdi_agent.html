@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTC — GDI Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size:15px;min-height:100vh}
+
+/* HEADER */
+.header{background:#141414;border-bottom:1px solid #C9A84C44;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.logo{width:36px;height:36px;border-radius:50%;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0A0A0A;flex-shrink:0}
+.brand{font-size:14px;font-weight:700;color:#E8C96A;letter-spacing:1px}
+.sub{font-size:11px;color:#666}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.back-btn{padding:6px 12px;background:#1C1C1C;border:1px solid #333;border-radius:8px;color:#888;font-size:12px;cursor:pointer;text-decoration:none;font-family:inherit}
+.back-btn:hover{border-color:#C9A84C55;color:#C9A84C}
+
+/* LAYOUT */
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed #333;border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#111;position:relative;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.drag{border-color:#C9A84C;background:#C9A84C08}
+.upload-zone.drag{border-style:solid}
+.upload-icon{font-size:48px;margin-bottom:12px;display:block;opacity:.6}
+.upload-title{font-size:16px;font-weight:600;color:#F0F0F0;margin-bottom:6px}
+.upload-sub{font-size:13px;color:#666}
+.upload-types{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.upload-type-tag{padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;background:#1C1C1C;border:1px solid #333;color:#888}
+#file-input{display:none}
+
+/* STATUS BAR */
+.status-bar{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.idle{background:#444}
+.status-dot.loading{background:#C9A84C;animation:pulse 1s infinite}
+.status-dot.done{background:#4CAF50}
+.status-dot.err{background:#E07B39}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.status-text{color:#888;flex:1}
+.status-file{color:#C9A84C;font-weight:600}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:16px;display:none}
+.progress-bar{height:3px;background:#1C1C1C;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:#C9A84C;border-radius:2px;transition:width .4s}
+
+/* RESULT CARD */
+.result-card{background:#141414;border:1px solid #C9A84C44;border-radius:14px;padding:20px;margin-bottom:20px;display:none}
+.result-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #222}
+.result-icon{font-size:28px}
+.result-title{flex:1}
+.result-type{font-size:16px;font-weight:700;color:#E8C96A}
+.result-file{font-size:11px;color:#666;margin-top:2px}
+.result-actions{display:flex;gap:8px}
+.btn-copy{padding:8px 14px;background:#1C1C1C;border:1px solid #C9A84C44;border-radius:8px;color:#C9A84C;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-copy:hover{background:#C9A84C18;border-color:#C9A84C}
+.btn-copy.copied{border-color:#4CAF50;color:#4CAF50;background:#4CAF5018}
+
+/* FIELDS GRID */
+.fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.field-card{background:#0F0F0F;border:1px solid #2A2A2A;border-radius:10px;padding:12px}
+.field-label{font-size:10px;font-weight:600;color:#C9A84C;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.field-value{font-size:14px;color:#F0F0F0;font-weight:500;line-height:1.35;word-break:break-word}
+.field-value.empty{color:#444;font-style:italic;font-size:13px}
+.field-card.highlight{border-color:#C9A84C44;background:#C9A84C06}
+
+/* CONFIDENCE */
+.confidence-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #1E1E1E;font-size:12px;color:#666}
+.confidence-bar-wrap{flex:1;height:4px;background:#1C1C1C;border-radius:2px;overflow:hidden}
+.confidence-bar{height:100%;border-radius:2px;transition:width .6s}
+
+/* NOTES */
+.notes-section{margin-top:14px;padding-top:14px;border-top:1px solid #1E1E1E}
+.notes-label{font-size:10px;font-weight:600;color:#555;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.notes-text{font-size:13px;color:#999;line-height:1.6}
+
+/* RAW JSON */
+.raw-toggle{background:none;border:none;color:#555;font-size:12px;cursor:pointer;font-family:inherit;padding:0;margin-top:10px;display:flex;align-items:center;gap:4px}
+.raw-json{display:none;background:#0D0D0D;border:1px solid #222;border-radius:8px;padding:14px;margin-top:10px;font-size:11px;color:#aaa;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;line-height:1.6}
+
+/* HISTORY */
+.history-section{margin-top:32px}
+.section-title{font-size:11px;font-weight:600;color:#C9A84C;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1E1E1E;display:flex;align-items:center;justify-content:space-between}
+.hist-clear{background:none;border:none;color:#555;font-size:11px;cursor:pointer;font-family:inherit;padding:0}
+.hist-clear:hover{color:#E07B39}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{background:#141414;border:1px solid #222;border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .15s;display:flex;align-items:center;gap:12px}
+.hist-item:hover{border-color:#C9A84C44}
+.hist-icon{font-size:22px;flex-shrink:0}
+.hist-info{flex:1;min-width:0}
+.hist-name{font-size:13px;font-weight:600;color:#F0F0F0;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:11px;color:#666}
+.hist-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.hist-date{font-size:10px;color:#555;flex-shrink:0}
+.hist-del{background:none;border:none;color:#444;font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
+.hist-del:hover{color:#E07B39}
+.empty-hist{text-align:center;color:#444;font-size:13px;padding:30px}
+
+/* FOOTER */
+.page-footer{text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid #1A1A1A;font-size:11px;color:#444}
+.page-footer span{color:#C9A84C55}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center;padding:16px}
+.modal.open{display:flex}
+.modal-box{background:#161616;border:1px solid #333;border-radius:14px;padding:24px;width:min(520px,96vw);max-height:90vh;overflow-y:auto}
+.modal-close{float:right;background:none;border:none;color:#666;font-size:20px;cursor:pointer;line-height:1}
+
+/* BADGE COLORS */
+.badge-factura{background:#1a6fa822;color:#5ba3d9;border:1px solid #1a6fa844}
+.badge-contrato{background:#9b59b622;color:#c39bd3;border:1px solid #9b59b644}
+.badge-orden{background:#C9A84C22;color:#E8C96A;border:1px solid #C9A84C44}
+.badge-certificado{background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144}
+.badge-otro{background:#33333322;color:#888;border:1px solid #44444444}
+
+/* RESPONSIVE */
+@media(max-width:560px){
+  .fields-grid{grid-template-columns:1fr 1fr}
+  .result-header{flex-wrap:wrap}
+  .result-actions{width:100%}
+  .btn-copy{flex:1;text-align:center}
+}
+@media(max-width:380px){
+  .fields-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">GTC</div>
+  <div>
+    <div class="brand">GTCO — GDI Agent</div>
+    <div class="sub">Gestión Documental Inteligente</div>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="back-btn">← Sistema</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- UPLOAD ZONE -->
+  <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <span class="upload-icon">📄</span>
+    <div class="upload-title">Arrastra un documento o toca para seleccionar</div>
+    <div class="upload-sub">El agente extrae automáticamente todos los campos clave del documento</div>
+    <div class="upload-types">
+      <span class="upload-type-tag">Factura</span>
+      <span class="upload-type-tag">Contrato</span>
+      <span class="upload-type-tag">Orden de Operación</span>
+      <span class="upload-type-tag">Certificado Fondeador</span>
+      <span class="upload-type-tag">Otro PDF</span>
+    </div>
+    <input type="file" id="file-input" accept=".pdf,image/*">
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="status-bar">
+    <div class="status-dot idle" id="status-dot"></div>
+    <div class="status-text" id="status-text">Listo para analizar documentos GTC</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="result-card" id="result-card">
+    <div class="result-header">
+      <div class="result-icon" id="result-icon">📄</div>
+      <div class="result-title">
+        <div class="result-type" id="result-type">—</div>
+        <div class="result-file" id="result-file">—</div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-copy" id="btn-copy-json" onclick="copyJSON()">⧉ Copiar JSON</button>
+        <button class="btn-copy" id="btn-save-hist" onclick="saveToHistory()">+ Guardar</button>
+      </div>
+    </div>
+
+    <div class="fields-grid" id="fields-grid"></div>
+
+    <div class="confidence-row" id="confidence-row">
+      <span style="white-space:nowrap">Confianza IA</span>
+      <div class="confidence-bar-wrap">
+        <div class="confidence-bar" id="confidence-bar" style="width:0%"></div>
+      </div>
+      <span id="confidence-pct" style="white-space:nowrap;min-width:32px;text-align:right">—</span>
+    </div>
+
+    <div class="notes-section" id="notes-section" style="display:none">
+      <div class="notes-label">Notas del agente</div>
+      <div class="notes-text" id="notes-text"></div>
+    </div>
+
+    <button class="raw-toggle" onclick="toggleRaw()">▸ Ver JSON completo</button>
+    <pre class="raw-json" id="raw-json"></pre>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="history-section">
+    <div class="section-title">
+      Historial de documentos
+      <button class="hist-clear" onclick="clearHistory()">Limpiar historial</button>
+    </div>
+    <div class="history-list" id="history-list">
+      <div class="empty-hist" id="empty-hist">Sin documentos procesados aún</div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    GDI Agent · <span>Global Trade Commerce S.A.S.</span> · NIT 901.648.628-5 · Medellín
+  </div>
+</div>
+
+<!-- HISTORY DETAIL MODAL -->
+<div class="modal" id="detail-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const PROXY_URL = 'https://gtc-proxy.comercioglobal.workers.dev/anthropic';
+const LS_KEY = 'gtc_gdi_history';
+
+let currentData = null;
+let currentFile = null;
+let rawToggleOpen = false;
+
+// ── DROP ZONE ──────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) processFile(f);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+  fileInput.value = '';
+});
+
+// ── PROCESS FILE ───────────────────────────────────────────
+async function processFile(file) {
+  currentFile = file;
+  currentData = null;
+  setStatus('loading', 'Leyendo ' + file.name + '…');
+  showProgress(15);
+  hideResult();
+
+  let base64, mediaType;
+  try {
+    ({ base64, mediaType } = await fileToBase64(file));
+  } catch (err) {
+    setStatus('err', 'No se pudo leer el archivo: ' + err.message);
+    hideProgress();
+    return;
+  }
+
+  showProgress(35);
+  setStatus('loading', 'Analizando con IA — extrayendo campos…');
+
+  const prompt = buildPrompt(file.name);
+
+  const body = {
+    model: 'claude-opus-4-8',
+    max_tokens: 1500,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'document',
+          source: { type: 'base64', media_type: mediaType, data: base64 }
+        },
+        { type: 'text', text: prompt }
+      ]
+    }]
+  };
+
+  // Fallback: if not PDF, use image block
+  if (!mediaType.includes('pdf')) {
+    body.messages[0].content[0] = {
+      type: 'image',
+      source: { type: 'base64', media_type: mediaType, data: base64 }
+    };
+  }
+
+  let result;
+  try {
+    showProgress(55);
+    const resp = await fetch(PROXY_URL + '/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error('API ' + resp.status + ': ' + errText.slice(0, 200));
+    }
+    const json = await resp.json();
+    showProgress(85);
+    const text = json.content?.[0]?.text || '';
+    result = parseResult(text);
+  } catch (err) {
+    setStatus('err', 'Error al analizar: ' + err.message);
+    hideProgress();
+    return;
+  }
+
+  showProgress(100);
+  setTimeout(hideProgress, 600);
+  currentData = { ...result, _archivo: file.name, _fecha: new Date().toISOString() };
+  renderResult(currentData);
+  setStatus('done', 'Análisis completado · ' + file.name);
+}
+
+// ── PROMPT ─────────────────────────────────────────────────
+function buildPrompt(filename) {
+  return `Eres el agente GDI de Global Trade Commerce S.A.S. (GTC), empresa colombiana de factoring e invoice financing.
+
+Analiza este documento y extrae los datos en formato JSON estricto.
+
+Devuelve ÚNICAMENTE un bloque JSON con esta estructura exacta (sin texto adicional antes ni después):
+
+{
+  "tipo_documento": "Factura de Compra|Factura de Venta|Contrato Marco|Orden de Operacion|Certificado Fondeador|Pagare|Poliza|Otro",
+  "numero_documento": "string o null",
+  "numero_operacion": "string o null",
+  "cliente": "razón social del cliente/vendedor o null",
+  "nit_cliente": "NIT del cliente o null",
+  "fondeador": "BMC Miguel Quijano|BMC Mercado y Bolsa|Coltefinanciera|Irisbank|Integra|Cesion Bank|Servifin|Liquitech|Otro|null",
+  "valor_facial": number o null,
+  "moneda": "COP|USD|null",
+  "fecha_documento": "YYYY-MM-DD o null",
+  "fecha_vencimiento": "YYYY-MM-DD o null",
+  "plazo_dias": number o null,
+  "diferencial_gtc_pct": number o null,
+  "tasa_fondeador": "string descriptivo o null",
+  "representante_legal": "nombre del rep. legal o null",
+  "ciudad": "string o null",
+  "garantias": ["lista", "de", "garantias"] o [],
+  "observaciones": "notas relevantes en máximo 2 oraciones o null",
+  "confianza": number entre 0 y 100
+}
+
+Si un campo no aparece en el documento, usa null. El campo "confianza" refleja qué tan completa y legible es la información extraída (0=nada claro, 100=perfecto).`;
+}
+
+// ── PARSE RESULT ───────────────────────────────────────────
+function parseResult(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return { tipo_documento: 'Otro', observaciones: text.slice(0, 400), confianza: 0 };
+  try {
+    return JSON.parse(match[0]);
+  } catch {
+    return { tipo_documento: 'Otro', observaciones: 'No se pudo parsear la respuesta.', confianza: 0 };
+  }
+}
+
+// ── RENDER RESULT ──────────────────────────────────────────
+const DOC_ICONS = {
+  'Factura de Compra': '🧾', 'Factura de Venta': '🧾', 'Contrato Marco': '📝',
+  'Orden de Operacion': '📋', 'Certificado Fondeador': '🏦', 'Pagare': '✍️',
+  'Poliza': '🛡️', 'Otro': '📄'
+};
+const DOC_BADGE = {
+  'Factura de Compra': 'badge-factura', 'Factura de Venta': 'badge-factura',
+  'Contrato Marco': 'badge-contrato', 'Orden de Operacion': 'badge-orden',
+  'Certificado Fondeador': 'badge-certificado', 'Otro': 'badge-otro',
+  'Pagare': 'badge-contrato', 'Poliza': 'badge-contrato'
+};
+
+function renderResult(d) {
+  const card = document.getElementById('result-card');
+  document.getElementById('result-icon').textContent = DOC_ICONS[d.tipo_documento] || '📄';
+  document.getElementById('result-type').textContent = d.tipo_documento || 'Documento';
+  document.getElementById('result-file').textContent = (d._archivo || '') + (d._fecha ? ' · ' + fmtDate(d._fecha) : '');
+  document.getElementById('btn-save-hist').style.display = '';
+
+  // Fields
+  const fields = [
+    { label: 'N° Documento',    key: 'numero_documento',     highlight: false },
+    { label: 'N° Operación',    key: 'numero_operacion',     highlight: false },
+    { label: 'Cliente',         key: 'cliente',              highlight: true  },
+    { label: 'NIT Cliente',     key: 'nit_cliente',          highlight: false },
+    { label: 'Fondeador',       key: 'fondeador',            highlight: true  },
+    { label: 'Valor Facial',    key: '_valor_facial_fmt',    highlight: true  },
+    { label: 'Moneda',          key: 'moneda',               highlight: false },
+    { label: 'Fecha Documento', key: 'fecha_documento',      highlight: false },
+    { label: 'Fecha Vcto.',     key: 'fecha_vencimiento',    highlight: false },
+    { label: 'Plazo (días)',    key: 'plazo_dias',           highlight: false },
+    { label: 'Diferencial GTC', key: '_dif_fmt',             highlight: false },
+    { label: 'Tasa Fondeador',  key: 'tasa_fondeador',       highlight: false },
+    { label: 'Rep. Legal',      key: 'representante_legal',  highlight: false },
+    { label: 'Ciudad',          key: 'ciudad',               highlight: false },
+  ];
+
+  // Computed display values
+  const display = { ...d };
+  display._valor_facial_fmt = d.valor_facial != null
+    ? '$' + Number(d.valor_facial).toLocaleString('es-CO') + (d.moneda && d.moneda !== 'COP' ? ' ' + d.moneda : '')
+    : null;
+  display._dif_fmt = d.diferencial_gtc_pct != null ? d.diferencial_gtc_pct + '%' : null;
+
+  const grid = document.getElementById('fields-grid');
+  grid.innerHTML = fields.map(f => {
+    const val = display[f.key];
+    return `<div class="field-card${f.highlight ? ' highlight' : ''}">
+      <div class="field-label">${f.label}</div>
+      <div class="field-value${!val ? ' empty' : ''}">${val != null ? esc(String(val)) : 'No encontrado'}</div>
+    </div>`;
+  }).join('');
+
+  // Garantías
+  if (d.garantias && d.garantias.length > 0) {
+    grid.innerHTML += `<div class="field-card" style="grid-column:1/-1">
+      <div class="field-label">Garantías</div>
+      <div class="field-value">${d.garantias.map(g => esc(g)).join(' · ')}</div>
+    </div>`;
+  }
+
+  // Confidence
+  const conf = Math.min(100, Math.max(0, d.confianza || 0));
+  document.getElementById('confidence-bar').style.width = conf + '%';
+  document.getElementById('confidence-bar').style.background = conf >= 75 ? '#4CAF50' : conf >= 45 ? '#C9A84C' : '#E07B39';
+  document.getElementById('confidence-pct').textContent = conf + '%';
+
+  // Notes
+  const notSec = document.getElementById('notes-section');
+  if (d.observaciones) {
+    notSec.style.display = '';
+    document.getElementById('notes-text').textContent = d.observaciones;
+  } else {
+    notSec.style.display = 'none';
+  }
+
+  // Raw JSON
+  document.getElementById('raw-json').textContent = JSON.stringify(d, null, 2);
+  rawToggleOpen = false;
+  document.getElementById('raw-json').style.display = 'none';
+  document.querySelector('.raw-toggle').textContent = '▸ Ver JSON completo';
+
+  card.style.display = 'block';
+}
+
+// ── COPY JSON ──────────────────────────────────────────────
+function copyJSON() {
+  if (!currentData) return;
+  const btn = document.getElementById('btn-copy-json');
+  const clean = cleanExport(currentData);
+  navigator.clipboard.writeText(JSON.stringify(clean, null, 2)).then(() => {
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⧉ Copiar JSON'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function cleanExport(d) {
+  const out = { ...d };
+  delete out._valor_facial_fmt;
+  delete out._dif_fmt;
+  return out;
+}
+
+// ── TOGGLE RAW ─────────────────────────────────────────────
+function toggleRaw() {
+  rawToggleOpen = !rawToggleOpen;
+  const el = document.getElementById('raw-json');
+  const btn = document.querySelector('.raw-toggle');
+  el.style.display = rawToggleOpen ? 'block' : 'none';
+  btn.textContent = rawToggleOpen ? '▾ Ocultar JSON' : '▸ Ver JSON completo';
+}
+
+// ── HISTORY ────────────────────────────────────────────────
+function loadHistory() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } }
+function saveHistRaw(arr) { localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+function saveToHistory() {
+  if (!currentData) return;
+  const btn = document.getElementById('btn-save-hist');
+  const hist = loadHistory();
+  const entry = { ...cleanExport(currentData), _id: Date.now() };
+  hist.unshift(entry);
+  if (hist.length > 50) hist.splice(50);
+  saveHistRaw(hist);
+  renderHistory();
+  btn.textContent = '✓ Guardado';
+  setTimeout(() => { btn.textContent = '+ Guardar'; }, 2000);
+}
+
+function clearHistory() {
+  if (!confirm('¿Eliminar todo el historial?')) return;
+  localStorage.removeItem(LS_KEY);
+  renderHistory();
+}
+
+function deleteHistItem(id, e) {
+  e.stopPropagation();
+  const hist = loadHistory().filter(h => h._id !== id);
+  saveHistRaw(hist);
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('empty-hist');
+  const hist = loadHistory();
+  if (!hist.length) {
+    list.innerHTML = '<div class="empty-hist" id="empty-hist">Sin documentos procesados aún</div>';
+    return;
+  }
+  list.innerHTML = hist.map(h => `
+    <div class="hist-item" onclick="openHistDetail(${h._id})">
+      <div class="hist-icon">${DOC_ICONS[h.tipo_documento] || '📄'}</div>
+      <div class="hist-info">
+        <div class="hist-name">${esc(h.cliente || h.numero_documento || h._archivo || 'Documento')}</div>
+        <div class="hist-meta">${esc(h.tipo_documento || 'Otro')}${h.fondeador ? ' · ' + esc(h.fondeador) : ''}${h.valor_facial != null ? ' · $' + Number(h.valor_facial).toLocaleString('es-CO') : ''}</div>
+      </div>
+      <div class="hist-badge ${DOC_BADGE[h.tipo_documento] || 'badge-otro'}">${esc(h.tipo_documento || 'Otro')}</div>
+      <div class="hist-date">${h._fecha ? fmtDate(h._fecha) : ''}</div>
+      <button class="hist-del" onclick="deleteHistItem(${h._id},event)" title="Eliminar">✕</button>
+    </div>`).join('');
+}
+
+function openHistDetail(id) {
+  const hist = loadHistory();
+  const h = hist.find(x => x._id === id);
+  if (!h) return;
+  const modal = document.getElementById('detail-modal');
+  const content = document.getElementById('modal-content');
+
+  const fields = [
+    ['Tipo', h.tipo_documento], ['N° Documento', h.numero_documento], ['N° Operación', h.numero_operacion],
+    ['Cliente', h.cliente], ['NIT', h.nit_cliente], ['Fondeador', h.fondeador],
+    ['Valor Facial', h.valor_facial != null ? '$' + Number(h.valor_facial).toLocaleString('es-CO') : null],
+    ['Moneda', h.moneda], ['Fecha Documento', h.fecha_documento], ['Fecha Vcto.', h.fecha_vencimiento],
+    ['Plazo (días)', h.plazo_dias], ['Diferencial GTC', h.diferencial_gtc_pct != null ? h.diferencial_gtc_pct + '%' : null],
+    ['Tasa Fondeador', h.tasa_fondeador], ['Rep. Legal', h.representante_legal], ['Ciudad', h.ciudad],
+  ].filter(([, v]) => v != null);
+
+  const rows = fields.map(([l, v]) => `<div class="info-row"><span class="l">${esc(l)}</span><span class="r">${esc(String(v))}</span></div>`).join('');
+  const gars = (h.garantias || []).length > 0 ? `<div class="info-row"><span class="l">Garantías</span><span class="r">${h.garantias.map(g => esc(g)).join(' · ')}</span></div>` : '';
+
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #222">
+      <span style="font-size:26px">${DOC_ICONS[h.tipo_documento] || '📄'}</span>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:#E8C96A">${esc(h.tipo_documento || 'Documento')}</div>
+        <div style="font-size:11px;color:#555">${esc(h._archivo || '')} · ${h._fecha ? fmtDate(h._fecha) : ''}</div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-bottom:14px">${rows}${gars}</div>
+    ${h.observaciones ? `<div style="font-size:13px;color:#888;margin-bottom:14px;padding:12px;background:#111;border-radius:8px;line-height:1.6">${esc(h.observaciones)}</div>` : ''}
+    <button class="btn-copy" style="width:100%;text-align:center" onclick="copyHistJSON(${h._id})">⧉ Copiar JSON</button>`;
+
+  modal.classList.add('open');
+}
+
+function copyHistJSON(id) {
+  const h = loadHistory().find(x => x._id === id);
+  if (!h) return;
+  navigator.clipboard.writeText(JSON.stringify(h, null, 2));
+}
+
+function closeModal() { document.getElementById('detail-modal').classList.remove('open'); }
+document.getElementById('detail-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// ── STATUS & PROGRESS ─────────────────────────────────────
+function setStatus(state, text) {
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot ' + state;
+  document.getElementById('status-text').innerHTML = text;
+}
+
+function showProgress(pct) {
+  const wrap = document.getElementById('progress-wrap');
+  wrap.style.display = 'block';
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function hideProgress() {
+  document.getElementById('progress-wrap').style.display = 'none';
+}
+
+function hideResult() {
+  document.getElementById('result-card').style.display = 'none';
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function fmtDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch { return iso; }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const result = e.target.result;
+      const base64 = result.split(',')[1];
+      const mediaType = result.split(';')[0].split(':')[1];
+      resolve({ base64, mediaType });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── INFO CARD (used in modal) ─────────────────────────────
+// Inline style shortcut
+const style = document.createElement('style');
+style.textContent = `.info-card{background:#141414;border:1px solid #2A2A2A;border-radius:10px;padding:14px;margin-bottom:14px}.info-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #1E1E1E;gap:8px}.info-row:last-child{border-bottom:none}.info-row .l{color:#888;flex:1}.info-row .r{color:#F0F0F0;text-align:right;font-size:12px}`;
+document.head.appendChild(style);
+
+// ── INIT ──────────────────────────────────────────────────
+renderHistory();
+</script>
+</body>
+</html>
