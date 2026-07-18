@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTC — FDI Agent · MESFIX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0A0A;--bg2:#111;--bg3:#1A1A1A;--bg4:#222;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:#C9A84C22;
+  --text:#E8E8E8;--text2:#AAA;--text3:#666;
+  --green:#2ECC71;--red:#E74C3C;--blue:#3498DB;--yellow:#F39C12;--purple:#9B59B6;
+  --border:#2A2A2A;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.hdr-back{background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;transition:all .2s}
+.hdr-back:hover{border-color:var(--gold);color:var(--gold)}
+.hdr-logo{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:.12em}
+.hdr-sep{color:var(--text3);font-size:10px}
+.hdr-title{color:var(--text);font-size:13px;font-weight:600}
+.hdr-badge{margin-left:auto;background:var(--purple)22;border:1px solid var(--purple)55;color:var(--purple);font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600}
+
+/* TABS */
+.tab-nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{background:none;border:none;color:var(--text3);padding:10px 14px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.04em}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* MAIN */
+.main{flex:1;padding:16px;max-width:1100px;margin:0 auto;width:100%}
+.panel{display:none}
+.panel.active{display:block}
+
+/* CARDS & GRID */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* BUTTONS */
+.btn{padding:7px 14px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-danger{background:transparent;border:1px solid var(--red)44;color:var(--red)}
+.btn-danger:hover{background:var(--red)11}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-icon{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:3px 6px;font-size:13px;transition:color .2s}
+.btn-icon:hover{color:var(--gold)}
+
+/* FORMS */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
+.form-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.form-input,.form-select,.form-textarea{background:var(--bg4);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:5px;font-size:13px;font-family:inherit;transition:border .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--gold)}
+.form-textarea{resize:vertical;min-height:70px}
+.form-select option{background:#222}
+
+/* STATUS BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.badge-done{background:#2ECC7122;color:var(--green);border:1px solid #2ECC7144}
+.badge-in_progress{background:#F39C1222;color:var(--yellow);border:1px solid #F39C1244}
+.badge-pending{background:#33333355;color:var(--text3);border:1px solid #44444488}
+.badge-blocked{background:#E74C3C22;color:var(--red);border:1px solid #E74C3C44}
+.badge-approved{background:#2ECC7122;color:var(--green);border:1px solid #2ECC7144}
+.badge-review{background:#F39C1222;color:var(--yellow);border:1px solid #F39C1244}
+.badge-sent{background:#3498DB22;color:var(--blue);border:1px solid #3498DB44}
+
+/* PROGRESS BAR */
+.prog-wrap{background:var(--bg4);border-radius:4px;height:6px;overflow:hidden;margin:8px 0}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .5s}
+
+/* DASHBOARD STEPS */
+.onboard-step{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:6px;border:1px solid var(--border);margin-bottom:7px;transition:border-color .2s}
+.onboard-step:hover{border-color:var(--gold)44}
+.step-num-circle{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.sn-done{background:#2ECC7122;color:var(--green);border:1px solid #2ECC7144}
+.sn-in_progress{background:#F39C1222;color:var(--yellow);border:1px solid #F39C1244}
+.sn-pending{background:#33333355;color:var(--text3);border:1px solid #44444488}
+.sn-blocked{background:#E74C3C22;color:var(--red);border:1px solid #E74C3C44}
+.step-info{flex:1}
+.step-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.step-meta{font-size:11px;color:var(--text3)}
+.step-actions{display:flex;gap:4px;flex-shrink:0}
+
+/* STAT CARDS */
+.stat-card{background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.stat-num{font-size:28px;font-weight:700;color:var(--gold);line-height:1}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:4px;letter-spacing:.06em;text-transform:uppercase}
+
+/* CALCULATOR */
+.calc-result-box{background:var(--bg4);border:1px solid var(--gold)33;border-radius:8px;padding:16px;margin-top:14px}
+.calc-result-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.calc-result-row:last-child{border-bottom:none}
+.calc-lbl{font-size:12px;color:var(--text2)}
+.calc-val{font-size:13px;font-weight:700;color:var(--text)}
+.calc-val.gold{color:var(--gold)}
+.calc-val.green{color:var(--green)}
+.calc-val.red{color:var(--red)}
+.calc-nota{font-size:10px;color:var(--text3);margin-top:8px;font-style:italic}
+
+/* COMPARISON TABLE */
+.comp-wrap{overflow-x:auto;margin-top:12px;border-radius:8px;border:1px solid var(--border)}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px}
+.comp-table th{background:var(--bg4);color:var(--text3);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:10px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+.comp-table th:first-child{text-align:left}
+.comp-table td{padding:9px 12px;border-bottom:1px solid var(--border)88;text-align:right;white-space:nowrap}
+.comp-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
+.comp-table tr.mesfix td{background:var(--gold-dim);color:var(--gold)}
+.comp-table tr.mesfix td:first-child{color:var(--gold)}
+.comp-table tr.best-opt td{color:var(--green)}
+.comp-table tr.best-opt td:first-child{color:var(--green)}
+.comp-table tr:last-child td{border-bottom:none}
+
+/* DOCS */
+.doc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:1px solid var(--border);margin-bottom:7px}
+.doc-icon{font-size:16px;flex-shrink:0}
+.doc-info{flex:1}
+.doc-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.doc-meta{font-size:11px;color:var(--text3)}
+.doc-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+/* CONTACTS */
+.contact-card{padding:12px 14px;border-radius:6px;border:1px solid var(--border);margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.contact-icon{font-size:22px;flex-shrink:0}
+.contact-info{flex:1}
+.contact-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.contact-persona{font-size:13px;font-weight:600}
+.contact-fecha{font-size:11px;color:var(--text3)}
+.contact-canal{font-size:10px;color:var(--text2);background:var(--bg4);padding:1px 6px;border-radius:3px}
+.contact-resumen{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* CHAT */
+.chat-outer{display:flex;flex-direction:column;height:calc(100vh - 180px);min-height:500px}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
+.chat-msg{max-width:80%;padding:10px 13px;border-radius:8px;font-size:13px;line-height:1.55}
+.chat-msg.user{align-self:flex-end;background:var(--gold);color:#000;border-radius:8px 8px 2px 8px}
+.chat-msg.ai{align-self:flex-start;background:var(--bg4);color:var(--text);border:1px solid var(--border);border-radius:8px 8px 8px 2px}
+.chat-msg.system{align-self:center;background:transparent;color:var(--text3);font-size:11px;font-style:italic;border:none}
+.chat-typing{align-self:flex-start;background:var(--bg4);border:1px solid var(--border);padding:10px 14px;border-radius:8px}
+.typing-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text3);margin:0 2px;animation:blink 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0}
+.chat-sug-btn{background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:6px 10px;border-radius:14px;font-size:11px;cursor:pointer;transition:all .2s}
+.chat-sug-btn:hover{border-color:var(--gold);color:var(--gold)}
+.chat-input-row{display:flex;gap:8px;margin-top:10px}
+.chat-input{flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:6px;font-size:13px;font-family:inherit}
+.chat-input:focus{outline:none;border-color:var(--gold)}
+
+/* MODALS */
+.modal-bg{display:none;position:fixed;inset:0;background:#000000CC;z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg3);border:1px solid var(--border);border-radius:10px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:14px;font-weight:700;color:var(--gold)}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:18px}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* FICHA MESFIX */
+.mesfix-ficha{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--purple)44;border-radius:8px;padding:14px;margin-bottom:14px}
+.mesfix-ficha-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.mesfix-logo-badge{background:var(--purple)33;border:1px solid var(--purple)55;color:var(--purple);font-size:11px;font-weight:700;padding:5px 12px;border-radius:4px;letter-spacing:.06em}
+.mesfix-status-text{font-size:11px;color:var(--text3)}
+.mesfix-ficha-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:600px){.mesfix-ficha-grid{grid-template-columns:1fr 1fr}}
+.mf-item{display:flex;flex-direction:column;gap:2px}
+.mf-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.mf-val{font-size:12px;color:var(--text);font-weight:500}
+
+/* MISC */
+.section-title{font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.tag-purple{background:var(--purple)22;color:var(--purple);border:1px solid var(--purple)44;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
+.action-bar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+.nota-info{background:var(--blue)11;border:1px solid var(--blue)33;color:var(--blue);border-radius:5px;padding:8px 12px;font-size:11px;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <button class="hdr-back" onclick="window.close()">← Sistema</button>
+  <span class="hdr-logo">GTC</span>
+  <span class="hdr-sep">·</span>
+  <span class="hdr-title">FDI Agent</span>
+  <span class="hdr-badge">💼 MESFIX</span>
+</div>
+
+<!-- TABS -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="tab-btn" onclick="showTab('calculadora')">Calculadora</button>
+  <button class="tab-btn" onclick="showTab('comparativo')">Comparativo</button>
+  <button class="tab-btn" onclick="showTab('documentos')">Documentos</button>
+  <button class="tab-btn" onclick="showTab('contactos')">Contactos</button>
+  <button class="tab-btn" onclick="showTab('agente')">Agente IA</button>
+</div>
+
+<div class="main">
+
+<!-- =============== DASHBOARD =============== -->
+<div id="panel-dashboard" class="panel active">
+  <div class="mesfix-ficha">
+    <div class="mesfix-ficha-header">
+      <span class="mesfix-logo-badge">MESFIX</span>
+      <span class="mesfix-status-text">Plataforma digital de financiamiento de facturas — Colombia</span>
+    </div>
+    <div class="mesfix-ficha-grid" id="mf-ficha-grid"></div>
+  </div>
+
+  <div class="grid3" style="margin-bottom:14px" id="dash-stats"></div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Checklist de Onboarding</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="openAddStepModal()">+ Paso</button>
+      </div>
+    </div>
+    <div id="onboard-prog-wrap">
+      <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px" id="prog-label"></div>
+    </div>
+    <div id="onboard-list"></div>
+  </div>
+</div>
+
+<!-- =============== CALCULADORA =============== -->
+<div id="panel-calculadora" class="panel">
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header"><span class="card-title">Parámetros MESFIX</span>
+      <button class="btn btn-outline btn-sm" onclick="resetMesfixConfig()">Restablecer</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tasa mensual MESFIX (%)</label>
+        <input type="number" class="form-input" id="c-tasa" step="0.01" placeholder="1.5" oninput="calcular()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Comisión plataforma (%)</label>
+        <input type="number" class="form-input" id="c-comision" step="0.01" placeholder="0.5" oninput="calcular()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reserva (%)</label>
+        <input type="number" class="form-input" id="c-reserva" step="0.1" placeholder="0" oninput="calcular()">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Operación</span></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valor Facial ($COP)</label>
+        <input type="number" class="form-input" id="c-vf" placeholder="100000000" oninput="calcular()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plazo (días)</label>
+        <input type="number" class="form-input" id="c-dias" placeholder="90" min="30" max="365" oninput="calcular()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Diferencial GTC (%)</label>
+        <input type="number" class="form-input" id="c-dif" step="0.1" placeholder="3.5" oninput="calcular()">
+      </div>
+    </div>
+    <div id="calc-result" style="display:none">
+      <div class="calc-result-box">
+        <div class="calc-result-row"><span class="calc-lbl">Valor Facial</span><span class="calc-val" id="r-vf">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Intereses MESFIX</span><span class="calc-val red" id="r-interes">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Comisión plataforma</span><span class="calc-val red" id="r-comision">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Reserva (devuelta al vencimiento)</span><span class="calc-val" id="r-reserva">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Costo total MESFIX</span><span class="calc-val red" id="r-costo">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">VP giro GTC</span><span class="calc-val gold" id="r-vp">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Diferencial GTC (<span id="r-dif-pct">—</span>)</span><span class="calc-val red" id="r-dif">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Giro estimado al cliente</span><span class="calc-val green" id="r-giro">—</span></div>
+        <div class="calc-result-row"><span class="calc-lbl">Tasa efectiva anual equivalente</span><span class="calc-val gold" id="r-ea">—</span></div>
+      </div>
+      <div class="calc-nota">* Cálculo orientativo. No incluye retefuente ni GMF según negociación individual. Reserva devuelta por MESFIX al cliente al vencimiento de la factura.</div>
+    </div>
+  </div>
+</div>
+
+<!-- =============== COMPARATIVO =============== -->
+<div id="panel-comparativo" class="panel">
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header">
+      <span class="card-title">Parámetros de comparación</span>
+      <button class="btn btn-outline btn-sm" onclick="toggleRates()">⚙ Tasas</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valor Facial ($COP)</label>
+        <input type="number" class="form-input" id="cmp-vf" placeholder="100000000" oninput="calcComparativo()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plazo (días)</label>
+        <input type="number" class="form-input" id="cmp-dias" placeholder="90" oninput="calcComparativo()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Diferencial GTC (%)</label>
+        <input type="number" class="form-input" id="cmp-dif" step="0.1" placeholder="3.5" oninput="calcComparativo()">
+      </div>
+    </div>
+    <div id="rates-panel" style="display:none">
+      <div class="divider"></div>
+      <div class="section-title">Tasas de referencia (editables)</div>
+      <div id="rates-form"></div>
+      <button class="btn btn-outline btn-sm" onclick="saveRates()" style="margin-top:8px">Guardar tasas</button>
+    </div>
+  </div>
+  <div class="nota-info">💡 Las filas en <span style="color:var(--gold)">dorado</span> corresponden a MESFIX. La fila en <span style="color:var(--green)">verde</span> es el fondeador con mayor giro al cliente.</div>
+  <div class="comp-wrap">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th style="text-align:left">Fondeador</th>
+          <th>Costo ($)</th>
+          <th>VP / Giro GTC ($)</th>
+          <th>Giro cliente ($)</th>
+          <th>Tasa EA equiv.</th>
+          <th>Reserva</th>
+        </tr>
+      </thead>
+      <tbody id="comp-tbody"></tbody>
+    </table>
+  </div>
+  <div class="calc-nota" style="margin-top:8px">* Cálculo estimado con tasas de referencia. No incluye retefuente, GMF ni costos adicionales individuales. Diferencial GTC sobre valor facial.</div>
+</div>
+
+<!-- =============== DOCUMENTOS =============== -->
+<div id="panel-documentos" class="panel">
+  <div class="action-bar">
+    <button class="btn btn-outline btn-sm" onclick="openAddDocModal()">+ Documento</button>
+  </div>
+  <div id="docs-summary" style="margin-bottom:12px"></div>
+  <div id="docs-list"></div>
+</div>
+
+<!-- =============== CONTACTOS =============== -->
+<div id="panel-contactos" class="panel">
+  <div class="action-bar">
+    <button class="btn btn-gold btn-sm" onclick="openAddContactModal()">+ Registrar contacto</button>
+  </div>
+  <div id="contacts-list"></div>
+</div>
+
+<!-- =============== AGENTE IA =============== -->
+<div id="panel-agente" class="panel">
+  <div class="chat-outer">
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-suggestions" id="chat-sugs"></div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Consulta sobre MESFIX, condiciones, documentos, tasas…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}">
+      <button class="btn btn-gold" onclick="sendMsg()" id="chat-send-btn">Enviar</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- MODAL: STEP -->
+<div class="modal-bg" id="modal-step">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-step-title">Editar paso</span>
+      <button class="modal-close" onclick="closeModal('modal-step')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="step-edit-id">
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Título del paso</label>
+        <input type="text" class="form-input" id="step-edit-title" placeholder="Nombre del paso de onboarding">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="step-edit-status">
+            <option value="pending">⏳ Pendiente</option>
+            <option value="in_progress">🔄 En progreso</option>
+            <option value="done">✅ Completado</option>
+            <option value="blocked">❌ Bloqueado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha (opcional)</label>
+          <input type="date" class="form-input" id="step-edit-date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" id="step-edit-notes" placeholder="Observaciones, pendientes, próximos pasos…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="step-delete-btn" onclick="deleteStep()">Eliminar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-step')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveStep()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DOC -->
+<div class="modal-bg" id="modal-doc">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-doc-title">Documento</span>
+      <button class="modal-close" onclick="closeModal('modal-doc')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="doc-edit-id">
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Nombre del documento</label>
+        <input type="text" class="form-input" id="doc-edit-nombre" placeholder="Nombre del documento requerido">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="doc-edit-status">
+            <option value="pending">Pendiente</option>
+            <option value="sent">Enviado</option>
+            <option value="review">En revisión</option>
+            <option value="approved">Aprobado</option>
+            <option value="blocked">Rechazado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de envío</label>
+          <input type="date" class="form-input" id="doc-edit-fecha">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" id="doc-edit-notas" placeholder="Observaciones, versión, pendientes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="doc-delete-btn" onclick="deleteDoc()">Eliminar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-doc')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveDoc()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONTACT -->
+<div class="modal-bg" id="modal-contact">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Registrar contacto con MESFIX</span>
+      <button class="modal-close" onclick="closeModal('modal-contact')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="contact-edit-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="contact-tipo">
+            <option value="reunion">🤝 Reunión</option>
+            <option value="llamada">📞 Llamada</option>
+            <option value="email">📧 Email</option>
+            <option value="whatsapp">💬 WhatsApp/Chat</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha</label>
+          <input type="date" class="form-input" id="contact-fecha">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Persona MESFIX</label>
+        <input type="text" class="form-input" id="contact-persona" placeholder="Nombre y cargo">
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Canal / Plataforma</label>
+        <input type="text" class="form-input" id="contact-canal" placeholder="Zoom, Teams, WhatsApp, Teléfono…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Resumen / Acuerdos</label>
+        <textarea class="form-textarea" id="contact-resumen" placeholder="Temas tratados, compromisos adquiridos, próximos pasos…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="contact-delete-btn" onclick="deleteContact()" style="display:none">Eliminar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-contact')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveContact()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== CONSTANTS ====================
+const LS = {
+  onboard: 'gtc_fdi_onboard',
+  docs:    'gtc_fdi_docs',
+  contacts:'gtc_fdi_contacts',
+  config:  'gtc_fdi_config',
+  tasas:   'gtc_fdi_tasas',
+  ficha:   'gtc_fdi_ficha',
+};
+const PROXY_URL = 'https://gtc-proxy.comercioglobal.workers.dev/anthropic';
+const CHAT_MODEL = 'claude-opus-4-8';
+
+const TIPO_ICON = { reunion:'🤝', llamada:'📞', email:'📧', whatsapp:'💬' };
+const STATUS_LABEL = {
+  done:'Completado', in_progress:'En progreso', pending:'Pendiente', blocked:'Bloqueado',
+  approved:'Aprobado', review:'En revisión', sent:'Enviado',
+};
+const DOC_ICON = {pending:'📄',sent:'📤',review:'🔍',approved:'✅',blocked:'❌'};
+
+// ==================== DEFAULTS ====================
+const DEF_ONBOARD = [
+  {id:'s1',title:'Contacto inicial y presentación GTC',status:'done',date:'2025-05-15',notes:'Reunión con Andrés García (CEO MESFIX). Se presentó el modelo Inventory Finance de GTC. Gran interés.'},
+  {id:'s2',title:'NDA — Acuerdo de Confidencialidad',status:'done',date:'2025-05-20',notes:'Firmado por ambas partes. Vigencia 2 años.'},
+  {id:'s3',title:'KYC GTC → MESFIX (documentos GTC)',status:'in_progress',date:'2025-05-28',notes:'Paquete documental enviado. Pendiente aprobación formal por equipo de riesgo MESFIX.'},
+  {id:'s4',title:'Due Diligence plataforma MESFIX por GTC',status:'in_progress',date:'2025-06-10',notes:'Revisión del portal, capacidades API y track record de la plataforma en curso.'},
+  {id:'s5',title:'Acuerdo de tasas y condiciones de fondeador',status:'pending',date:null,notes:''},
+  {id:'s6',title:'Contrato Marco GTC ↔ MESFIX',status:'pending',date:null,notes:''},
+  {id:'s7',title:'Primera operación piloto (< $50M)',status:'pending',date:null,notes:''},
+  {id:'s8',title:'Evaluación de la operación piloto',status:'pending',date:null,notes:''},
+  {id:'s9',title:'Integración API / Portal MESFIX',status:'pending',date:null,notes:''},
+  {id:'s10',title:'Aprobación formal como fondeador activo GTC',status:'pending',date:null,notes:''},
+];
+
+const DEF_DOCS = [
+  {id:'d1',nombre:'RUT Global Trade Commerce S.A.S.',status:'approved',enviado:'2025-05-28',notas:'Recibido y validado por MESFIX.'},
+  {id:'d2',nombre:'Cámara de Comercio GTC (vigente)',status:'approved',enviado:'2025-05-28',notas:'Vigente. Renovada junio 2025.'},
+  {id:'d3',nombre:'Cédula Representante Legal (Camila Arenas A.)',status:'approved',enviado:'2025-05-28',notas:'C.C. 1.006.293.320. Validada.'},
+  {id:'d4',nombre:'Estados Financieros 2023-2024',status:'review',enviado:'2025-06-05',notas:'En revisión por equipo de riesgo MESFIX.'},
+  {id:'d5',nombre:'Políticas SAGRILAFT / AML GTC',status:'pending',enviado:null,notas:''},
+  {id:'d6',nombre:'Contrato Marco borrador (GTC → MESFIX)',status:'pending',enviado:null,notas:''},
+  {id:'d7',nombre:'Muestra Orden de Operación GTC',status:'sent',enviado:'2025-06-10',notas:'Ejemplo real anonimizado. Confirmado recibido.'},
+  {id:'d8',nombre:'Facturas modelo GTC (compra + venta)',status:'approved',enviado:'2025-05-28',notas:'Facturas electrónicas validadas DIAN.'},
+  {id:'d9',nombre:'Portafolio clientes GTC (anonimizado)',status:'pending',enviado:null,notas:''},
+];
+
+const DEF_CONTACTS = [
+  {id:'c1',tipo:'reunion',persona:'Andrés García (CEO MESFIX)',canal:'Zoom',fecha:'2025-05-15',resumen:'Presentación inicial del modelo GTC Inventory Finance. Gran interés. Acordaron envío de documentos KYC como siguiente paso.'},
+  {id:'c2',tipo:'email',persona:'María Lucía Torres (Comercial MESFIX)',canal:'Email corporativo',fecha:'2025-05-28',resumen:'Envío paquete KYC completo (RUT, Cámara, Cédula, facturas modelo). Confirmación de recepción en el mismo día.'},
+  {id:'c3',tipo:'llamada',persona:'Andrés García (CEO MESFIX)',canal:'WhatsApp',fecha:'2025-06-10',resumen:'Seguimiento estados financieros en revisión. Solicitud de muestra de Orden de Operación. Reunión acordada para semana siguiente.'},
+  {id:'c4',tipo:'reunion',persona:'Andrés García + Equipo Riesgo MESFIX',canal:'Google Meet',fecha:'2025-06-20',resumen:'Revisión modelo operativo GTC. Preguntas sobre el Contrato Marco y flujo de cesión de inventario. Solicitaron portafolio de clientes (anonimizado) y políticas SAGRILAFT.'},
+];
+
+const DEF_CONFIG = {tasa_mensual:1.5, comision:0.5, reserva:0};
+
+const DEF_TASAS = {
+  'BMC Miguel Quijano':  {tipo:'ea',     tasa:12,   scb:0.40,  reserva:0, costo_fijo:0},
+  'BMC Mercado y Bolsa': {tipo:'ea',     tasa:14,   scb:2.43,  reserva:0, costo_fijo:0},
+  'Coltefinanciera':     {tipo:'ea',     tasa:18,   scb:0,     reserva:0, costo_fijo:14700},
+  'Irisbank':            {tipo:'mensual',tasa:1.5,  scb:0,     reserva:5, costo_fijo:0},
+  'Integra':             {tipo:'ea',     tasa:16,   scb:0,     reserva:0, costo_fijo:0},
+  'Cesion Bank':         {tipo:'mensual',tasa:2.0,  scb:0,     reserva:13.5, costo_fijo:0},
+  'Servifin':            {tipo:'mensual',tasa:1.8,  scb:0,     reserva:10, costo_fijo:0},
+  'Liquitech':           {tipo:'mensual',tasa:1.9,  scb:0,     reserva:10, costo_fijo:0},
+};
+
+const DEF_FICHA = {
+  tipo:'Marketplace P2P de facturas',
+  pais:'Colombia',
+  web:'mesfix.com',
+  contacto:'Andrés García — CEO',
+  moneda:'COP',
+  min_op:'$20.000.000',
+};
+
+const CHAT_SYSTEM = `Eres el Agente FDI (Fondeador Digital Inteligente) de Global Trade Commerce S.A.S. (GTC), especializado en el proceso de integración de MESFIX como nuevo fondeador digital.
+
+CONTEXTO GTC:
+- Empresa colombiana de Supply Chain Finance — modelo Inventory Finance (compra inventario de contado al cliente, lo revende a crédito 120-210 días)
+- NIT: 901.648.628-5 | Rep. Legal: Camila Arenas Alcaraz | Director General: Jairo Sánchez | Dir. Financiera: Mariana Valencia
+- Fondeadores actuales: BMC Miguel Quijano (bolsa, SCB 0.40%), BMC Mercado y Bolsa (bolsa, SCB 2.43%), Coltefinanciera (tasa EA×días/365, costo fijo $14.700), Irisbank (tasa mensual, reserva 5%), Integra (tasa EA×días/365), Cesion Bank (tasa mensual, reserva 13.5%), Servifin (reserva 10%), Liquitech (reserva 10%)
+- Diferencial GTC sobre VF: 3%-4%
+
+SOBRE MESFIX:
+- Plataforma digital colombiana de financiamiento de facturas (marketplace P2P)
+- En proceso de onboarding como fondeador de GTC (etapa: KYC en revisión, Due Diligence en curso)
+- Ventajas potenciales: digitalización del proceso, API de integración, diversificación de fuentes de fondeo
+- Contacto clave: Andrés García (CEO MESFIX)
+
+Responde siempre en español, con precisión financiera y lenguaje comercial profesional. Cuando no tengas datos específicos de MESFIX, recomienda verificar directamente con el ejecutivo asignado.`;
+
+const CHAT_SUGS = [
+  '¿Qué diferencias hay entre MESFIX y los fondeadores tradicionales GTC?',
+  '¿Cómo funciona el marketplace MESFIX para facturas de inventario?',
+  '¿Qué documentos adicionales puede requerir MESFIX para operaciones SCF?',
+  '¿Cuáles son las ventajas de integrar MESFIX al portafolio GTC?',
+  '¿Qué pasos críticos quedan para activar MESFIX como fondeador activo?',
+];
+
+// ==================== STORAGE ====================
+function get(k) { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } }
+function put(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function getOrDef(k, def) { return get(k) || JSON.parse(JSON.stringify(def)); }
+
+// ==================== STATE ====================
+let chatHistory = [];
+let chatLoading = false;
+let ratesVisible = false;
+
+// ==================== TABS ====================
+function showTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'documentos') renderDocs();
+  if (tab === 'contactos') renderContacts();
+  if (tab === 'calculadora') initCalc();
+  if (tab === 'comparativo') initComp();
+  if (tab === 'agente') renderChat();
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const steps = getOrDef(LS.onboard, DEF_ONBOARD);
+  const ficha = getOrDef(LS.ficha, DEF_FICHA);
+
+  // Ficha MESFIX
+  const fichaGrid = document.getElementById('mf-ficha-grid');
+  fichaGrid.innerHTML = Object.entries(ficha).map(([k,v]) => `
+    <div class="mf-item">
+      <span class="mf-lbl">${k.replace(/_/g,' ')}</span>
+      <span class="mf-val">${v||'—'}</span>
+    </div>`).join('');
+
+  // Stats
+  const done = steps.filter(s=>s.status==='done').length;
+  const inProg = steps.filter(s=>s.status==='in_progress').length;
+  const pct = Math.round(done/steps.length*100);
+  const lastContact = getOrDef(LS.contacts, DEF_CONTACTS).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${pct}%</div><div class="stat-lbl">Avance onboarding</div></div>
+    <div class="stat-card"><div class="stat-num">${done}<span style="font-size:16px;color:var(--text3)">/${steps.length}</span></div><div class="stat-lbl">Pasos completados</div></div>
+    <div class="stat-card"><div class="stat-num" style="font-size:16px">${lastContact ? fmtDate(lastContact.fecha) : '—'}</div><div class="stat-lbl">Último contacto</div></div>`;
+
+  // Progress bar
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `${done} de ${steps.length} completados · ${inProg} en progreso`;
+
+  // Steps list
+  document.getElementById('onboard-list').innerHTML = steps.map((s,i) => `
+    <div class="onboard-step">
+      <div class="step-num-circle sn-${s.status}">${s.status==='done'?'✓':s.status==='blocked'?'✗':s.status==='in_progress'?'↻':(i+1)}</div>
+      <div class="step-info">
+        <div class="step-title">${s.title}</div>
+        <div class="step-meta">
+          <span class="badge badge-${s.status}">${STATUS_LABEL[s.status]||s.status}</span>
+          ${s.date?`<span style="margin-left:6px">${fmtDate(s.date)}</span>`:''}
+          ${s.notes?`<span style="margin-left:6px;color:var(--text3)">· ${s.notes.substring(0,60)}${s.notes.length>60?'…':''}</span>`:''}
+        </div>
+      </div>
+      <div class="step-actions">
+        <button class="btn-icon" onclick="cycleStep('${s.id}')" title="Cambiar estado">↻</button>
+        <button class="btn-icon" onclick="openEditStepModal('${s.id}')" title="Editar">✏</button>
+      </div>
+    </div>`).join('');
+}
+
+function cycleStep(id) {
+  const steps = getOrDef(LS.onboard, DEF_ONBOARD);
+  const s = steps.find(x=>x.id===id);
+  if (!s) return;
+  const cycle = {pending:'in_progress', in_progress:'done', done:'pending', blocked:'pending'};
+  s.status = cycle[s.status] || 'pending';
+  if (s.status === 'done' && !s.date) s.date = new Date().toISOString().split('T')[0];
+  put(LS.onboard, steps);
+  renderDashboard();
+}
+
+function openEditStepModal(id) {
+  const steps = getOrDef(LS.onboard, DEF_ONBOARD);
+  const s = id ? steps.find(x=>x.id===id) : null;
+  document.getElementById('modal-step-title').textContent = s ? 'Editar paso' : 'Nuevo paso';
+  document.getElementById('step-edit-id').value = s?.id || '';
+  document.getElementById('step-edit-title').value = s?.title || '';
+  document.getElementById('step-edit-status').value = s?.status || 'pending';
+  document.getElementById('step-edit-date').value = s?.date || '';
+  document.getElementById('step-edit-notes').value = s?.notes || '';
+  document.getElementById('step-delete-btn').style.display = s ? 'block' : 'none';
+  document.getElementById('modal-step').classList.add('open');
+}
+
+function openAddStepModal() { openEditStepModal(null); }
+
+function saveStep() {
+  const id = document.getElementById('step-edit-id').value;
+  const title = document.getElementById('step-edit-title').value.trim();
+  if (!title) return alert('Ingresa el título del paso.');
+  const steps = getOrDef(LS.onboard, DEF_ONBOARD);
+  const obj = {
+    id: id || 's' + Date.now(),
+    title,
+    status: document.getElementById('step-edit-status').value,
+    date: document.getElementById('step-edit-date').value || null,
+    notes: document.getElementById('step-edit-notes').value.trim(),
+  };
+  if (id) { const i = steps.findIndex(x=>x.id===id); if(i>=0) steps[i]=obj; }
+  else steps.push(obj);
+  put(LS.onboard, steps);
+  closeModal('modal-step');
+  renderDashboard();
+}
+
+function deleteStep() {
+  const id = document.getElementById('step-edit-id').value;
+  if (!id || !confirm('¿Eliminar este paso?')) return;
+  const steps = getOrDef(LS.onboard, DEF_ONBOARD).filter(x=>x.id!==id);
+  put(LS.onboard, steps);
+  closeModal('modal-step');
+  renderDashboard();
+}
+
+// ==================== CALCULATOR ====================
+function initCalc() {
+  const cfg = getOrDef(LS.config, DEF_CONFIG);
+  document.getElementById('c-tasa').value = cfg.tasa_mensual;
+  document.getElementById('c-comision').value = cfg.comision;
+  document.getElementById('c-reserva').value = cfg.reserva;
+  document.getElementById('c-dif').value = 3.5;
+}
+
+function resetMesfixConfig() {
+  put(LS.config, {...DEF_CONFIG});
+  initCalc();
+  calcular();
+}
+
+function calcular() {
+  const vf = parseFloat(document.getElementById('c-vf').value);
+  const dias = parseFloat(document.getElementById('c-dias').value);
+  const tasa_m = parseFloat(document.getElementById('c-tasa').value);
+  const comision = parseFloat(document.getElementById('c-comision').value)||0;
+  const reserva = parseFloat(document.getElementById('c-reserva').value)||0;
+  const dif_pct = parseFloat(document.getElementById('c-dif').value)||3.5;
+
+  if (!vf || !dias || !tasa_m) { document.getElementById('calc-result').style.display='none'; return; }
+
+  // Save config
+  put(LS.config, {tasa_mensual:tasa_m, comision, reserva});
+
+  const meses = Math.ceil(dias/30);
+  const interes = vf * tasa_m/100 * meses;
+  const comision_v = vf * comision/100;
+  const reserva_v = vf * reserva/100;
+  const costo = interes + comision_v;
+  const vp = vf - costo - reserva_v;  // giro GTC (sin diferencial)
+  const dif = vf * dif_pct/100;
+  const giro_cliente = vp - dif;
+  const ea = (Math.pow(1 + costo/vp, 365/dias) - 1) * 100;
+
+  document.getElementById('r-vf').textContent = fmt(vf);
+  document.getElementById('r-interes').textContent = '-' + fmt(interes);
+  document.getElementById('r-comision').textContent = '-' + fmt(comision_v);
+  document.getElementById('r-reserva').textContent = fmt(reserva_v);
+  document.getElementById('r-costo').textContent = '-' + fmt(costo);
+  document.getElementById('r-vp').textContent = fmt(vp);
+  document.getElementById('r-dif-pct').textContent = dif_pct + '%';
+  document.getElementById('r-dif').textContent = '-' + fmt(dif);
+  document.getElementById('r-giro').textContent = fmt(giro_cliente);
+  document.getElementById('r-ea').textContent = ea.toFixed(2) + '% EA';
+  document.getElementById('calc-result').style.display = 'block';
+}
+
+// ==================== COMPARATIVO ====================
+function initComp() {
+  document.getElementById('cmp-dif').value = document.getElementById('cmp-dif').value || '3.5';
+  renderRatesForm();
+  calcComparativo();
+}
+
+function toggleRates() {
+  ratesVisible = !ratesVisible;
+  document.getElementById('rates-panel').style.display = ratesVisible ? 'block' : 'none';
+}
+
+function renderRatesForm() {
+  const tasas = getOrDef(LS.tasas, DEF_TASAS);
+  const cfg = getOrDef(LS.config, DEF_CONFIG);
+  let html = '<div class="grid2">';
+  Object.entries(tasas).forEach(([name, t]) => {
+    html += `<div class="card" style="padding:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">${name}</div>
+      <div class="form-row" style="gap:6px">
+        <div class="form-group" style="min-width:80px">
+          <label class="form-label">Tasa</label>
+          <input type="number" class="form-input" style="font-size:11px;padding:5px" step="0.01"
+            data-fond="${name}" data-field="tasa" value="${t.tasa}">
+        </div>
+        <div class="form-group" style="min-width:80px">
+          <label class="form-label">${t.tipo==='ea'?'Tipo':'Tipo'}</label>
+          <select class="form-select" style="font-size:11px;padding:5px" data-fond="${name}" data-field="tipo">
+            <option value="ea" ${t.tipo==='ea'?'selected':''}>% EA</option>
+            <option value="mensual" ${t.tipo==='mensual'?'selected':''}>% Mensual</option>
+          </select>
+        </div>
+        ${t.reserva!==undefined?`<div class="form-group" style="min-width:60px">
+          <label class="form-label">Reserva</label>
+          <input type="number" class="form-input" style="font-size:11px;padding:5px" step="0.1"
+            data-fond="${name}" data-field="reserva" value="${t.reserva}">
+        </div>`:''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  html += `<div class="card" style="padding:10px;margin-top:8px;border-color:var(--purple)44">
+    <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:6px">MESFIX (configurable)</div>
+    <div class="form-row" style="gap:6px">
+      <div class="form-group"><label class="form-label">Tasa mensual</label>
+        <input type="number" class="form-input" style="font-size:11px;padding:5px" step="0.01" id="rt-mf-tasa" value="${cfg.tasa_mensual}"></div>
+      <div class="form-group"><label class="form-label">Comisión %</label>
+        <input type="number" class="form-input" style="font-size:11px;padding:5px" step="0.01" id="rt-mf-com" value="${cfg.comision}"></div>
+      <div class="form-group"><label class="form-label">Reserva %</label>
+        <input type="number" class="form-input" style="font-size:11px;padding:5px" step="0.1" id="rt-mf-res" value="${cfg.reserva}"></div>
+    </div>
+  </div>`;
+  document.getElementById('rates-form').innerHTML = html;
+}
+
+function saveRates() {
+  const tasas = getOrDef(LS.tasas, DEF_TASAS);
+  document.querySelectorAll('[data-fond]').forEach(el => {
+    const fond = el.dataset.fond, field = el.dataset.field;
+    if (tasas[fond]) tasas[fond][field] = field==='tipo' ? el.value : parseFloat(el.value)||0;
+  });
+  put(LS.tasas, tasas);
+  const mf = {
+    tasa_mensual: parseFloat(document.getElementById('rt-mf-tasa').value)||1.5,
+    comision: parseFloat(document.getElementById('rt-mf-com').value)||0,
+    reserva: parseFloat(document.getElementById('rt-mf-res').value)||0,
+  };
+  put(LS.config, mf);
+  calcComparativo();
+}
+
+function fondCost(name, t, vf, dias) {
+  if (!vf || !dias) return null;
+  let costo = 0, vp = 0, reserva_v = 0;
+
+  if (t.tipo === 'ea') {
+    const factor = Math.pow(1 + t.tasa/100, dias/365);
+    vp = vf / factor;
+    costo = vf - vp;
+    if (name.startsWith('BMC')) {
+      const scb = vp * (t.scb||0)/100;
+      const scb_iva = scb * 0.19;
+      const bolsa = vp * 0.002;
+      const bolsa_iva = bolsa * 0.19;
+      costo += scb + scb_iva + bolsa + bolsa_iva;
+      vp = vp - scb - scb_iva - bolsa - bolsa_iva;
+    } else {
+      costo += (t.costo_fijo||0);
+      vp = vp - (t.costo_fijo||0);
+    }
+  } else {
+    const meses = Math.ceil(dias/30);
+    const neto = vf * (1 - (t.reserva||0)/100);
+    const interes = neto * t.tasa/100 * meses;
+    reserva_v = vf * (t.reserva||0)/100;
+    costo = interes;
+    vp = neto - interes;
+  }
+  return {costo, vp, reserva_v};
+}
+
+function calcComparativo() {
+  const vf = parseFloat(document.getElementById('cmp-vf').value);
+  const dias = parseFloat(document.getElementById('cmp-dias').value);
+  const dif_pct = parseFloat(document.getElementById('cmp-dif').value)||3.5;
+  const tbody = document.getElementById('comp-tbody');
+
+  if (!vf || !dias) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Ingresa valor facial y plazo para ver el comparativo</td></tr>'; return; }
+
+  const tasas = getOrDef(LS.tasas, DEF_TASAS);
+  const cfg = getOrDef(LS.config, DEF_CONFIG);
+  const dif = vf * dif_pct/100;
+
+  const rows = [];
+  Object.entries(tasas).forEach(([name, t]) => {
+    const r = fondCost(name, t, vf, dias);
+    if (!r) return;
+    const giro_c = r.vp - dif;
+    const ea = r.vp > 0 ? (Math.pow(1 + r.costo/r.vp, 365/dias) - 1)*100 : 0;
+    rows.push({name, ...r, giro_c, ea, mesfix:false});
+  });
+
+  // MESFIX row
+  const meses = Math.ceil(dias/30);
+  const mf_int = vf * cfg.tasa_mensual/100 * meses;
+  const mf_com = vf * cfg.comision/100;
+  const mf_res = vf * cfg.reserva/100;
+  const mf_costo = mf_int + mf_com;
+  const mf_vp = vf - mf_costo - mf_res;
+  const mf_giro = mf_vp - dif;
+  const mf_ea = mf_vp > 0 ? (Math.pow(1 + mf_costo/mf_vp, 365/dias) - 1)*100 : 0;
+  rows.push({name:'MESFIX', costo:mf_costo, vp:mf_vp, reserva_v:mf_res, giro_c:mf_giro, ea:mf_ea, mesfix:true});
+
+  // Sort by giro_c desc
+  rows.sort((a,b)=>b.giro_c-a.giro_c);
+  const bestGiro = Math.max(...rows.filter(r=>!r.mesfix).map(r=>r.giro_c));
+
+  tbody.innerHTML = rows.map(r => {
+    const isBest = !r.mesfix && r.giro_c === bestGiro;
+    const cls = r.mesfix ? 'mesfix' : isBest ? 'best-opt' : '';
+    return `<tr class="${cls}">
+      <td>${r.mesfix?'💼 ':''}${r.name}${isBest?' ★':''}</td>
+      <td>${fmt(r.costo)}</td>
+      <td>${fmt(r.vp)}</td>
+      <td>${fmt(r.giro_c)}</td>
+      <td>${r.ea.toFixed(2)}% EA</td>
+      <td>${r.reserva_v>0?fmt(r.reserva_v):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ==================== DOCUMENTOS ====================
+function renderDocs() {
+  const docs = getOrDef(LS.docs, DEF_DOCS);
+  const counts = {approved:0,review:0,sent:0,pending:0,blocked:0};
+  docs.forEach(d => { if(counts[d.status]!==undefined) counts[d.status]++; });
+
+  document.getElementById('docs-summary').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${Object.entries({approved:'Aprobados',review:'En revisión',sent:'Enviados',pending:'Pendientes',blocked:'Rechazados'}).map(([k,l])=>
+        `<span class="badge badge-${k==='blocked'?'blocked':k}">${counts[k]} ${l}</span>`).join('')}
+    </div>`;
+
+  document.getElementById('docs-list').innerHTML = docs.map(d => `
+    <div class="doc-item">
+      <span class="doc-icon">${DOC_ICON[d.status]||'📄'}</span>
+      <div class="doc-info">
+        <div class="doc-name">${d.nombre}</div>
+        <div class="doc-meta">
+          <span class="badge badge-${d.status==='blocked'?'blocked':d.status}">${STATUS_LABEL[d.status]||d.status}</span>
+          ${d.enviado?`<span style="margin-left:6px">${fmtDate(d.enviado)}</span>`:''}
+          ${d.notas?`<span style="margin-left:6px;color:var(--text3)">· ${d.notas.substring(0,70)}${d.notas.length>70?'…':''}</span>`:''}
+        </div>
+      </div>
+      <div class="doc-actions">
+        <button class="btn-icon" onclick="openEditDocModal('${d.id}')" title="Editar">✏</button>
+      </div>
+    </div>`).join('');
+}
+
+function openAddDocModal() { openEditDocModal(null); }
+
+function openEditDocModal(id) {
+  const docs = getOrDef(LS.docs, DEF_DOCS);
+  const d = id ? docs.find(x=>x.id===id) : null;
+  document.getElementById('modal-doc-title').textContent = d ? 'Editar documento' : 'Nuevo documento';
+  document.getElementById('doc-edit-id').value = d?.id || '';
+  document.getElementById('doc-edit-nombre').value = d?.nombre || '';
+  document.getElementById('doc-edit-status').value = d?.status || 'pending';
+  document.getElementById('doc-edit-fecha').value = d?.enviado || '';
+  document.getElementById('doc-edit-notas').value = d?.notas || '';
+  document.getElementById('doc-delete-btn').style.display = d ? 'block' : 'none';
+  document.getElementById('modal-doc').classList.add('open');
+}
+
+function saveDoc() {
+  const id = document.getElementById('doc-edit-id').value;
+  const nombre = document.getElementById('doc-edit-nombre').value.trim();
+  if (!nombre) return alert('Ingresa el nombre del documento.');
+  const docs = getOrDef(LS.docs, DEF_DOCS);
+  const obj = {
+    id: id || 'd' + Date.now(),
+    nombre,
+    status: document.getElementById('doc-edit-status').value,
+    enviado: document.getElementById('doc-edit-fecha').value || null,
+    notas: document.getElementById('doc-edit-notas').value.trim(),
+  };
+  if (id) { const i = docs.findIndex(x=>x.id===id); if(i>=0) docs[i]=obj; }
+  else docs.push(obj);
+  put(LS.docs, docs);
+  closeModal('modal-doc');
+  renderDocs();
+}
+
+function deleteDoc() {
+  const id = document.getElementById('doc-edit-id').value;
+  if (!id || !confirm('¿Eliminar este documento?')) return;
+  const docs = getOrDef(LS.docs, DEF_DOCS).filter(x=>x.id!==id);
+  put(LS.docs, docs);
+  closeModal('modal-doc');
+  renderDocs();
+}
+
+// ==================== CONTACTOS ====================
+function renderContacts() {
+  const contacts = getOrDef(LS.contacts, DEF_CONTACTS).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  if (!contacts.length) {
+    document.getElementById('contacts-list').innerHTML = '<div class="empty-state">No hay contactos registrados.<br>Registra el primer contacto con MESFIX.</div>';
+    return;
+  }
+  document.getElementById('contacts-list').innerHTML = contacts.map(c => `
+    <div class="contact-card">
+      <span class="contact-icon">${TIPO_ICON[c.tipo]||'📋'}</span>
+      <div class="contact-info">
+        <div class="contact-header">
+          <span class="contact-persona">${c.persona}</span>
+          <span class="contact-fecha">${fmtDate(c.fecha)}</span>
+          <span class="contact-canal">${c.canal}</span>
+        </div>
+        <div class="contact-resumen">${c.resumen}</div>
+      </div>
+      <button class="btn-icon" onclick="openEditContactModal('${c.id}')" title="Editar">✏</button>
+    </div>`).join('');
+}
+
+function openAddContactModal() {
+  document.getElementById('contact-edit-id').value = '';
+  document.getElementById('contact-tipo').value = 'reunion';
+  document.getElementById('contact-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('contact-persona').value = '';
+  document.getElementById('contact-canal').value = '';
+  document.getElementById('contact-resumen').value = '';
+  document.getElementById('contact-delete-btn').style.display = 'none';
+  document.getElementById('modal-contact').classList.add('open');
+}
+
+function openEditContactModal(id) {
+  const contacts = getOrDef(LS.contacts, DEF_CONTACTS);
+  const c = contacts.find(x=>x.id===id);
+  if (!c) return;
+  document.getElementById('contact-edit-id').value = c.id;
+  document.getElementById('contact-tipo').value = c.tipo;
+  document.getElementById('contact-fecha').value = c.fecha;
+  document.getElementById('contact-persona').value = c.persona;
+  document.getElementById('contact-canal').value = c.canal;
+  document.getElementById('contact-resumen').value = c.resumen;
+  document.getElementById('contact-delete-btn').style.display = 'block';
+  document.getElementById('modal-contact').classList.add('open');
+}
+
+function saveContact() {
+  const id = document.getElementById('contact-edit-id').value;
+  const persona = document.getElementById('contact-persona').value.trim();
+  const resumen = document.getElementById('contact-resumen').value.trim();
+  if (!persona || !resumen) return alert('Completa persona y resumen.');
+  const contacts = getOrDef(LS.contacts, DEF_CONTACTS);
+  const obj = {
+    id: id || 'c' + Date.now(),
+    tipo: document.getElementById('contact-tipo').value,
+    persona,
+    canal: document.getElementById('contact-canal').value.trim(),
+    fecha: document.getElementById('contact-fecha').value,
+    resumen,
+  };
+  if (id) { const i = contacts.findIndex(x=>x.id===id); if(i>=0) contacts[i]=obj; }
+  else contacts.push(obj);
+  put(LS.contacts, contacts);
+  closeModal('modal-contact');
+  renderContacts();
+}
+
+function deleteContact() {
+  const id = document.getElementById('contact-edit-id').value;
+  if (!id || !confirm('¿Eliminar este registro de contacto?')) return;
+  const contacts = getOrDef(LS.contacts, DEF_CONTACTS).filter(x=>x.id!==id);
+  put(LS.contacts, contacts);
+  closeModal('modal-contact');
+  renderContacts();
+}
+
+// ==================== AI CHAT ====================
+function renderChat() {
+  const msgsEl = document.getElementById('chat-msgs');
+
+  if (!chatHistory.length) {
+    msgsEl.innerHTML = `<div class="chat-msg system">Agente FDI activo · Especialista MESFIX · GTC Sistema</div>
+      <div class="chat-msg ai">¡Hola! Soy el Agente FDI de GTC. Estoy especializado en el proceso de onboarding de MESFIX y puedo ayudarte a analizar condiciones, comparar con los fondeadores actuales o responder preguntas sobre el proceso de integración. ¿En qué te puedo ayudar?</div>`;
+  } else {
+    msgsEl.innerHTML = chatHistory.map(m => `<div class="chat-msg ${m.role==='user'?'user':'ai'}">${escHtml(m.content)}</div>`).join('');
+  }
+
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  const sugsEl = document.getElementById('chat-sugs');
+  if (!chatHistory.length) {
+    sugsEl.innerHTML = CHAT_SUGS.map(q => `<button class="chat-sug-btn" onclick="sendSug(this)">${q}</button>`).join('');
+  } else {
+    sugsEl.innerHTML = '';
+  }
+}
+
+function sendSug(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendMsg();
+}
+
+async function sendMsg() {
+  if (chatLoading) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  chatHistory.push({role:'user', content: text});
+  chatLoading = true;
+  document.getElementById('chat-send-btn').disabled = true;
+
+  const msgsEl = document.getElementById('chat-msgs');
+  msgsEl.innerHTML = chatHistory.map(m => `<div class="chat-msg ${m.role==='user'?'user':'ai'}">${escHtml(m.content)}</div>`).join('');
+  msgsEl.innerHTML += `<div class="chat-typing"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+  document.getElementById('chat-sugs').innerHTML = '';
+
+  try {
+    const resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+      body: JSON.stringify({
+        model: CHAT_MODEL,
+        max_tokens: 1024,
+        system: CHAT_SYSTEM,
+        messages: chatHistory.map(m => ({role:m.role, content:m.content})),
+      })
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const reply = data.content?.[0]?.text || 'Sin respuesta del agente.';
+    chatHistory.push({role:'assistant', content: reply});
+  } catch (e) {
+    chatHistory.push({role:'assistant', content: `Error al conectar con el agente: ${e.message}. Verifica la conexión e intenta de nuevo.`});
+  }
+
+  chatLoading = false;
+  document.getElementById('chat-send-btn').disabled = false;
+  renderChat();
+}
+
+// ==================== MODALS ====================
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ==================== HELPERS ====================
+function fmt(n) {
+  if (isNaN(n)) return '—';
+  return '$' + Math.round(n).toLocaleString('es-CO');
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  const [y,m,d] = str.split('-');
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${d} ${MESES[parseInt(m)-1]} ${y}`;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// ==================== INIT ====================
+function init() {
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>
