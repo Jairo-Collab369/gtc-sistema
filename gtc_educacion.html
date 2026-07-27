@@ -65,8 +65,10 @@ body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size
 .doc-title{font-size:14px;font-weight:700;color:#F0F0F0;margin-bottom:6px}
 .doc-desc{font-size:12px;color:#666;line-height:1.55;flex:1;margin-bottom:14px}
 .doc-dl{font-size:11px;font-weight:600;color:#C9A84C;display:flex;align-items:center;gap:6px}
-.doc-newtab{font-size:11px;color:#666;text-decoration:none;margin-top:8px}
-.doc-newtab:hover{color:#C9A84C}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1C1C1C;border:1px solid #C9A84C44;color:#F0F0F0;font-size:13px;padding:10px 18px;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.4);z-index:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* BREADCRUMB */
 .crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:#666;margin-bottom:18px;flex-wrap:wrap}
@@ -285,12 +287,14 @@ body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size
   <div class="mbox wide" style="max-width:900px;height:90vh;padding:0;display:flex;flex-direction:column;overflow:hidden">
     <div class="mhdr" style="margin:0;padding:14px 18px;border-bottom:1px solid #222">
       <div class="mtitle" id="pdf-modal-ttl" style="font-size:14px">Documento</div>
-      <a id="pdf-modal-newtab" href="#" target="_blank" rel="noopener" style="font-size:12px;color:#888;text-decoration:none;white-space:nowrap">↗ Abrir en pestaña nueva</a>
+      <button class="mclose" onclick="sharePdf()" style="font-size:13px;font-weight:600">📤 Compartir</button>
       <button class="mclose" onclick="closePdfModal()" style="font-size:14px;font-weight:600">✕ Cerrar</button>
     </div>
     <iframe id="pdf-modal-frame" src="" style="flex:1;width:100%;border:none;background:#EEE"></iframe>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 // ── CONSTANTS ─────────────────────────────────────────────
@@ -1120,7 +1124,6 @@ function renderHome(data, prog) {
           <div class="doc-title">${esc(d.title)}</div>
           <div class="doc-desc">${esc(d.description)}</div>
           <div class="doc-dl">📄 Ver documento</div>
-          <a class="doc-newtab" href="${esc(d.file)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Abrir en pestaña nueva</a>
         </div>`).join('')}
     </div>
     <div class="page-footer">Educación SCF · <span>Global Trade Commerce S.A.S.</span> · NIT 901.648.628-5</div>
@@ -1481,12 +1484,33 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 function openPdfModal(url, title) {
   document.getElementById('pdf-modal-ttl').textContent = title || 'Documento';
   document.getElementById('pdf-modal-frame').src = url;
-  document.getElementById('pdf-modal-newtab').href = url;
   openModal('pdf-modal');
 }
 function closePdfModal() {
   closeModal('pdf-modal');
   document.getElementById('pdf-modal-frame').src = '';
+}
+function sharePdf() {
+  const url = document.getElementById('pdf-modal-frame').src;
+  const title = document.getElementById('pdf-modal-ttl').textContent;
+  if (!url) return;
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(()=>{});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(()=>showToast('Enlace copiado al portapapeles'))
+      .catch(()=>showToast('No se pudo copiar el enlace'));
+  } else {
+    showToast('No se pudo compartir el enlace');
+  }
+}
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 document.querySelectorAll('.modal').forEach(m => {
   m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
