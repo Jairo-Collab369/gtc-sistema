@@ -56,6 +56,16 @@ body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size
 .mod-prog-text{display:flex;justify-content:space-between;font-size:10px;color:#555}
 .mod-prog-done{color:#4CAF50!important}
 
+/* RECURSOS Y DOCUMENTOS */
+.res-section-title{font-size:12px;font-weight:700;color:#C9A84C;letter-spacing:1px;text-transform:uppercase;margin:8px 0 12px}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px}
+.doc-card{background:#141414;border:1px solid #2A2A2A;border-radius:14px;padding:20px;display:flex;flex-direction:column;text-decoration:none;transition:all .15s}
+.doc-card:hover{border-color:#C9A84C55;transform:translateY(-2px)}
+.doc-icon{font-size:32px;margin-bottom:12px}
+.doc-title{font-size:14px;font-weight:700;color:#F0F0F0;margin-bottom:6px}
+.doc-desc{font-size:12px;color:#666;line-height:1.55;flex:1;margin-bottom:14px}
+.doc-dl{font-size:11px;font-weight:600;color:#C9A84C;display:flex;align-items:center;gap:6px}
+
 /* BREADCRUMB */
 .crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:#666;margin-bottom:18px;flex-wrap:wrap}
 .crumb-link{color:#C9A84C;cursor:pointer;text-decoration:none}
@@ -962,6 +972,11 @@ La primera operación es la más difícil. La segunda es casi automática:
       }
     ]
   }
+],
+documentos: [
+  { id:'d1', icon:'📄', title:'Comparativo de Riesgo Regulatorio — Petromil vs Andes-BP',
+    description:'Análisis comparativo del riesgo regulatorio entre operaciones con Petromil y Andes-BP.',
+    file:'docs/comparativo-riesgo-petromil-andesbp.pdf' }
 ]};
 
 // ── STORAGE ───────────────────────────────────────────────
@@ -1083,6 +1098,15 @@ function renderHome(data, prog) {
           <div class="mod-prog-text"><span class="${d===tot&&tot>0?'mod-prog-done':''}">${d}/${tot} temas</span><span>${p}%</span></div>
         </div>`;
       }).join('')}
+    </div>
+    <div class="res-section-title">Recursos y documentos</div>
+    <div class="doc-grid">
+      ${(data.documentos||INITIAL_DATA.documentos).map(d => `<a class="doc-card" href="${esc(d.file)}" download>
+          <div class="doc-icon">${esc(d.icon)}</div>
+          <div class="doc-title">${esc(d.title)}</div>
+          <div class="doc-desc">${esc(d.description)}</div>
+          <div class="doc-dl">⬇ Descargar PDF</div>
+        </a>`).join('')}
     </div>
     <div class="page-footer">Educación SCF · <span>Global Trade Commerce S.A.S.</span> · NIT 901.648.628-5</div>
   </div>`;
