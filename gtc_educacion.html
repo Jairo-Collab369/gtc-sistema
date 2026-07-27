@@ -1101,7 +1101,7 @@ function renderHome(data, prog) {
     </div>
     <div class="res-section-title">Recursos y documentos</div>
     <div class="doc-grid">
-      ${(data.documentos||INITIAL_DATA.documentos).map(d => `<a class="doc-card" href="${esc(d.file)}" download>
+      ${(data.documentos||INITIAL_DATA.documentos).map(d => `<a class="doc-card" href="${esc(d.file)}" download target="_blank" rel="noopener">
           <div class="doc-icon">${esc(d.icon)}</div>
           <div class="doc-title">${esc(d.title)}</div>
           <div class="doc-desc">${esc(d.description)}</div>
