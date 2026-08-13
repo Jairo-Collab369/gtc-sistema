@@ -223,18 +223,19 @@ async function loadSOFR(){
 
 async function loadDivisas(){
   try{
-    const r = await fetch('https://open.er-api.com/v6/latest/USD');
-    const d = await r.json();
-    if(d.result !== 'success') throw new Error('sin datos');
-    const cop = d.rates.COP;
-    const eur = d.rates.EUR;
-    const chf = d.rates.CHF;
-    if(!cop) throw new Error();
+    const [rTRM, rCross] = await Promise.all([
+      fetch(PROXY+'/trm'),
+      fetch('https://open.er-api.com/v6/latest/USD')
+    ]);
+    const dTRM = await rTRM.json();
+    const dCross = await rCross.json();
+    if(!dTRM.valor) throw new Error('sin dato oficial');
+    const cop = parseFloat(dTRM.valor);
+    const eur = dCross.rates.EUR;
+    const chf = dCross.rates.CHF;
     const f = n => n.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const fecha = d.time_last_update_utc
-      ? new Date(d.time_last_update_utc).toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})
-      : new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
-    setVal('trm', f(cop), 'COP por 1 USD · '+fecha);
+    const fecha = new Date(dTRM.vigenciadesde).toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+    setVal('trm', f(cop), 'COP por 1 USD · TRM oficial Banrep · '+fecha);
     setVal('eur', f(cop/eur), 'COP por 1 EUR · '+fecha);
     setVal('chf', f(cop/chf), 'COP por 1 CHF · '+fecha);
   }catch(e){
@@ -243,7 +244,6 @@ async function loadDivisas(){
     setVal('chf','4.233,91','COP por 1 CHF · última referencia');
   }
 }
-
 async function loadCommodities(){
   try{
     const [rc, rcu] = await Promise.all([
