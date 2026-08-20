@@ -299,7 +299,6 @@ body{background:#0A0A0A;color:#F0F0F0;font-family:system-ui,sans-serif;font-size
 
 <script>
 // ── CONSTANTS ─────────────────────────────────────────────
-const LS_DATA = 'gtc_edu_data';
 const LS_PROG = 'gtc_edu_prog';
 const LS_DOCS_VISTOS = 'gtc_edu_docs_vistos';
 const ADMIN_CODE = 'GTC2025';
@@ -1175,7 +1174,9 @@ documentos: [
 ]};
 
 // ── STORAGE ───────────────────────────────────────────────
-function getData()   { try{ const d=JSON.parse(localStorage.getItem(LS_DATA)); return d&&d.modules?d:null; }catch{return null;} }
+// El CONTENIDO (módulos/temas/documentos) siempre se lee de INITIAL_DATA — nunca de localStorage —
+// para que actualizaciones de código (ej. módulos nuevos) siempre se vean, sin caché desactualizado.
+// Solo el PROGRESO del usuario (done/score por topicId) vive en localStorage, en su propia clave.
 function getProgress(){ try{ return JSON.parse(localStorage.getItem(LS_PROG))||{}; }catch{return {};} }
 function getDocsVistos(){ try{ return JSON.parse(localStorage.getItem(LS_DOCS_VISTOS))||[]; }catch{return [];} }
 function marcarDocVisto(id){
@@ -1185,7 +1186,6 @@ function marcarDocVisto(id){
     localStorage.setItem(LS_DOCS_VISTOS, JSON.stringify(vistos));
   }
 }
-function putData(d)  { localStorage.setItem(LS_DATA, JSON.stringify(d)); }
 function putProgress(p){ localStorage.setItem(LS_PROG, JSON.stringify(p)); }
 
 function allTopics(data) { return data.modules.flatMap(m => m.topics.map(t => ({...t, modId:m.id, modTitle:m.title, modIcon:m.icon}))); }
@@ -1261,7 +1261,7 @@ function parseContent(text) {
 // ── RENDER ────────────────────────────────────────────────
 function render() {
   const app = document.getElementById('app');
-  const data = getData() || INITIAL_DATA;
+  const data = INITIAL_DATA;
   const prog = getProgress();
 
   if (S.view === 'home')   { app.innerHTML = renderHome(data, prog); bindSearch(data); }
@@ -1382,7 +1382,7 @@ function renderTopic(data, prog) {
           </div>
         </div>`).join('')}
       <div class="action-bar" style="margin-top:16px">
-        <button class="btn btn-gold" onclick="submitQuiz('${t.id}',${JSON.stringify(t.quiz).replace(/'/g,'&#39;')})">Enviar respuestas</button>
+        <button class="btn btn-gold" onclick="submitQuiz('${t.id}')">Enviar respuestas</button>
       </div>
     </div>` : '';
 
@@ -1461,7 +1461,10 @@ function selectOpt(label) {
   label.classList.add('sel');
 }
 
-function submitQuiz(topicId, quiz) {
+function submitQuiz(topicId) {
+  const data = INITIAL_DATA;
+  const topic = findTopic(data, topicId);
+  const quiz = topic?.quiz || [];
   let correct = 0;
   const results = quiz.map((q,qi) => {
     const sel = document.querySelector(`input[name="q${qi}"]:checked`);
@@ -1522,7 +1525,7 @@ function bindSearch(data) {
 }
 
 function onSearch(e, q) {
-  const data = getData() || INITIAL_DATA;
+  const data = INITIAL_DATA;
   const res = document.getElementById('search-results');
   if (!q || q.length < 2) { res.style.display='none'; return; }
   const all = allTopics(data);
@@ -1564,7 +1567,7 @@ function checkPw() {
 }
 
 function openModModal(mid) {
-  const data = getData() || INITIAL_DATA;
+  const data = INITIAL_DATA;
   document.getElementById('mod-modal-ttl').textContent = mid ? 'Editar Módulo' : 'Nuevo Módulo';
   document.getElementById('editing-mod-id').value = mid || '';
   if (mid) {
@@ -1582,7 +1585,7 @@ function openModModal(mid) {
 
 function saveMod() {
   const mid = document.getElementById('editing-mod-id').value;
-  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const data = INITIAL_DATA;
   const entry = {
     id: mid || 'm' + Date.now(),
     icon: document.getElementById('mod-icon').value.trim() || '📖',
@@ -1596,21 +1599,19 @@ function saveMod() {
   } else {
     data.modules.push(entry);
   }
-  putData(data);
   closeModal('mod-modal');
   render();
 }
 
 function deleteMod(mid) {
   if (!confirm('¿Eliminar este módulo y todos sus temas? Esta acción no se puede deshacer.')) return;
-  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const data = INITIAL_DATA;
   data.modules = data.modules.filter(m => m.id !== mid);
-  putData(data);
   render();
 }
 
 function openTopicModal(mid, tid) {
-  const data = getData() || INITIAL_DATA;
+  const data = INITIAL_DATA;
   document.getElementById('topic-modal-ttl').textContent = tid ? 'Editar Tema' : 'Nuevo Tema';
   document.getElementById('t-mod-id').value = mid;
   document.getElementById('t-topic-id').value = tid || '';
@@ -1638,7 +1639,7 @@ function saveTopic() {
   let quiz = [];
   if (quizRaw) { try { quiz = JSON.parse(quizRaw); } catch { alert('El formato del quiz no es JSON válido. Revisa la sintaxis.'); return; } }
 
-  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const data = INITIAL_DATA;
   const m = findModule(data, mid);
   if (!m) return;
   const entry = { id: tid || 't' + Date.now(), title, content, quiz };
@@ -1647,19 +1648,17 @@ function saveTopic() {
   } else {
     m.topics.push(entry);
   }
-  putData(data);
   closeModal('topic-modal');
   render();
 }
 
 function deleteTopic(mid, tid) {
   if (!confirm('¿Eliminar este tema? El progreso del tema también se perderá.')) return;
-  const data = getData() || JSON.parse(JSON.stringify(INITIAL_DATA));
+  const data = INITIAL_DATA;
   const m = findModule(data, mid);
   if (m) m.topics = m.topics.filter(t => t.id !== tid);
   const prog = getProgress();
   delete prog[tid];
-  putData(data);
   putProgress(prog);
   render();
 }
@@ -1711,7 +1710,6 @@ function esc(s) {
 
 // ── INIT ──────────────────────────────────────────────────
 (function init() {
-  if (!getData()) putData(INITIAL_DATA);
   render();
 })();
 </script>
