@@ -113,6 +113,13 @@ input.ro{background:#141414;border-color:#222;color:#666}
 .crm-kanban-nombre{font-size:12px;font-weight:600;color:#F0F0F0;margin-bottom:6px;line-height:1.35}
 .crm-kanban-sector{font-size:10px;color:#888;margin-bottom:6px}
 .crm-kanban-resp{font-size:10px;color:#666}
+.oxi-badge-alta{background:#E74C3C22;color:#E74C3C;border:1px solid #E74C3C44}
+.oxi-badge-media{background:#f39c1222;color:#f5b041;border:1px solid #f39c1244}
+.oxi-badge-baja{background:#33333322;color:#888;border:1px solid #44444444}
+.oxi-badge-sinevaluar{background:#1a6fa822;color:#5ba3d9;border:1px solid #1a6fa844}
+.oxi-ubicacion{font-size:11px;color:#666;margin-bottom:8px}
+.oxi-valor{font-size:15px;font-weight:700;color:#E8C96A;margin-bottom:8px}
+.oxi-notas{font-size:11px;color:#777;margin-top:8px;line-height:1.4}
 .crm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px}
 .crm-modal.open{display:flex}
 .crm-modal-box{background:#161616;border:1px solid #333;border-radius:12px;padding:20px;width:min(500px,96vw);margin:auto}
@@ -181,6 +188,7 @@ input.ro{background:#141414;border-color:#222;color:#666}
     <div class="step" id="step-crm" onclick="irCRM()" style="border-left:2px solid #C9A84C33"><span class="step-num">◈</span>CRM</div>
     <div class="step" id="step-ac" onclick="irAC()" style="border-left:2px solid #0F6E5644"><span class="step-num">★</span>COMERCIAL</div>
     <div class="step" id="step-com" onclick="irCOM()" style="border-left:2px solid #C9A84C55"><span class="step-num">$</span>COMISIONES</div>
+    <div class="step" id="step-oxi" onclick="irOXI()" style="border-left:2px solid #E07B3955"><span class="step-num">🏗️</span>OXI RECONSTRUCCIÓN</div>
     <div class="step" id="step-mkt" onclick="window.open('https://jairo-collab369.github.io/gtc-sistema/gtc_market_data_v3.html','_blank')" style="border-left:2px solid #1A5C2E55"><span class="step-num">📈</span>MARKET</div>
     <div class="step" id="step-sup" onclick="window.open('https://jairo-collab369.github.io/gtc-sistema/area5-supervisor.html','_blank')" style="border-left:2px solid #1A3A5C55"><span class="step-num">⚡</span>SUPERVISOR</div>
     <div class="step" id="step-gdi" onclick="window.open('gtc_gdi_agent.html','_blank')" style="border-left:2px solid #C9A84C55"><span class="step-num">🤖</span>GDI</div>
@@ -591,6 +599,35 @@ input.ro{background:#141414;border-color:#222;color:#666}
     </div>
   </div>
 
+  <!-- PANEL OXI RECONSTRUCCIÓN -->
+  <div id="panel-oxi" class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="sec" style="margin:0;border:none;color:#E07B39">🏗️ OXI — RECONSTRUCCIÓN TERREMOTO 10 AGO 2026</div>
+        <div style="font-size:12px;color:#555;margin-top:4px">Oportunidades de Obras por Impuestos — Valle del Cauca, Risaralda, Quindío, Caldas, Chocó, Cauca</div>
+      </div>
+      <button class="btn btn-sec btn-sm" onclick="irPaso(1)" style="width:auto;padding:6px 14px;margin:0;font-size:12px">← Operaciones</button>
+    </div>
+    <button class="add-btn" onclick="openOXIForm(null)">+ Nuevo proyecto OxI</button>
+    <div id="oxi-grid" class="crm-grid"></div>
+  </div>
+
+<!-- MODAL OXI -->
+<div id="oxi-modal" class="crm-modal">
+  <div class="crm-modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:14px;font-weight:700;color:#E8C96A" id="oxi-modal-title">Proyecto OxI</span>
+      <button onclick="closeOXIModal()" style="background:none;border:none;font-size:24px;color:#666;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div id="oxi-modal-body"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-sm" onclick="saveOXIRecord()" style="flex:2;margin:0">Guardar</button>
+      <button class="btn btn-sec btn-sm" id="oxi-del-btn" onclick="deleteOXIRecord()" style="flex:1;margin:0">Eliminar</button>
+      <button class="btn btn-sec btn-sm" onclick="closeOXIModal()" style="flex:1;margin:0">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CRM -->
 <div id="crm-modal" class="crm-modal">
   <div class="crm-modal-box">
@@ -725,6 +762,8 @@ function irAC(){
   document.getElementById('step-crm').classList.remove('active');
   document.getElementById('step-com').classList.remove('active');
   document.getElementById('panel-com').classList.remove('active');
+  document.getElementById('step-oxi').classList.remove('active');
+  document.getElementById('panel-oxi').classList.remove('active');
   document.getElementById('step-ac').classList.add('active');
   document.getElementById('panel-ac').classList.add('active');
   window.scrollTo(0,0);
@@ -735,9 +774,24 @@ function irCOM(){
   document.getElementById('step-crm').classList.remove('active');
   document.getElementById('panel-ac').classList.remove('active');
   document.getElementById('step-ac').classList.remove('active');
+  document.getElementById('step-oxi').classList.remove('active');
+  document.getElementById('panel-oxi').classList.remove('active');
   document.getElementById('step-com').classList.add('active');
   document.getElementById('panel-com').classList.add('active');
   renderComisiones();
+  window.scrollTo(0,0);
+}
+function irOXI(){
+  for(var i=1;i<=4;i++){document.getElementById('panel'+i).classList.remove('active');document.getElementById('step'+i).classList.remove('active','done');}
+  document.getElementById('panel-crm').classList.remove('active');
+  document.getElementById('step-crm').classList.remove('active');
+  document.getElementById('panel-ac').classList.remove('active');
+  document.getElementById('step-ac').classList.remove('active');
+  document.getElementById('panel-com').classList.remove('active');
+  document.getElementById('step-com').classList.remove('active');
+  document.getElementById('step-oxi').classList.add('active');
+  document.getElementById('panel-oxi').classList.add('active');
+  renderOXI();
   window.scrollTo(0,0);
 }
 // ── UTILIDADES ────────────────────────────────────────────────────────────────
@@ -755,6 +809,8 @@ function irPaso(n){
   document.getElementById("panel-ac").classList.remove("active");
   document.getElementById("step-com").classList.remove("active");
   document.getElementById("panel-com").classList.remove("active");
+  document.getElementById("step-oxi").classList.remove("active");
+  document.getElementById("panel-oxi").classList.remove("active");
   for(var i=1;i<=4;i++){document.getElementById("panel"+i).classList.toggle("active",i===n);var s=document.getElementById("step"+i);s.classList.remove("active","done");if(i===n)s.classList.add("active");else if(i<n)s.classList.add("done");}
   if(n===2)renderContratoStatus();
   if(n===3&&clienteActual)prepararPaso3();
@@ -872,7 +928,7 @@ var crmEditId=null,crmMetricFiltro=null,crmVista="lista";
 function toggleCRMVista(){crmVista=(crmVista==="lista"?"kanban":"lista");document.getElementById("crm-vista-toggle").textContent=(crmVista==="lista"?"🗂️ Vista Kanban":"📋 Vista Lista");document.getElementById("crm-grid").style.display=(crmVista==="lista"?"":"none");document.getElementById("crm-kanban").style.display=(crmVista==="kanban"?"":"none");document.getElementById("crm-export-kanban-btn").style.display=(crmVista==="kanban"?"":"none");renderCRM();}
 function crmSave(){localStorage.setItem("gtc_crm",JSON.stringify(CRM_DATA));}
 function crmEsc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
-function irCRM(){for(var i=1;i<=4;i++){document.getElementById("panel"+i).classList.remove("active");document.getElementById("step"+i).classList.remove("active","done");}document.getElementById("step-ac").classList.remove("active");document.getElementById("panel-ac").classList.remove("active");document.getElementById("step-com").classList.remove("active");document.getElementById("panel-com").classList.remove("active");document.getElementById("step-crm").classList.add("active");document.getElementById("panel-crm").classList.add("active");renderCRM();window.scrollTo(0,0);}
+function irCRM(){for(var i=1;i<=4;i++){document.getElementById("panel"+i).classList.remove("active");document.getElementById("step"+i).classList.remove("active","done");}document.getElementById("step-ac").classList.remove("active");document.getElementById("panel-ac").classList.remove("active");document.getElementById("step-com").classList.remove("active");document.getElementById("panel-com").classList.remove("active");document.getElementById("step-oxi").classList.remove("active");document.getElementById("panel-oxi").classList.remove("active");document.getElementById("step-crm").classList.add("active");document.getElementById("panel-crm").classList.add("active");renderCRM();window.scrollTo(0,0);}
 function renderComisiones(){
   var el=document.getElementById('com-panel-body');
   if(!ultimasComisiones){el.innerHTML="<div style='color:#555;font-size:13px;padding:48px 0;text-align:center'>Genera una Orden de Operación para ver el desglose de comisiones.</div>";return;}
@@ -921,6 +977,24 @@ function saveCRMRecord(){var nombre=document.getElementById("cf-nombre").value.t
 function deleteCRMRecord(){if(!crmEditId||!confirm("¿Eliminar este cliente del CRM?"))return;CRM_DATA=CRM_DATA.filter(function(x){return x.id!==crmEditId;});crmSave();closeCRMModal();renderCRM();}
 function exportCRM(){var cols=["Nombre","NIT/EIN","País","Sector","Responsable","Etapa","Seguimiento","Email","Teléfono","Notas"];var rows=CRM_DATA.map(function(c){var e=(CRM_ETAPAS[c.etapa]||{label:c.etapa}).label;return[c.nombre,c.nit,c.pais,c.sector,c.responsable,e,c.seguimiento,c.email,c.telefono,(c.notas||"").replace(/\n/g," ")].map(function(v){return'"'+(v||"").replace(/"/g,'""')+'"';}).join(",");});var csv="﻿"+cols.join(",")+"\n"+rows.join("\n");var a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="GTC_CRM_"+hoy()+".csv";a.click();}
 function exportCRMKanban(){var etapas=Object.keys(CRM_ETAPAS).sort(function(a,b){return CRM_ETAPAS[a].order-CRM_ETAPAS[b].order;});var filt=crmFiltrar();var cols=["Etapa","Nombre","Sector","Responsable"];var rows=[];etapas.forEach(function(k){filt.filter(function(c){return c.etapa===k;}).forEach(function(c){rows.push([CRM_ETAPAS[k].label,c.nombre,c.sector,c.responsable].map(function(v){return'"'+(v||"").replace(/"/g,'""')+'"';}).join(","));});});var csv="﻿"+cols.join(",")+"\n"+rows.join("\n");var a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="GTC_Kanban_"+hoy()+".csv";a.click();}
+
+// ── OXI RECONSTRUCCIÓN (módulo independiente — NO comparte datos con CRM/CLIENTES) ──
+var LS_OXI="gtc_oxi_proyectos";
+var OXI_PRIORIDAD={"ALTA":{label:"ALTA",cls:"oxi-badge-alta",rank:1},"MEDIA":{label:"MEDIA",cls:"oxi-badge-media",rank:2},"BAJA":{label:"BAJA",cls:"oxi-badge-baja",rank:3},"SIN EVALUAR":{label:"SIN EVALUAR",cls:"oxi-badge-sinevaluar",rank:4}};
+var OXI_ESTADOS=["Identificado","Contacto iniciado","En negociación","Descartado"];
+var OXI_DEPARTAMENTOS=["Valle del Cauca","Risaralda","Quindío","Caldas","Chocó","Cauca","Otro"];
+var OXI_INICIAL=[
+  {id:"oxi01",nombreProyecto:"I.E. Primitivo Crespo",municipio:"Riofrío",departamento:"Valle del Cauca",valorObra:32656000000,contribuyentes:"Grupo Aval (vía holding Proindesa, administrado por Aval Asset Management)",numeroContribuyentes:1,gerenteProyecto:"",prioridad:"ALTA",estado:"Identificado",notas:"Obra grande con demolición + construcción nueva, alto consumo de materiales de construcción"},
+  {id:"oxi02",nombreProyecto:"Mistrató–Belén de Umbría",municipio:"Mistrató / Belén de Umbría",departamento:"Risaralda",valorObra:34706000000,contribuyentes:"12 empresas lideradas por Autopistas del Café",numeroContribuyentes:12,gerenteProyecto:"",prioridad:"ALTA",estado:"Identificado",notas:"El proyecto más grande de los 5 departamentos. Acompañamiento de la Gobernación de Risaralda y la Fundación Grupo Argos. 12 contribuyentes = 12 puntos de entrada comercial posibles."}
+];
+var OXI_PROYECTOS=(function(){var s=localStorage.getItem(LS_OXI);if(s)try{return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(OXI_INICIAL));})();
+var oxiEditId=null;
+function oxiSave(){localStorage.setItem(LS_OXI,JSON.stringify(OXI_PROYECTOS));}
+function renderOXI(){var list=OXI_PROYECTOS.slice().sort(function(a,b){var ra=(OXI_PRIORIDAD[a.prioridad]||{rank:9}).rank,rb=(OXI_PRIORIDAD[b.prioridad]||{rank:9}).rank;if(ra!==rb)return ra-rb;return(b.valorObra||0)-(a.valorObra||0);});if(!list.length){document.getElementById("oxi-grid").innerHTML="<div style='color:#555;font-size:13px;padding:24px 0'>Sin proyectos registrados.</div>";return;}document.getElementById("oxi-grid").innerHTML=list.map(function(p){var pr=OXI_PRIORIDAD[p.prioridad]||{label:p.prioridad||"SIN EVALUAR",cls:"oxi-badge-sinevaluar"};return "<div class='crm-card' onclick='openOXIForm(\""+p.id+"\")'><div class='crm-nombre'>"+crmEsc(p.nombreProyecto)+"</div><div class='oxi-ubicacion'>"+crmEsc(p.municipio)+" · "+crmEsc(p.departamento)+"</div><div class='oxi-valor'>"+cop(p.valorObra||0)+"</div><div class='crm-badges'><span class='crm-badge "+pr.cls+"'>"+pr.label+"</span><span class='crm-badge' style='background:#1E1E1E;color:#666;border:1px solid #2A2A2A'>"+crmEsc(p.estado||"")+"</span></div><div class='crm-footer'><span class='crm-resp'>"+crmEsc(p.contribuyentes||"")+(p.numeroContribuyentes>1?" ("+p.numeroContribuyentes+")":"")+"</span></div>"+(p.gerenteProyecto?"<div class='oxi-notas'>Gerente: "+crmEsc(p.gerenteProyecto)+"</div>":"")+(p.notas?"<div class='oxi-notas'>"+crmEsc(p.notas)+"</div>":"")+"</div>";}).join("");}
+function openOXIForm(id){oxiEditId=id;var p=id?OXI_PROYECTOS.find(function(x){return x.id===id;})||{}:{};document.getElementById("oxi-modal-title").textContent=id?"Editar proyecto OxI":"Nuevo proyecto OxI";document.getElementById("oxi-del-btn").style.display=id?"":"none";var depOpts=OXI_DEPARTAMENTOS.map(function(d){return "<option"+(p.departamento===d?" selected":"")+">"+d+"</option>";}).join("");var prioOpts=Object.keys(OXI_PRIORIDAD).map(function(k){return "<option value='"+k+"'"+((p.prioridad||"SIN EVALUAR")===k?" selected":"")+">"+OXI_PRIORIDAD[k].label+"</option>";}).join("");var estOpts=OXI_ESTADOS.map(function(e){return "<option"+((p.estado||"Identificado")===e?" selected":"")+">"+e+"</option>";}).join("");document.getElementById("oxi-modal-body").innerHTML="<div class='lbl'>Nombre del proyecto</div><input id='of-nombre' value='"+crmEsc(p.nombreProyecto||"")+"' placeholder='ej. I.E. Primitivo Crespo'><div class='grid2'><div><div class='lbl'>Municipio</div><input id='of-municipio' value='"+crmEsc(p.municipio||"")+"'></div><div><div class='lbl'>Departamento</div><select id='of-departamento'>"+depOpts+"</select></div></div><div class='grid2'><div><div class='lbl'>Valor de la obra (COP)</div><input id='of-valor' inputmode='numeric' value='"+(p.valorObra||"")+"'></div><div><div class='lbl'>N° de contribuyentes</div><input id='of-numcontrib' inputmode='numeric' value='"+(p.numeroContribuyentes||"")+"'></div></div><div class='lbl'>Contribuyente(s)</div><input id='of-contribuyentes' value='"+crmEsc(p.contribuyentes||"")+"' placeholder='ej. Grupo Aval / consorcio de empresas'><div class='grid2'><div><div class='lbl'>Prioridad</div><select id='of-prioridad'>"+prioOpts+"</select></div><div><div class='lbl'>Estado</div><select id='of-estado'>"+estOpts+"</select></div></div><div class='lbl'>Gerente del proyecto</div><input id='of-gerente' value='"+crmEsc(p.gerenteProyecto||"")+"'><div class='lbl'>Notas</div><textarea id='of-notas'>"+crmEsc(p.notas||"")+"</textarea>";document.getElementById("oxi-modal").classList.add("open");}
+function closeOXIModal(){document.getElementById("oxi-modal").classList.remove("open");}
+function saveOXIRecord(){var nombre=document.getElementById("of-nombre").value.trim();if(!nombre){alert("Ingresa el nombre del proyecto.");return;}var rec={id:oxiEditId||("oxi_"+Date.now().toString(36)+Math.random().toString(36).slice(2,5)),nombreProyecto:nombre,municipio:document.getElementById("of-municipio").value.trim(),departamento:document.getElementById("of-departamento").value,valorObra:parseInt(document.getElementById("of-valor").value,10)||0,contribuyentes:document.getElementById("of-contribuyentes").value.trim(),numeroContribuyentes:parseInt(document.getElementById("of-numcontrib").value,10)||0,gerenteProyecto:document.getElementById("of-gerente").value.trim(),prioridad:document.getElementById("of-prioridad").value,estado:document.getElementById("of-estado").value,notas:document.getElementById("of-notas").value.trim()};if(oxiEditId){var i=OXI_PROYECTOS.findIndex(function(x){return x.id===oxiEditId;});if(i>=0)OXI_PROYECTOS[i]=rec;}else OXI_PROYECTOS.push(rec);oxiSave();closeOXIModal();renderOXI();}
+function deleteOXIRecord(){if(!oxiEditId||!confirm("¿Eliminar este proyecto OxI?"))return;OXI_PROYECTOS=OXI_PROYECTOS.filter(function(x){return x.id!==oxiEditId;});oxiSave();closeOXIModal();renderOXI();}
 renderClientes();
 document.getElementById("oo-fecha").value=hoy();
 document.getElementById("cm-fecha-input").value=hoy();
