@@ -71,6 +71,8 @@
     <div class="brand">AGENTE LIQUIDADOR</div>
     <div class="sub">Compraventa bilateral · conectado al Agente Cartera</div>
   </div>
+  <div style="flex:1"></div>
+  <a href="index.html" style="color:var(--gold-lite);text-decoration:none;font-size:12px;border:1px solid var(--border);padding:7px 12px;border-radius:7px;white-space:nowrap">← Volver al Sistema GTC</a>
 </div>
 
 <div class="wrap">
@@ -118,9 +120,9 @@
           <option value="">Seleccionar...</option>
           <option value="bmc_mq">BMC Miguel Quijano (bolsa)</option>
           <option value="bmc_mb">BMC Mercado y Bolsa (bolsa)</option>
-          <option value="colte">Coltefinanciera (anual/365)</option>
-          <option value="iris">Irisbank (anual/365)</option>
-          <option value="integra">Integra (anual/365)</option>
+          <option value="colte">Coltefinanciera (anual/360)</option>
+          <option value="iris">Irisbank (anual/360)</option>
+          <option value="integra">Integra (anual/360)</option>
           <option value="cesion">Cesion Bank (mensual)</option>
           <option value="servifin">Servifin (mensual)</option>
           <option value="liquitech">Liquitech (mensual)</option>
@@ -162,7 +164,7 @@
           <input type="number" step="0.01" id="reserva-anual" placeholder="0 / 5 / etc">
         </div>
       </div>
-      <div class="hint">Intereses = VF × tasa anual × (días/365). Coltefinanciera además cobra costo fijo $14.700.</div>
+      <div class="hint">Intereses = VF × tasa anual × (días/360). Coltefinanciera además cobra costo fijo $14.700.</div>
     </div>
 
     <div id="campos-mensual" style="display:none">
@@ -200,6 +202,7 @@
       <div class="field">
         <label>Plazo total operación (días, para vencimiento)</label>
         <input type="number" id="plazo-total" placeholder="Ej: 180">
+        <div class="hint" id="hint-plazo">En 🔵 Preliquidación, usa el plazo estándar (SIIGO). En 🟢 Liquidación Final, usa el plazo real que el fondeador pactó con el pagador — así corrige automáticamente el vencimiento en el Cartera, sin duplicar la operación.</div>
       </div>
       <div class="field">
         <label>¿Quién asume GMF (4×1000)?</label>
@@ -210,7 +213,7 @@
         </select>
       </div>
     </div>
-    <div class="note">IVA y retefuente se calculan automáticamente: si el producto es agropecuario y se registra en bolsa, IVA 5% y retefuente 0% (Decreto 1555/2017). Si no, IVA 19% y retefuente 2,5% (ajustable si la firma comisionista negoció otra tarifa con el cliente).</div>
+    <div class="note">IVA y retefuente se calculan automáticamente: si el producto es agropecuario y se registra en bolsa, IVA 5% y retefuente 0% (Decreto 1555/2017). Si no, IVA 19% y retefuente 2,5% (ajustable si la firma comisionista negoció otra tarifa con el cliente). El IVA se calcula "por dentro" del diferencial (Diferencial × tasa/(1+tasa)) — el diferencial ya viene con IVA incluido, igual que el Valor Facial, no se le suma un IVA aparte.</div>
     <div class="grid2" style="margin-top:10px">
       <div class="field">
         <label>Retefuente cliente (%) — ajustar si aplica tarifa distinta</label>
@@ -326,13 +329,13 @@ function calcular(){
     const tasa = num('tasa-anual') / 100;
     const dias = num('dias-anual');
     const reservaPct = num('reserva-anual') / 100;
-    const intereses = vf * tasa * (dias/365);
+    const intereses = vf * tasa * (dias/360);
     const costoFijo = f.costoFijo || 0;
     const reserva = vf * reservaPct;
     costoFondeadorTotal = intereses + costoFijo + reserva;
     giroFondeadorAGTC = vf - intereses - costoFijo - reserva;
     detalleFondeador = [
-      ['Intereses (VF × tasa anual × días/365)', -intereses],
+      ['Intereses (VF × tasa anual × días/360)', -intereses],
       costoFijo ? ['Costo fijo fondeador', -costoFijo] : null,
       reserva ? ['Reserva fondeador ('+num('reserva-anual')+'%) — se libera al vencimiento', -reserva] : null,
     ].filter(Boolean);
@@ -353,7 +356,9 @@ function calcular(){
   const diferencialPct = num('diferencial') / 100;
   const diferencialGTC = vf * diferencialPct;
   const ivaPct = agro === 'si' ? 0.05 : 0.19;
-  const ivaDiferencial = diferencialGTC * ivaPct;
+  // IVA "por dentro": el diferencial ya viene con IVA incluido (igual que el VF),
+  // así que se extrae la porción de IVA, no se calcula como un cargo aparte.
+  const ivaDiferencial = diferencialGTC * (ivaPct / (1 + ivaPct));
   const retefuentePct = num('retefuente-override') / 100;
   const retefuente = vf * retefuentePct;
 
@@ -374,9 +379,8 @@ function calcular(){
       html += `<div class="rline neg"><span class="l">${l}</span><span class="v">${fmt(v)}</span></div>`;
     });
     html += `<div class="rline total"><span class="l">Giro Fondeador → GTC</span><span class="v">${fmt(giroFondeadorAGTC)}</span></div>`;
-  }
-  html += `<div class="rline neg"><span class="l">Diferencial GTC (${$('diferencial').value||0}%)</span><span class="v">${fmt(-diferencialGTC)}</span></div>`;
-  html += `<div class="rline neg"><span class="l">IVA sobre diferencial (${(ivaPct*100).toFixed(0)}% — ${agro==='si'?'agropecuario':'no agropecuario'})</span><span class="v">${fmt(-ivaDiferencial)}</span></div>`;
+  }  html += `<div class="rline neg"><span class="l">Diferencial GTC (${$('diferencial').value||0}%)</span><span class="v">${fmt(-diferencialGTC)}</span></div>`;
+  html += `<div class="rline neg"><span class="l">IVA descontable, por dentro (${(ivaPct*100).toFixed(0)}% — ${agro==='si'?'agropecuario':'no agropecuario'})</span><span class="v">${fmt(-ivaDiferencial)}</span></div>`;
   if(retefuente > 0) html += `<div class="rline neg"><span class="l">Retefuente cliente (${$('retefuente-override').value||0}%)</span><span class="v">${fmt(-retefuente)}</span></div>`;
   if(gmf > 0) html += `<div class="rline neg"><span class="l">GMF 4×1000 (cargo: ${gmfCargo==='gtc'?'GTC':'Cliente'})</span><span class="v">${fmt(-gmf)}</span></div>`;
   html += `<div class="rline total"><span class="l">Giro final GTC → Cliente/Proveedor</span><span class="v">${fmt(giroCliente)}</span></div>`;
@@ -439,23 +443,44 @@ $('btn-guardar').addEventListener('click', () => {
   });
   localStorage.setItem(STORAGE_KEY_LIQ, JSON.stringify(liquidaciones));
 
-  // 2. Enviar registro resumido al Agente Cartera (misma clave que ya usa)
+  // 2. Enviar/actualizar registro en el Agente Cartera (misma clave que ya usa)
+  // Si ya existe una operación con el mismo cliente + factura, se ACTUALIZA
+  // (no se duplica) — así el vencimiento pactado con el fondeador reemplaza
+  // al estimado, en vez de crear una fila nueva.
   const carteraOps = JSON.parse(localStorage.getItem(STORAGE_KEY_CARTERA) || '[]');
-  carteraOps.push({
-    id: Date.now() + 1,
+  const tipoFecha = modo === 'final' ? 'CONFIRMADA' : 'ESTIMADA';
+  const idxExistente = carteraOps.findIndex(o =>
+    (o.cliente||'').trim().toLowerCase() === cliente.trim().toLowerCase() &&
+    (o.factura||'').trim() === factura.trim() &&
+    factura.trim() !== ''
+  );
+
+  const registroCartera = {
+    id: idxExistente >= 0 ? carteraOps[idxExistente].id : Date.now() + 1,
     cliente,
     fondeador: FONDEADORES[fondeadorKey].nombre,
     factura,
     valorFacial: calc.vf,
     fechaEmision,
     fechaVencimiento,
+    tipoFecha,
     estado: $('estado-op').value,
-    observaciones: modo === 'pre' ? 'Preliquidación' : 'Liquidación final'
-  });
+    observaciones: modo === 'pre' ? 'Preliquidación (SIIGO)' : 'Liquidación final (pactada con fondeador)'
+  };
+
+  let accionCartera;
+  if(idxExistente >= 0){
+    carteraOps[idxExistente] = registroCartera;
+    accionCartera = 'actualizada';
+  } else {
+    carteraOps.push(registroCartera);
+    accionCartera = 'creada';
+  }
   localStorage.setItem(STORAGE_KEY_CARTERA, JSON.stringify(carteraOps));
 
   msg.style.color = '#5fce85';
-  msg.textContent = `✓ Liquidación guardada y enviada al Agente Cartera (vencimiento: ${fVenc.toLocaleDateString('es-CO')}).`;
+  const etiquetaTipo = tipoFecha === 'CONFIRMADA' ? 'CONFIRMADA con el fondeador' : 'ESTIMADA (SIIGO)';
+  msg.textContent = `✓ Liquidación guardada. Operación en el Cartera: ${accionCartera} — fecha ${etiquetaTipo} (${fVenc.toLocaleDateString('es-CO')}).`;
 });
 
 calcular();
