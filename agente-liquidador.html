@@ -245,6 +245,7 @@
 
 <script>
 const STORAGE_KEY_CARTERA = 'gtc_cartera_operaciones';
+const API_CARTERA = 'https://gtc-proxy.comercioglobal.workers.dev/cartera';
 const STORAGE_KEY_LIQ = 'gtc_liquidaciones';
 
 const FONDEADORES = {
@@ -399,7 +400,7 @@ $('btn-limpiar').addEventListener('click', () => {
   $('saved-msg').textContent = '';
 });
 
-$('btn-guardar').addEventListener('click', () => {
+$('btn-guardar').addEventListener('click', async () => {
   const cliente = $('cliente').value.trim();
   const factura = $('factura').value.trim();
   const fondeadorKey = $('fondeador').value;
@@ -443,11 +444,21 @@ $('btn-guardar').addEventListener('click', () => {
   });
   localStorage.setItem(STORAGE_KEY_LIQ, JSON.stringify(liquidaciones));
 
-  // 2. Enviar/actualizar registro en el Agente Cartera (misma clave que ya usa)
-  // Si ya existe una operación con el mismo cliente + factura, se ACTUALIZA
-  // (no se duplica) — así el vencimiento pactado con el fondeador reemplaza
-  // al estimado, en vez de crear una fila nueva.
-  const carteraOps = JSON.parse(localStorage.getItem(STORAGE_KEY_CARTERA) || '[]');
+  // 2. Enviar/actualizar registro en el Agente Cartera — ahora en la nube
+  // compartida (además de guardar copia local). Primero se trae la versión
+  // más reciente de la nube, para no pisar cambios de otro dispositivo.
+  msg.style.color = '#e8c15f';
+  msg.textContent = '⏳ Sincronizando con la nube...';
+
+  let carteraOps = [];
+  try{
+    const r = await fetch(API_CARTERA, { cache: 'no-store' });
+    if(r.ok) carteraOps = await r.json();
+  }catch(e){
+    // Sin conexión: seguimos con la copia local como respaldo
+    carteraOps = JSON.parse(localStorage.getItem(STORAGE_KEY_CARTERA) || '[]');
+  }
+
   const tipoFecha = modo === 'final' ? 'CONFIRMADA' : 'ESTIMADA';
   const idxExistente = carteraOps.findIndex(o =>
     (o.cliente||'').trim().toLowerCase() === cliente.trim().toLowerCase() &&
@@ -478,9 +489,26 @@ $('btn-guardar').addEventListener('click', () => {
   }
   localStorage.setItem(STORAGE_KEY_CARTERA, JSON.stringify(carteraOps));
 
-  msg.style.color = '#5fce85';
+  let nubeOk = true;
+  try{
+    const r2 = await fetch(API_CARTERA, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(registroCartera)
+    });
+    if(!r2.ok) throw new Error('respuesta no OK');
+  }catch(e){
+    nubeOk = false;
+  }
+
   const etiquetaTipo = tipoFecha === 'CONFIRMADA' ? 'CONFIRMADA con el fondeador' : 'ESTIMADA (SIIGO)';
-  msg.textContent = `✓ Liquidación guardada. Operación en el Cartera: ${accionCartera} — fecha ${etiquetaTipo} (${fVenc.toLocaleDateString('es-CO')}).`;
+  if(nubeOk){
+    msg.style.color = '#5fce85';
+    msg.textContent = `✓ Liquidación guardada y sincronizada con la nube. Operación en el Cartera: ${accionCartera} — fecha ${etiquetaTipo} (${fVenc.toLocaleDateString('es-CO')}).`;
+  }else{
+    msg.style.color = '#e8807f';
+    msg.textContent = `⚠ Liquidación guardada SOLO en este dispositivo (sin conexión a la nube). Operación: ${accionCartera} — fecha ${etiquetaTipo} (${fVenc.toLocaleDateString('es-CO')}). Vuelve a intentar cuando tengas internet.`;
+  }
 });
 
 calcular();

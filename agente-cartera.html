@@ -92,6 +92,7 @@
     <div class="sub">Vencimientos en vivo · Global Trade Commerce S.A.S.</div>
   </div>
   <div style="flex:1"></div>
+  <span id="nube-indicador" style="font-size:11px;color:var(--txt-dim);margin-right:10px">⏳ Conectando...</span>
   <a href="index.html" style="color:var(--gold-lite);text-decoration:none;font-size:12px;border:1px solid var(--border);padding:7px 12px;border-radius:7px;white-space:nowrap">← Volver al Sistema GTC</a>
 </div>
 
@@ -139,6 +140,7 @@
       <button class="btn ghost" id="btn-ultimo-mes" title="Filtrar por los últimos 30 días de emisión">Último mes</button>
       <button class="btn ghost" id="btn-180" title="Filtrar por los últimos 180 días de emisión (plazo estándar GTC)">Últimos 180 días</button>
       <div class="spacer"></div>
+      <button class="btn ghost" id="btn-refrescar" title="Traer los últimos cambios de la nube">🔄 Actualizar</button>
       <button class="btn ghost" id="btn-exportar">⬇ Exportar JSON</button>
       <button class="btn" id="btn-nueva-top">+ Nueva operación</button>
     </div>
@@ -299,16 +301,85 @@
 
 <script>
 const STORAGE_KEY = 'gtc_cartera_operaciones';
+const API_URL = 'https://gtc-proxy.comercioglobal.workers.dev/cartera';
+let sincronizado = false;
 
-function loadOps(){
+function loadOpsLocal(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){ return []; }
 }
-function saveOps(ops){
+function saveOpsLocal(ops){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ops));
 }
+
+async function cargarDesdeNube(){
+  try{
+    const r = await fetch(API_URL, { cache: 'no-store' });
+    if(!r.ok) throw new Error('respuesta no OK');
+    const datos = await r.json();
+    saveOpsLocal(datos);
+    sincronizado = true;
+    actualizarIndicadorNube();
+    return datos;
+  }catch(e){
+    sincronizado = false;
+    actualizarIndicadorNube();
+    return loadOpsLocal();
+  }
+}
+
+async function guardarEnNube(payload){
+  saveOpsLocal(Array.isArray(payload) ? payload : (() => {
+    const actuales = loadOpsLocal();
+    const idx = actuales.findIndex(o => String(o.id) === String(payload.id));
+    if(idx >= 0) actuales[idx] = payload; else actuales.push(payload);
+    return actuales;
+  })());
+  try{
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error('respuesta no OK');
+    sincronizado = true;
+  }catch(e){
+    sincronizado = false;
+  }
+  actualizarIndicadorNube();
+}
+
+async function eliminarDeNube(id){
+  const actuales = loadOpsLocal().filter(o => String(o.id) !== String(id));
+  saveOpsLocal(actuales);
+  try{
+    const r = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if(!r.ok) throw new Error('respuesta no OK');
+    sincronizado = true;
+  }catch(e){
+    sincronizado = false;
+  }
+  actualizarIndicadorNube();
+}
+
+function actualizarIndicadorNube(){
+  const el = document.getElementById('nube-indicador');
+  if(!el) return;
+  if(sincronizado){
+    el.textContent = '🟢 Sincronizado con la nube';
+    el.style.color = '#5fce85';
+  }else{
+    el.textContent = '🔴 Sin conexión — usando copia local de este dispositivo';
+    el.style.color = '#e8807f';
+  }
+}
+
+// Compatibilidad con el resto del código: loadOps() sigue existiendo
+// pero ahora lee de la copia local (que se mantiene sincronizada con la nube).
+function loadOps(){ return loadOpsLocal(); }
+function saveOps(ops){ saveOpsLocal(ops); guardarEnNube(ops); }
 
 function diasAlVencimiento(fechaVenc){
   const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -552,7 +623,18 @@ document.getElementById('btn-limpiar').addEventListener('click', () => {
   render();
 });
 
+document.getElementById('btn-refrescar').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-refrescar');
+  btn.textContent = '⏳ Actualizando...';
+  await cargarDesdeNube();
+  render();
+  btn.textContent = '🔄 Actualizar';
+});
+
+// Carga inicial: primero muestra lo que haya en local (rápido),
+// luego trae la version real de la nube y refresca.
 render();
+cargarDesdeNube().then(() => render());
 </script>
 </body>
 </html>
