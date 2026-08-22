@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTC — Agente Liquidador</title>
+<style>
+  :root{
+    --neg:#0A0A0A; --neg2:#141414; --neg3:#1c1c1c;
+    --gold:#C8A951; --gold-lite:#E8C96A;
+    --green:#1A5C2E; --green-lite:#2E8B4E;
+    --red:#B23B3B; --yellow:#C9A030; --blue:#3a6ea5;
+    --txt:#F0F0F0; --txt-dim:#9a9a9a; --border:#2a2a2a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--neg);color:var(--txt);font-family:system-ui,-apple-system,Arial,sans-serif;min-height:100vh;font-size:14px}
+  .header{background:var(--neg2);border-bottom:1px solid #C8A95144;padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30}
+  .logo{width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--neg);flex-shrink:0}
+  .brandwrap{display:flex;flex-direction:column;line-height:1.2}
+  .brand{font-size:14px;font-weight:700;color:var(--gold-lite);letter-spacing:.5px}
+  .sub{font-size:10.5px;color:var(--txt-dim)}
+  .wrap{max-width:920px;margin:0 auto;padding:18px 16px 80px}
+
+  .modewrap{display:flex;gap:6px;margin-bottom:16px}
+  .modebtn{flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:var(--neg2);color:var(--txt-dim);font-weight:700;font-size:12.5px;cursor:pointer;text-align:center}
+  .modebtn.active.pre{border-color:var(--blue);background:#3a6ea522;color:#8fbfea}
+  .modebtn.active.final{border-color:var(--green-lite);background:#1A5C2E33;color:#7fd99a}
+
+  .card{background:var(--neg2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
+  .card h3{font-size:12.5px;color:var(--gold-lite);margin-bottom:14px;text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:8px}
+  .card h3 .n{width:20px;height:20px;border-radius:5px;background:#C8A95122;color:var(--gold-lite);display:flex;align-items:center;justify-content:center;font-size:11px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+  label{display:block;font-size:10.5px;color:var(--txt-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+  .field{margin-bottom:12px}
+  input,select{width:100%;background:var(--neg3);border:1px solid var(--border);color:var(--txt);padding:9px 10px;border-radius:7px;font-size:13.5px;font-family:inherit}
+  input:focus,select:focus{outline:1px solid var(--gold);border-color:var(--gold)}
+  .hint{font-size:11px;color:var(--txt-dim);margin-top:4px}
+
+  .toggle-row{display:flex;gap:8px}
+  .toggle{flex:1;padding:9px;text-align:center;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--txt-dim)}
+  .toggle.on{border-color:var(--gold);background:#C8A95118;color:var(--gold-lite)}
+
+  .resultbox{background:var(--neg3);border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-top:6px}
+  .rline{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed #2a2a2a}
+  .rline:last-child{border-bottom:none}
+  .rline .l{color:var(--txt-dim)}
+  .rline .v{font-weight:700;font-variant-numeric:tabular-nums}
+  .rline.neg .v{color:#e08080}
+  .rline.total{border-top:1px solid var(--gold);margin-top:6px;padding-top:10px}
+  .rline.total .v{color:var(--gold-lite);font-size:16px}
+  .rline.total .l{color:var(--gold-lite);font-weight:700;text-transform:uppercase;font-size:11.5px}
+
+  .btn{background:var(--gold);color:var(--neg);border:none;padding:11px 18px;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer;width:100%}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--txt);font-weight:600}
+  .btn2row{display:flex;gap:10px;margin-top:16px}
+
+  .badge{font-size:10px;background:#C8A95122;color:var(--gold-lite);padding:2px 7px;border-radius:5px;font-weight:700}
+  .note{font-size:11.5px;color:var(--txt-dim);line-height:1.5;margin-top:8px}
+  .savedmsg{text-align:center;font-size:12.5px;margin-top:10px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">GTC</div>
+  <div class="brandwrap">
+    <div class="brand">AGENTE LIQUIDADOR</div>
+    <div class="sub">Compraventa bilateral · conectado al Agente Cartera</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="modewrap">
+    <button class="modebtn active pre" id="btn-pre" data-mode="pre">🔵 PRELIQUIDACIÓN (tasa estimada)</button>
+    <button class="modebtn final" id="btn-final" data-mode="final">🟢 LIQUIDACIÓN FINAL (tasa real)</button>
+  </div>
+
+  <!-- 1. IDENTIFICACIÓN -->
+  <div class="card">
+    <h3><span class="n">1</span> Identificación de la operación</h3>
+    <div class="grid2">
+      <div class="field">
+        <label>Cliente / Deudor</label>
+        <input type="text" id="cliente" placeholder="Ej: CI Empaquetadora del Norte SAS BIC">
+      </div>
+      <div class="field">
+        <label>No. Factura GTC (venta)</label>
+        <input type="text" id="factura" placeholder="Ej: 117">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Producto</label>
+        <input type="text" id="producto" placeholder="Ej: Aceite crudo de palma granel">
+      </div>
+      <div class="field">
+        <label>¿Producto agropecuario / registrable en BMC?</label>
+        <div class="toggle-row">
+          <div class="toggle on" data-group="agro" data-val="si">Sí — agropecuario</div>
+          <div class="toggle" data-group="agro" data-val="no">No</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. FONDEADOR -->
+  <div class="card">
+    <h3><span class="n">2</span> Fondeador y estructura de costo</h3>
+    <div class="grid2">
+      <div class="field">
+        <label>Fondeador</label>
+        <select id="fondeador">
+          <option value="">Seleccionar...</option>
+          <option value="bmc_mq">BMC Miguel Quijano (bolsa)</option>
+          <option value="bmc_mb">BMC Mercado y Bolsa (bolsa)</option>
+          <option value="colte">Coltefinanciera (anual/365)</option>
+          <option value="iris">Irisbank (anual/365)</option>
+          <option value="integra">Integra (anual/365)</option>
+          <option value="cesion">Cesion Bank (mensual)</option>
+          <option value="servifin">Servifin (mensual)</option>
+          <option value="liquitech">Liquitech (mensual)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Valor Facial GTC (VF)</label>
+        <input type="number" id="vf" placeholder="Ej: 2999981712">
+      </div>
+    </div>
+
+    <!-- Campos dinámicos por tipo de fondeador -->
+    <div id="campos-bolsa" style="display:none">
+      <div class="grid2">
+        <div class="field">
+          <label>Tasa adjudicada BMC (% período)</label>
+          <input type="number" step="0.0001" id="tasa-bolsa" placeholder="Ej: 0.1247">
+        </div>
+        <div class="field">
+          <label>SCB — comisión bolsa (%)</label>
+          <input type="number" step="0.01" id="scb" placeholder="BMC Miguel Quijano: 0.4 / Mercado y Bolsa: 2.43">
+        </div>
+      </div>
+      <div class="hint">Liquidación por valor futuro: VP = VF / (1 + tasa). SCB causa IVA 19%.</div>
+    </div>
+
+    <div id="campos-anual" style="display:none">
+      <div class="grid3">
+        <div class="field">
+          <label>Tasa efectiva anual (%)</label>
+          <input type="number" step="0.01" id="tasa-anual" placeholder="Ej: 12">
+        </div>
+        <div class="field">
+          <label>Plazo (días)</label>
+          <input type="number" id="dias-anual" placeholder="Ej: 180">
+        </div>
+        <div class="field">
+          <label>Reserva fondeador (%)</label>
+          <input type="number" step="0.01" id="reserva-anual" placeholder="0 / 5 / etc">
+        </div>
+      </div>
+      <div class="hint">Intereses = VF × tasa anual × (días/365). Coltefinanciera además cobra costo fijo $14.700.</div>
+    </div>
+
+    <div id="campos-mensual" style="display:none">
+      <div class="grid3">
+        <div class="field">
+          <label>Tasa mensual (%)</label>
+          <input type="number" step="0.01" id="tasa-mensual" placeholder="Ej: 1.95">
+        </div>
+        <div class="field">
+          <label>Plazo (meses)</label>
+          <input type="number" step="0.1" id="meses" placeholder="Ej: 6">
+        </div>
+        <div class="field">
+          <label>Reserva fondeador (%)</label>
+          <input type="number" step="0.01" id="reserva-mensual" placeholder="Cesion 13.5 / Servifin 10 / Liquitech 10">
+        </div>
+      </div>
+      <div class="hint">Intereses = VF × tasa mensual × No. meses.</div>
+    </div>
+
+    <div class="field" style="margin-top:6px">
+      <label>Fecha de la operación (desembolso)</label>
+      <input type="date" id="fecha-emision">
+    </div>
+  </div>
+
+  <!-- 3. LIQUIDACIÓN GTC → CLIENTE -->
+  <div class="card">
+    <h3><span class="n">3</span> Liquidación GTC → Cliente</h3>
+    <div class="grid3">
+      <div class="field">
+        <label>Diferencial GTC (%)</label>
+        <input type="number" step="0.01" id="diferencial" placeholder="Ej: 4" value="4">
+      </div>
+      <div class="field">
+        <label>Plazo total operación (días, para vencimiento)</label>
+        <input type="number" id="plazo-total" placeholder="Ej: 180">
+      </div>
+      <div class="field">
+        <label>¿Quién asume GMF (4×1000)?</label>
+        <select id="gmf-cargo">
+          <option value="gtc">GTC</option>
+          <option value="cliente">Cliente</option>
+          <option value="ninguno">No aplica</option>
+        </select>
+      </div>
+    </div>
+    <div class="note">IVA y retefuente se calculan automáticamente: si el producto es agropecuario y se registra en bolsa, IVA 5% y retefuente 0% (Decreto 1555/2017). Si no, IVA 19% y retefuente 2,5% (ajustable si la firma comisionista negoció otra tarifa con el cliente).</div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="field">
+        <label>Retefuente cliente (%) — ajustar si aplica tarifa distinta</label>
+        <input type="number" step="0.01" id="retefuente-override" placeholder="Se autocompleta según agropecuario">
+      </div>
+      <div class="field">
+        <label>Estado de la operación</label>
+        <select id="estado-op">
+          <option value="ACTIVA">Activa</option>
+          <option value="CERRADA">Cerrada</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="card">
+    <h3><span class="n">✓</span> Resultado de la liquidación</h3>
+    <div class="resultbox" id="resultado"></div>
+  </div>
+
+  <div class="btn2row">
+    <button class="btn ghost" id="btn-limpiar">Limpiar formulario</button>
+    <button class="btn" id="btn-guardar">💾 Guardar y enviar al Agente Cartera</button>
+  </div>
+  <div class="savedmsg" id="saved-msg"></div>
+
+</div>
+
+<script>
+const STORAGE_KEY_CARTERA = 'gtc_cartera_operaciones';
+const STORAGE_KEY_LIQ = 'gtc_liquidaciones';
+
+const FONDEADORES = {
+  bmc_mq:   {tipo:'bolsa',   nombre:'BMC Miguel Quijano'},
+  bmc_mb:   {tipo:'bolsa',   nombre:'BMC Mercado y Bolsa'},
+  colte:    {tipo:'anual',   nombre:'Coltefinanciera', costoFijo:14700},
+  iris:     {tipo:'anual',   nombre:'Irisbank'},
+  integra:  {tipo:'anual',   nombre:'Integra'},
+  cesion:   {tipo:'mensual', nombre:'Cesion Bank'},
+  servifin: {tipo:'mensual', nombre:'Servifin'},
+  liquitech:{tipo:'mensual', nombre:'Liquitech'}
+};
+
+function $(id){ return document.getElementById(id); }
+function num(id){ return parseFloat($(id).value) || 0; }
+function fmt(n){ return '$ ' + Math.round(n).toLocaleString('es-CO'); }
+function pct(n){ return n.toFixed(2).replace('.', ',') + '%'; }
+
+let agro = 'si';
+document.querySelectorAll('.toggle[data-group="agro"]').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.toggle[data-group="agro"]').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    agro = t.dataset.val;
+    calcular();
+  });
+});
+
+let modo = 'pre';
+$('btn-pre').addEventListener('click', ()=>{ modo='pre'; $('btn-pre').classList.add('active'); $('btn-final').classList.remove('active'); });
+$('btn-final').addEventListener('click', ()=>{ modo='final'; $('btn-final').classList.add('active'); $('btn-pre').classList.remove('active'); });
+
+$('fondeador').addEventListener('change', () => {
+  const f = FONDEADORES[$('fondeador').value];
+  $('campos-bolsa').style.display = 'none';
+  $('campos-anual').style.display = 'none';
+  $('campos-mensual').style.display = 'none';
+  if(!f) return;
+  if(f.tipo === 'bolsa') $('campos-bolsa').style.display = 'block';
+  if(f.tipo === 'anual') $('campos-anual').style.display = 'block';
+  if(f.tipo === 'mensual') $('campos-mensual').style.display = 'block';
+  calcular();
+});
+
+// Autocompletar IVA/retefuente al cambiar agro
+function autoRetefuente(){
+  if($('retefuente-override').value !== '' && $('retefuente-override').dataset.touched === 'true') return;
+  $('retefuente-override').value = agro === 'si' ? 0 : 2.5;
+}
+
+document.querySelectorAll('input, select').forEach(el => {
+  el.addEventListener('input', () => {
+    if(el.id === 'retefuente-override') el.dataset.touched = 'true';
+    calcular();
+  });
+});
+
+function calcular(){
+  const f = FONDEADORES[$('fondeador').value];
+  const vf = num('vf');
+  autoRetefuente();
+
+  let costoFondeadorTotal = 0;
+  let giroFondeadorAGTC = 0;
+  let detalleFondeador = [];
+
+  if(f && f.tipo === 'bolsa'){
+    const tasa = num('tasa-bolsa') / 100;
+    const scbPct = num('scb') / 100;
+    const vp = tasa > 0 ? vf / (1 + tasa) : vf;
+    const descuento = vf - vp;
+    const scb = vf * scbPct;
+    const ivaScb = scb * 0.19;
+    costoFondeadorTotal = descuento + scb + ivaScb;
+    giroFondeadorAGTC = vf - costoFondeadorTotal;
+    detalleFondeador = [
+      ['Descuento por tasa (VF - VF/(1+tasa))', -descuento],
+      ['SCB comisionista de bolsa', -scb],
+      ['IVA sobre SCB (19%)', -ivaScb],
+    ];
+  } else if(f && f.tipo === 'anual'){
+    const tasa = num('tasa-anual') / 100;
+    const dias = num('dias-anual');
+    const reservaPct = num('reserva-anual') / 100;
+    const intereses = vf * tasa * (dias/365);
+    const costoFijo = f.costoFijo || 0;
+    const reserva = vf * reservaPct;
+    costoFondeadorTotal = intereses + costoFijo + reserva;
+    giroFondeadorAGTC = vf - intereses - costoFijo - reserva;
+    detalleFondeador = [
+      ['Intereses (VF × tasa anual × días/365)', -intereses],
+      costoFijo ? ['Costo fijo fondeador', -costoFijo] : null,
+      reserva ? ['Reserva fondeador ('+num('reserva-anual')+'%) — se libera al vencimiento', -reserva] : null,
+    ].filter(Boolean);
+  } else if(f && f.tipo === 'mensual'){
+    const tasa = num('tasa-mensual') / 100;
+    const meses = num('meses');
+    const reservaPct = num('reserva-mensual') / 100;
+    const intereses = vf * tasa * meses;
+    const reserva = vf * reservaPct;
+    costoFondeadorTotal = intereses + reserva;
+    giroFondeadorAGTC = vf - intereses - reserva;
+    detalleFondeador = [
+      ['Intereses (VF × tasa mensual × meses)', -intereses],
+      reserva ? ['Reserva fondeador ('+num('reserva-mensual')+'%) — se libera al vencimiento', -reserva] : null,
+    ].filter(Boolean);
+  }
+
+  const diferencialPct = num('diferencial') / 100;
+  const diferencialGTC = vf * diferencialPct;
+  const ivaPct = agro === 'si' ? 0.05 : 0.19;
+  const ivaDiferencial = diferencialGTC * ivaPct;
+  const retefuentePct = num('retefuente-override') / 100;
+  const retefuente = vf * retefuentePct;
+
+  const gmfCargo = $('gmf-cargo').value;
+  const gmf = gmfCargo === 'ninguno' ? 0 : giroFondeadorAGTC * 0.004;
+
+  // Neto GTC: lo que retiene GTC = diferencial - GMF (si lo asume GTC)
+  const netoGTC = diferencialGTC - (gmfCargo === 'gtc' ? gmf : 0);
+
+  // Giro final al cliente/proveedor = giro fondeador - diferencial - IVA(cargo cliente) - retefuente - GMF(si cargo cliente)
+  const giroCliente = giroFondeadorAGTC - diferencialGTC - ivaDiferencial - retefuente - (gmfCargo === 'cliente' ? gmf : 0);
+
+  // Render
+  let html = '';
+  if(f){
+    html += `<div class="rline"><span class="l">Valor Facial GTC</span><span class="v">${fmt(vf)}</span></div>`;
+    detalleFondeador.forEach(([l,v]) => {
+      html += `<div class="rline neg"><span class="l">${l}</span><span class="v">${fmt(v)}</span></div>`;
+    });
+    html += `<div class="rline total"><span class="l">Giro Fondeador → GTC</span><span class="v">${fmt(giroFondeadorAGTC)}</span></div>`;
+  }
+  html += `<div class="rline neg"><span class="l">Diferencial GTC (${$('diferencial').value||0}%)</span><span class="v">${fmt(-diferencialGTC)}</span></div>`;
+  html += `<div class="rline neg"><span class="l">IVA sobre diferencial (${(ivaPct*100).toFixed(0)}% — ${agro==='si'?'agropecuario':'no agropecuario'})</span><span class="v">${fmt(-ivaDiferencial)}</span></div>`;
+  if(retefuente > 0) html += `<div class="rline neg"><span class="l">Retefuente cliente (${$('retefuente-override').value||0}%)</span><span class="v">${fmt(-retefuente)}</span></div>`;
+  if(gmf > 0) html += `<div class="rline neg"><span class="l">GMF 4×1000 (cargo: ${gmfCargo==='gtc'?'GTC':'Cliente'})</span><span class="v">${fmt(-gmf)}</span></div>`;
+  html += `<div class="rline total"><span class="l">Giro final GTC → Cliente/Proveedor</span><span class="v">${fmt(giroCliente)}</span></div>`;
+  html += `<div class="rline total" style="border-top-color:var(--green-lite)"><span class="l" style="color:#7fd99a">Neto GTC (ingreso de la operación)</span><span class="v" style="color:#7fd99a">${fmt(netoGTC)}</span></div>`;
+
+  $('resultado').innerHTML = html || '<div class="note">Selecciona un fondeador y diligencia el Valor Facial para ver el cálculo.</div>';
+
+  return {vf, giroFondeadorAGTC, diferencialGTC, ivaDiferencial, retefuente, gmf, netoGTC, giroCliente, costoFondeadorTotal};
+}
+
+$('btn-limpiar').addEventListener('click', () => {
+  document.querySelectorAll('input').forEach(i => i.value = '');
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  $('campos-bolsa').style.display='none'; $('campos-anual').style.display='none'; $('campos-mensual').style.display='none';
+  $('resultado').innerHTML = '';
+  $('saved-msg').textContent = '';
+});
+
+$('btn-guardar').addEventListener('click', () => {
+  const cliente = $('cliente').value.trim();
+  const factura = $('factura').value.trim();
+  const fondeadorKey = $('fondeador').value;
+  const fechaEmision = $('fecha-emision').value;
+  const plazoTotal = num('plazo-total');
+  const msg = $('saved-msg');
+
+  if(!cliente || !fondeadorKey || !fechaEmision || !plazoTotal){
+    msg.style.color = '#e8807f';
+    msg.textContent = '⚠ Falta cliente, fondeador, fecha de operación o plazo total.';
+    return;
+  }
+
+  const calc = calcular();
+
+  // Calcular fecha de vencimiento = fecha emisión + plazo total días
+  const fEmision = new Date(fechaEmision + 'T00:00:00');
+  const fVenc = new Date(fEmision.getTime() + plazoTotal * 86400000);
+  const fechaVencimiento = fVenc.toISOString().slice(0,10);
+
+  // 1. Guardar detalle completo de la liquidación (histórico)
+  const liquidaciones = JSON.parse(localStorage.getItem(STORAGE_KEY_LIQ) || '[]');
+  liquidaciones.push({
+    id: Date.now(),
+    modo,
+    cliente, factura,
+    fondeador: FONDEADORES[fondeadorKey].nombre,
+    producto: $('producto').value.trim(),
+    agropecuario: agro,
+    vf: calc.vf,
+    fechaEmision, fechaVencimiento, plazoTotal,
+    giroFondeadorAGTC: calc.giroFondeadorAGTC,
+    diferencialGTC: calc.diferencialGTC,
+    ivaDiferencial: calc.ivaDiferencial,
+    retefuente: calc.retefuente,
+    gmf: calc.gmf,
+    netoGTC: calc.netoGTC,
+    giroCliente: calc.giroCliente,
+    estado: $('estado-op').value,
+    fechaRegistro: new Date().toISOString()
+  });
+  localStorage.setItem(STORAGE_KEY_LIQ, JSON.stringify(liquidaciones));
+
+  // 2. Enviar registro resumido al Agente Cartera (misma clave que ya usa)
+  const carteraOps = JSON.parse(localStorage.getItem(STORAGE_KEY_CARTERA) || '[]');
+  carteraOps.push({
+    id: Date.now() + 1,
+    cliente,
+    fondeador: FONDEADORES[fondeadorKey].nombre,
+    factura,
+    valorFacial: calc.vf,
+    fechaEmision,
+    fechaVencimiento,
+    estado: $('estado-op').value,
+    observaciones: modo === 'pre' ? 'Preliquidación' : 'Liquidación final'
+  });
+  localStorage.setItem(STORAGE_KEY_CARTERA, JSON.stringify(carteraOps));
+
+  msg.style.color = '#5fce85';
+  msg.textContent = `✓ Liquidación guardada y enviada al Agente Cartera (vencimiento: ${fVenc.toLocaleDateString('es-CO')}).`;
+});
+
+calcular();
+</script>
+</body>
+</html>
