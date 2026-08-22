@@ -53,6 +53,9 @@
   .semaf.warn{background:#C9A03033;color:#e8c15f}
   .semaf.crit{background:#B23B3B33;color:#e8807f}
   .semaf.venc{background:#B23B3B55;color:#ff9d9d}
+  .badgefecha{font-size:9.5px;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;margin-left:6px}
+  .badgefecha.estimada{background:#C9A03022;color:#e8c15f}
+  .badgefecha.confirmada{background:#1A5C2E33;color:#5fce85}
   .mono{font-variant-numeric:tabular-nums}
   .num{text-align:right}
   .dim{color:var(--txt-dim)}
@@ -88,6 +91,8 @@
     <div class="brand">AGENTE CARTERA</div>
     <div class="sub">Vencimientos en vivo · Global Trade Commerce S.A.S.</div>
   </div>
+  <div style="flex:1"></div>
+  <a href="index.html" style="color:var(--gold-lite);text-decoration:none;font-size:12px;border:1px solid var(--border);padding:7px 12px;border-radius:7px;white-space:nowrap">← Volver al Sistema GTC</a>
 </div>
 
 <div class="wrap">
@@ -106,6 +111,7 @@
       <div class="kpi ok"><div class="n" id="kpi-ok">0</div><div class="l">🟢 Más de 30 días</div></div>
       <div class="kpi warn"><div class="n" id="kpi-warn">0</div><div class="l">🟡 15–30 días</div></div>
       <div class="kpi crit"><div class="n" id="kpi-crit">0</div><div class="l">🔴 Críticas / Vencidas</div></div>
+      <div class="kpi total"><div class="n" id="kpi-total-filtrado" style="font-size:16px">$0</div><div class="l">Total valor facial (filtro actual)</div></div>
     </div>
 
     <div class="toolbar">
@@ -113,6 +119,7 @@
       <select id="f-estado" style="max-width:160px">
         <option value="">Todos los estados</option>
         <option value="ACTIVA">Activa</option>
+        <option value="POR_VERIFICAR">Por Verificar</option>
         <option value="CERRADA">Cerrada</option>
       </select>
       <select id="f-semaforo" style="max-width:180px">
@@ -122,6 +129,15 @@
         <option value="warn">🟡 Alerta (15-30 días)</option>
         <option value="ok">🟢 OK (&gt;30 días)</option>
       </select>
+      <select id="f-tipofecha" style="max-width:180px">
+        <option value="">Estimadas y confirmadas</option>
+        <option value="ESTIMADA">🟡 Solo estimadas (SIIGO)</option>
+        <option value="CONFIRMADA">🟢 Solo confirmadas</option>
+      </select>
+      <input type="date" id="f-desde" title="Emisión desde" style="max-width:150px">
+      <input type="date" id="f-hasta" title="Emisión hasta" style="max-width:150px">
+      <button class="btn ghost" id="btn-ultimo-mes" title="Filtrar por los últimos 30 días de emisión">Último mes</button>
+      <button class="btn ghost" id="btn-180" title="Filtrar por los últimos 180 días de emisión (plazo estándar GTC)">Últimos 180 días</button>
       <div class="spacer"></div>
       <button class="btn ghost" id="btn-exportar">⬇ Exportar JSON</button>
       <button class="btn" id="btn-nueva-top">+ Nueva operación</button>
@@ -197,6 +213,7 @@
           <label>Estado</label>
           <select id="n-estado">
             <option value="ACTIVA">Activa</option>
+            <option value="POR_VERIFICAR">Por Verificar</option>
             <option value="CERRADA">Cerrada</option>
           </select>
         </div>
@@ -305,6 +322,10 @@ function semaforo(dias){
   if(dias <= 30) return {cls:'warn', label:'🟡 Alerta'};
   return {cls:'ok', label:'🟢 OK'};
 }
+function tipoFechaBadge(tipo){
+  if(tipo === 'CONFIRMADA') return '<span class="badgefecha confirmada" title="Fecha confirmada con el fondeador">🟢 Confirmada</span>';
+  return '<span class="badgefecha estimada" title="Fecha estimada según plazo estándar (SIIGO) — puede cambiar cuando el fondeador negocie con el pagador">🟡 Estimada</span>';
+}
 function fmtMoney(n){
   n = Number(n)||0;
   return '$ ' + n.toLocaleString('es-CO');
@@ -322,6 +343,7 @@ function render(){
   const buscar = document.getElementById('f-buscar').value.toLowerCase().trim();
   const fEstado = document.getElementById('f-estado').value;
   const fSem = document.getElementById('f-semaforo').value;
+  const fTipoFecha = document.getElementById('f-tipofecha').value;
 
   let filtradas = ops.map(o => {
     const dias = diasAlVencimiento(o.fechaVencimiento);
@@ -338,6 +360,15 @@ function render(){
   }
   if(fEstado) filtradas = filtradas.filter(o => o.estado === fEstado);
   if(fSem) filtradas = filtradas.filter(o => o.sem.cls === fSem);
+  if(fTipoFecha) filtradas = filtradas.filter(o => (o.tipoFecha||'ESTIMADA') === fTipoFecha);
+
+  const fDesde = document.getElementById('f-desde').value;
+  const fHasta = document.getElementById('f-hasta').value;
+  if(fDesde) filtradas = filtradas.filter(o => o.fechaEmision && o.fechaEmision >= fDesde);
+  if(fHasta) filtradas = filtradas.filter(o => o.fechaEmision && o.fechaEmision <= fHasta);
+
+  const totalFiltrado = filtradas.reduce((sum, o) => sum + (Number(o.valorFacial)||0), 0);
+  document.getElementById('kpi-total-filtrado').textContent = fmtMoney(totalFiltrado);
 
   filtradas.sort((a,b) => a.dias - b.dias);
 
@@ -369,13 +400,36 @@ function render(){
       <td class="dim">${o.fondeador||'—'}</td>
       <td class="mono">${o.factura||'—'}</td>
       <td class="num mono">${fmtMoney(o.valorFacial)}</td>
-      <td class="mono">${fmtFecha(o.fechaVencimiento)}</td>
+      <td class="mono">${fmtFecha(o.fechaVencimiento)} ${tipoFechaBadge(o.tipoFecha)}</td>
       <td class="num mono">${o.dias}</td>
       <td><span class="semaf ${o.sem.cls}">${o.sem.label}</span></td>
-      <td class="dim">${o.estado==='CERRADA' ? 'Cerrada' : 'Activa'}</td>
-      <td><span class="rowaction" data-id="${o.id}">✕ eliminar</span></td>
+      <td class="dim">${o.estado==='CERRADA' ? 'Cerrada' : (o.estado==='POR_VERIFICAR' ? '🔎 Por Verificar' : 'Activa')}</td>
+      <td style="white-space:nowrap">
+        <span class="rowaction" data-editid="${o.id}">✎ editar fecha</span>
+        &nbsp;·&nbsp;
+        <span class="rowaction" data-id="${o.id}">✕ eliminar</span>
+      </td>
     `;
     tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-editid]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.editid;
+      const actuales = loadOps();
+      const op = actuales.find(o => String(o.id) === String(id));
+      if(!op) return;
+      const nuevaFecha = prompt(`Nueva fecha de vencimiento CONFIRMADA para ${op.cliente} (factura ${op.factura||'—'}):\nFormato: AAAA-MM-DD\nActual: ${op.fechaVencimiento}`, op.fechaVencimiento);
+      if(!nuevaFecha) return;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)){
+        alert('Formato de fecha inválido. Usa AAAA-MM-DD.');
+        return;
+      }
+      op.fechaVencimiento = nuevaFecha;
+      op.tipoFecha = 'CONFIRMADA';
+      saveOps(actuales);
+      render();
+    });
   });
 
   tbody.querySelectorAll('.rowaction').forEach(el => {
@@ -403,10 +457,21 @@ document.getElementById('btn-nueva-top').addEventListener('click', () => {
 });
 
 // Filtros
-['f-buscar','f-estado','f-semaforo'].forEach(id => {
+['f-buscar','f-estado','f-semaforo','f-tipofecha','f-desde','f-hasta'].forEach(id => {
   document.getElementById(id).addEventListener('input', render);
   document.getElementById(id).addEventListener('change', render);
 });
+
+function aplicarRangoDias(dias){
+  const hoy = new Date();
+  const desde = new Date();
+  desde.setDate(hoy.getDate() - dias);
+  document.getElementById('f-desde').value = desde.toISOString().slice(0,10);
+  document.getElementById('f-hasta').value = hoy.toISOString().slice(0,10);
+  render();
+}
+document.getElementById('btn-ultimo-mes').addEventListener('click', () => aplicarRangoDias(30));
+document.getElementById('btn-180').addEventListener('click', () => aplicarRangoDias(180));
 
 // Guardar nueva operación
 document.getElementById('btn-guardar').addEventListener('click', () => {
@@ -428,6 +493,7 @@ document.getElementById('btn-guardar').addEventListener('click', () => {
     valorFacial: parseFloat(document.getElementById('n-valor').value) || 0,
     fechaEmision: document.getElementById('n-emision').value,
     fechaVencimiento: vencimiento,
+    tipoFecha: 'ESTIMADA',
     estado: document.getElementById('n-estado').value,
     observaciones: document.getElementById('n-obs').value.trim()
   };
